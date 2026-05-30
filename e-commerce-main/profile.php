@@ -397,10 +397,72 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             border-radius: 14px;
             padding: 16px;
             margin-bottom: 14px;
-            transition: .2s;
+            transition: .2s ease, transform .2s ease;
         }
 
         .order-box:hover {
+            border-color: var(--mid);
+        }
+
+        .order-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .order-link:hover .order-box {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, .08);
+        }
+
+        .order-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .order-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .order-summary-left {
+            min-width: 0;
+        }
+
+        .order-summary-title {
+            font-size: .95rem;
+            font-weight: 700;
+            color: var(--deep);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .order-summary-meta {
+            font-size: .82rem;
+            color: #777;
+            margin-top: 6px;
+        }
+
+        .order-summary-right {
+            text-align: right;
+            min-width: 120px;
+        }
+
+        .order-total {
+            font-size: .95rem;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .order-link .order-box {
+            border-color: rgba(212, 212, 212, .7);
+        }
+
+        .order-link:hover .order-box {
             border-color: var(--mid);
         }
 
@@ -521,7 +583,6 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
         <div class="ms-auto d-flex gap-2 align-items-center">
             <?php if ($userRole !== 'admin'): ?>
                 <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
-                <a href="orders.php" class="btn btn-sm btn-outline-secondary rounded-pill">My Orders</a>
             <?php else: ?>
                 <a href="admin.php" class="btn btn-sm btn-dark rounded-pill">Admin Panel</a>
             <?php endif; ?>
@@ -618,106 +679,45 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                             <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill mt-2">Browse Products</a>
                         </div>
                     <?php else: ?>
-                        <?php foreach ($orders as $o): ?>
-                            <?php
-                            $oStatus  = $o->status ?? 'Pending';
-                            $stCls    = match (strtolower($oStatus)) {
-                                'delivered', 'completed' => 'st-delivered',
-                                'cancelled'             => 'st-cancelled',
-                                'shipped'               => 'st-shipped',
-                                'processing'            => 'st-processing',
-                                default                 => 'st-pending'
-                            };
-                            $oSub      = (float)($o->subtotal ?? 0);
-                            $oShip     = is_numeric($o->shipping ?? null) ? (float)$o->shipping : 150;
-                            $oTotal    = (float)($o->total ?? ($oSub + $oShip));
-                            // FIX: shipping info is stored as flat columns, not JSON
-                            $oShipAddr = implode(', ', array_filter([
-                                $o->address  ?? '',
-                                $o->city     ?? '',
-                                $o->province ?? '',
-                            ]));
-                            $oOrderId   = $o->order_id  ?? '—';
-                            $oDate      = $o->date      ?? '';   // FIX: column is 'date' not 'created_at'
-                            $oPayMethod = $o->pay_method ?? '';
-                            $oItems     = $o->items ?? [];       // FIX: loaded from order_items join above
-                            ?>
-                            <div class="order-box">
-
-                                <!-- Order Meta Grid -->
-                                <div class="row g-2 align-items-center mb-3">
-                                    <div class="col-6 col-md-3">
-                                        <small class="text-muted d-block" style="font-size:.7rem;">Order #</small>
-                                        <div class="fw-bold" style="font-size:.85rem;color:var(--deep);"><?= htmlspecialchars($oOrderId) ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <small class="text-muted d-block" style="font-size:.7rem;">Date &amp; Time</small>
-                                        <div class="fw-bold" style="font-size:.85rem;color:var(--deep);"><?= $oDate ? date('M d, Y h:i A', strtotime($oDate)) : 'N/A' ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <small class="text-muted d-block" style="font-size:.7rem;">Payment Method</small>
-                                        <div class="fw-bold" style="font-size:.85rem;color:var(--deep);"><?= htmlspecialchars($oPayMethod ?: 'N/A') ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3 text-md-end">
-                                        <small class="text-muted d-block" style="font-size:.7rem;">Status</small>
-                                        <span class="order-status <?= $stCls ?>"><?= htmlspecialchars($oStatus) ?></span>
-                                    </div>
-                                </div>
-
-                                <!-- Customer Details -->
-                                <div class="mb-3 p-3" style="background:var(--cream);border-radius:10px;">
-                                    <small class="d-block mb-1" style="font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">Customer Details</small>
-                                    <div class="fw-bold" style="color:var(--deep);"><?= htmlspecialchars($o->full_name ?? $user['name']) ?></div>
-                                    <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars($oShipAddr ?: 'No Address Provided') ?></div>
-                                    <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars($o->phone ?? $o->contact_number ?? 'No Contact Number') ?></div>
-                                </div>
-
-                                <!-- Products Ordered -->
-                                <h6 class="fw-bold mb-2" style="color:var(--green);font-size:.8rem;letter-spacing:1px;text-transform:uppercase;">
-                                    Products Ordered
-                                </h6>
-                                <div style="border:2px solid var(--sage);border-radius:12px;overflow:hidden;margin-bottom:12px;">
-                                    <?php foreach ($oItems as $oi):
-                                        $oiName  = $oi->product_name ?? '?';
-                                        $oiQty   = (int)($oi->qty   ?? 1);
-                                        $oiPrice = (float)($oi->price ?? 0);
-                                        $oiLine  = $oiPrice * $oiQty;
-                                    ?>
-                                    <div class="d-flex align-items-center gap-2 px-3 py-2" style="border-bottom:1px solid var(--sage);">
-                                        <div style="flex:1;min-width:0;">
-                                            <div style="font-size:.88rem;font-weight:700;color:var(--deep);"><?= htmlspecialchars($oiName) ?></div>
-                                            <div style="font-size:.76rem;color:#999;">₱<?= number_format($oiPrice, 2) ?> × <?= $oiQty ?></div>
+                        <div class="order-list">
+                            <?php foreach ($orders as $o): ?>
+                                <?php
+                                $oStatus  = $o->status ?? 'Pending';
+                                $stCls    = match (strtolower($oStatus)) {
+                                    'delivered', 'completed' => 'st-delivered',
+                                    'cancelled'              => 'st-cancelled',
+                                    'shipped'                => 'st-shipped',
+                                    'processing'             => 'st-processing',
+                                    default                  => 'st-pending'
+                                };
+                                $oSub      = (float)($o->subtotal ?? 0);
+                                $oShip     = is_numeric($o->shipping ?? null) ? (float)$o->shipping : 150;
+                                $oTotal    = (float)($o->total ?? ($oSub + $oShip));
+                                $oOrderId  = $o->order_id  ?? '—';
+                                $oDate     = $o->date      ?? '';
+                                $itemCount = count($o->items ?? []);
+                                ?>
+                                <a href="order.php?order_id=<?= urlencode($oOrderId) ?>&return=profile" class="order-link" aria-label="View order <?= htmlspecialchars($oOrderId) ?>">
+                                    <div class="order-box">
+                                        <div class="order-summary">
+                                            <div class="order-summary-left">
+                                                <div class="order-summary-title">Order #<?= htmlspecialchars($oOrderId) ?></div>
+                                                <div class="order-summary-meta">
+                                                    <?= $oDate ? date('M d, Y · h:i A', strtotime($oDate)) : 'No date' ?> · <?= $itemCount ?> item<?= $itemCount === 1 ? '' : 's' ?>
+                                                </div>
+                                            </div>
+                                            <div class="order-summary-right">
+                                                <div class="order-total">₱<?= number_format($oTotal, 2) ?></div>
+                                                <span class="order-status <?= $stCls ?>" style="margin-top:6px;display:inline-block;">
+                                                    <?= htmlspecialchars($oStatus) ?>
+                                                </span>
+                                            </div>
                                         </div>
-                                        <span style="font-weight:700;color:var(--green);font-size:.88rem;white-space:nowrap;">₱<?= number_format($oiLine, 2) ?></span>
                                     </div>
-                                    <?php endforeach; ?>
-                                </div>
-
-                                <!-- Totals -->
-                                <div style="background:var(--cream);border-radius:12px;padding:12px 16px;margin-bottom:12px;">
-                                    <div class="d-flex justify-content-between" style="font-size:.8rem;color:#888;padding:2px 0;">
-                                        <span>Subtotal</span><span>₱<?= number_format($oSub, 2) ?></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between" style="font-size:.8rem;color:#888;padding:2px 0;">
-                                        <span><i class="fas fa-truck me-1"></i>Shipping</span><span>₱<?= number_format($oShip, 2) ?></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between fw-bold" style="font-size:.9rem;color:var(--green);border-top:2px solid var(--sage);padding-top:8px;margin-top:6px;">
-                                        <span>Total Paid</span><span>₱<?= number_format($oTotal, 2) ?></span>
-                                    </div>
-                                </div>
-
-                                <!-- View Order Link -->
-                                <div class="text-end">
-                                    <a href="order.php?order_id=<?= urlencode($oOrderId) ?>" class="btn btn-sm btn-outline-success rounded-pill" style="font-size:.76rem;">
-                                        <i class="fas fa-eye me-1"></i>View Order Details
-                                    </a>
-                                </div>
-
-                            </div>
+                                </a>
                             <?php endforeach; ?>
-                        <?php endif; ?>
-                            </div>
-
+                        </div>
+                    <?php endif; ?>
                 </div>
         </div>
 

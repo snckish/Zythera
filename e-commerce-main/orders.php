@@ -24,6 +24,9 @@ if (!$dbUser) {
     exit;
 }
 
+header('Location: profile.php');
+exit;
+
 $reviewErrors = [];
 $reviewSuccess = '';
 

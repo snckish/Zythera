@@ -24,6 +24,9 @@ if (!$dbUser) {
     exit;
 }
 
+header('Location: profile.php');
+exit;
+
 // FIX: Load orders then attach items from order_items table
 $orders = [];
 $oStmt  = $db->prepare("SELECT * FROM orders WHERE email = ? ORDER BY date DESC");

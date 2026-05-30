@@ -563,7 +563,6 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
         <div class="ms-auto d-flex gap-2 align-items-center">
             <?php if ($userRole !== 'admin'): ?>
                 <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
-                <a href="orders.php" class="btn btn-sm btn-outline-secondary rounded-pill">My Orders</a>
             <?php else: ?>
                 <a href="admin.php" class="btn btn-sm btn-dark rounded-pill">Admin Panel</a>
             <?php endif; ?>
@@ -664,11 +663,6 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
                         </a>
                         <a href="website.php" class="btn btn-outline-secondary rounded-pill" style="padding:.75rem 1.4rem;font-weight:600;">
                             <i class="fas fa-plus me-1"></i>Add More
-                        </a>
-                    </div>
-                    <div class="mt-2" style="text-align:center;">
-                        <a href="orders.php" style="font-size:.8rem;color:var(--mid);text-decoration:none;font-weight:600;">
-                            <i class="fas fa-receipt me-1"></i>View Order Tracking →
                         </a>
                     </div>
                 </div>
