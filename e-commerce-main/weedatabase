@@ -200,8 +200,8 @@ CREATE TABLE IF NOT EXISTS messages (
 
 -- SEED ADMIN ACCOUNTS (PASSWORD: 123456qw)
 INSERT INTO users (email, name, password, role) VALUES 
-('zythera@gmail.com', 'Zythera Admin', '$2y$10$wE706Xo61K.5jE2r98YfEexfHhCWh0S/kYI0b21pAnYvG82m3H68C', 'admin'),
-('admin@gmail.com', 'System Admin', '$2y$10$wE706Xo61K.5jE2r98YfEexfHhCWh0S/kYI0b21pAnYvG82m3H68C', 'admin')
+('zythera@gmail.com', 'Zythera Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin'),
+('admin@gmail.com', 'System Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin')
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),
     password = VALUES(password),
@@ -220,6 +220,21 @@ CREATE TABLE IF NOT EXISTS inventory (
     category VARCHAR(50) DEFAULT 'Sofa',
     image VARCHAR(255) DEFAULT ''
 ) ENGINE=InnoDB;
+INSERT INTO inventory (name, size, color, price, description, stock, category, image) VALUES
+-- INVENTORY TABLE
+CREATE TABLE IF NOT EXISTS inventory (
+    inv_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    size VARCHAR(100) DEFAULT '',
+    color VARCHAR(100) DEFAULT '',
+    price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    description TEXT DEFAULT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    category VARCHAR(50) DEFAULT 'Sofa',
+    image VARCHAR(255) DEFAULT ''
+) ENGINE=InnoDB;
+
+
 INSERT INTO inventory (name, size, color, price, description, stock, category, image) VALUES
 
 -- Image 1: Blue accent chair with gold legs
@@ -245,22 +260,22 @@ INSERT INTO inventory (name, size, color, price, description, stock, category, i
 -- Image 5: Taupe/beige tufted sofa with black legs
 ('Classic Tufted Sofa', 'L200 x W90 x H85 cm', 'Taupe, Black', 18499.00, 
 'Sleek channel-tufted sofa in taupe velvet fabric with slim tapered black legs and matching cushions.', 
-12, 'Sofa', 'pci/download__4_.jpeg'),
+12, 'Sofa', 'pci/download_(4).jpeg'),
 
 -- Image 6: Beige/taupe dining chairs with light wood legs
 ('Taupe Dining Chairs', 'L62 x W58 x H86 cm', 'Taupe, Light Oak', 8499.00, 
 'Mid-century modern dining chairs with taupe faux leather upholstery and light wood tapered legs.', 
-14, 'Chair', 'pci/download__2_.jpeg'),
+14, 'Chair', 'pci/download_(2).jpeg'),
 
 -- Image 7: White modern plastic armchair with metal legs
 ('Modern White Armchair', 'L65 x W60 x H78 cm', 'White, Gray', 5999.00, 
 'Contemporary molded plastic armchair with open back design and brushed metal legs.', 
-18, 'Chair', 'pci/image_2.png'),
+18, 'Chair', 'pci/image 2.png'),
 
 -- Image 8: Light gray L-shaped sofa with marble coffee table
 ('Light Gray Sectional Sofa', 'L250 x W160 x H90 cm', 'Light Gray, Dark Metal', 27499.00, 
 'Minimalist L-shaped sofa with plush light gray upholstery paired with a marble-top coffee table.', 
-5, 'Sofa', 'pci/download__5_.jpeg'),
+5, 'Sofa', 'pci/download_(5).jpeg'),
 
 -- Image 9: Same as Image 3 - Beige upholstered dining chairs (duplicate)
 ('Classic Dining Chair Set', 'L58 x W52 x H88 cm', 'Beige, Walnut', 9499.00, 
@@ -270,5 +285,4 @@ INSERT INTO inventory (name, size, color, price, description, stock, category, i
 -- Image 10: Gray office/living sofa set with black metal frames
 ('Gray Metal Frame Sofa Set', 'L220 x W80 x H85 cm', 'Gray, Black', 24999.00, 
 'Industrial-style living room sofa set with gray cushions, black metal frames, and matching armchairs and coffee table.', 
-9, 'Sofa', 'pci/images__3_.jpeg');
-
+9, 'Sofa', 'pci/images(3).jpeg');
