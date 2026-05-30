@@ -508,8 +508,11 @@ usort($inventory, function ($a, $b) {
       <div class="collapse navbar-collapse" id="navMenu">
         <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
           <a href="#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
-          <a href="#about" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
+          <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
+          <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
           <?php if ($userEmail): ?>
+
+
 
             <div class="d-flex align-items-center bg-light rounded-pill px-3 py-1 border shadow-sm gap-2">
               <div class="text-end d-none d-md-block">
@@ -779,7 +782,7 @@ usort($inventory, function ($a, $b) {
 
 
   <!-- CONTACT -->
-  <section class="section" id="about">
+  <section class="section" id="contact">
     <div class="container">
       <h2 class="section-title text-center">Get in Touch</h2>
       <div class="row g-4">
@@ -795,7 +798,7 @@ usort($inventory, function ($a, $b) {
               <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($contactError) ?>
             </div>
             <?php endif; ?>
-            <form method="POST" action="website.php#about">
+            <form method="POST" action="website.php#contact">
               <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
               <div class="input-box"><input type="email" name="c_email" placeholder=" " value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>" required><label>Email Address</label></div>
               <div class="input-box"><input type="text" name="c_subject" placeholder=" " value="<?= htmlspecialchars($_POST['c_subject'] ?? '') ?>"><label>Subject</label></div>
