@@ -500,7 +500,7 @@ usort($inventory, function ($a, $b) {
   <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="website.php">ZYTHERAE</a>
+      <a class="navbar-brand fw-bold" href="website.php">ZYTHERA</a>
 
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
