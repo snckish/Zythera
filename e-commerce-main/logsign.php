@@ -380,6 +380,19 @@ body{
 .btn-submit.admin{background:#111827;color:#fff;}
 .btn-submit:hover{opacity:.88;transform:translateY(-1px);}
 
+/* ── Password eye toggle ── */
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:44px;}
+.pw-eye{
+  position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;
+  color:#999;font-size:1rem;padding:4px;line-height:1;
+  transition:color .2s;
+}
+.pw-eye:hover{color:var(--green);}
+body.dark .pw-eye{color:rgba(200,230,200,.5);}
+body.dark .pw-eye:hover{color:#a8d4a8;}
+
 /* ── Toast ── */
 .toast{
   position:fixed;top:72px;right:20px;
@@ -416,42 +429,66 @@ body{
 .brand-name { letter-spacing: 3px; }
 
 /* ── Dark mode ── */
-body.dark{background:linear-gradient(135deg,#2d5a2d 0%,#3d7a3d 50%,#2a552a 100%);}
-body.dark .top-bar{background:rgba(45,90,45,.85);border-bottom:1px solid rgba(255,255,255,.1);}
-body.dark .top-btn{color:#e8f5e8;}
-body.dark .top-btn:hover{background:rgba(255,255,255,.15);}
-body.dark .card{
-  background:rgba(255,255,255,.12);
-  backdrop-filter:blur(24px);
-  box-shadow:0 16px 48px rgba(0,0,0,.25);
-  border:1px solid rgba(255,255,255,.2);
+body.dark{background:#1c3a1c;}
+body.dark .top-bar{
+  background:rgba(15,28,15,.9);
+  border-bottom:1px solid rgba(255,255,255,.07);
 }
-body.dark .brand{color:#fff;}
-body.dark .tagline{color:rgba(255,255,255,.7);}
-body.dark .tabs{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.15);}
-body.dark .tabs button{color:rgba(255,255,255,.8);}
-body.dark .tabs button.active{background:var(--deep);color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.3);}
+body.dark .top-btn{color:#c8dfc8;}
+body.dark .top-btn:hover{background:rgba(255,255,255,.1);}
+body.dark .card{
+  background:#22402200;
+  background:rgba(20,40,20,.72);
+  backdrop-filter:blur(28px);
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.09);
+}
+body.dark .brand{color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.3);}
+body.dark .tagline{color:rgba(210,235,210,.65);}
+body.dark .tabs{
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.1);
+}
+body.dark .tabs button{color:rgba(220,240,220,.75);}
+body.dark .tabs button.active{
+  background:#2d5a2d;
+  color:#fff;
+  box-shadow:0 3px 14px rgba(0,0,0,.4);
+}
 body.dark .field input,
-body.dark .field select{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.2);}
-body.dark .field input::placeholder{color:rgba(255,255,255,.4);}
+body.dark .field select{
+  background:rgba(255,255,255,.1);
+  color:#e8f5e8;
+  border:2px solid rgba(255,255,255,.12);
+}
+body.dark .field input::placeholder{color:rgba(255,255,255,.3);}
 body.dark .field input:focus,
-body.dark .field select:focus{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.5);}
-body.dark .field label{color:rgba(255,255,255,.6);}
+body.dark .field select:focus{
+  background:rgba(255,255,255,.16);
+  border-color:rgba(180,220,180,.5);
+}
+body.dark .field label{color:rgba(200,230,200,.55);}
 body.dark .field input:focus~label,
-body.dark .field input:not(:placeholder-shown)~label{color:#d4e4d4;}
-body.dark .field select~label{color:#d4e4d4;}
-body.dark .footer-brand{color:rgba(255,255,255,.85);opacity:1;}
-body.dark .footer-logo{filter:brightness(0) invert(1);}
-body.dark .btn-submit.user{background:var(--deep);color:#fff;}
-body.dark .btn-submit.admin{background:#111827;color:#fff;}
+body.dark .field input:not(:placeholder-shown)~label{color:#a8d4a8;}
+body.dark .field select~label{color:#a8d4a8;}
+body.dark .footer-brand{color:rgba(200,230,200,.7);opacity:1;}
+body.dark .footer-logo{filter:brightness(0) invert(1) opacity(.7);}
+body.dark .btn-submit.user{
+  background:#2d5a2d;
+  color:#fff;
+  box-shadow:0 4px 16px rgba(0,0,0,.35);
+}
+body.dark .btn-submit.user:hover{background:#1a3a1a;}
+body.dark .btn-submit.admin{background:#0f1f0f;color:#fff;}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
 <!-- TOP BAR -->
 <div class="top-bar">
   <a href="website.php" class="top-btn">Back to Home</a>
-  <button class="top-btn" onclick="document.body.classList.toggle('dark')">Dark Mode</button>
+  <button class="top-btn" id="darkToggle" onclick="toggleDark()">Dark Mode</button>
 </div>
 
 <!-- Session timer progress bar -->
@@ -485,9 +522,12 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
       <label>Email Address</label>
     </div>
 
-    <div class="field">
-      <input type="password" name="password" placeholder=" " required autocomplete="current-password">
+    <div class="field pw-wrap">
+      <input type="password" name="password" id="loginPw" placeholder=" " required autocomplete="current-password">
       <label>Password</label>
+      <button type="button" class="pw-eye" onclick="togglePw('loginPw',this)" tabindex="-1" aria-label="Toggle password visibility">
+        <i class="fas fa-eye"></i>
+      </button>
     </div>
 
     <button type="submit" name="login" class="btn-submit user" id="loginBtn">Login</button>
@@ -506,9 +546,12 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
       <label>Email Address</label>
     </div>
 
-    <div class="field">
-      <input type="password" name="password" placeholder=" " required autocomplete="new-password" minlength="6">
+    <div class="field pw-wrap">
+      <input type="password" name="password" id="signupPw" placeholder=" " required autocomplete="new-password" minlength="6">
       <label>Password (min 6 chars)</label>
+      <button type="button" class="pw-eye" onclick="togglePw('signupPw',this)" tabindex="-1" aria-label="Toggle password visibility">
+        <i class="fas fa-eye"></i>
+      </button>
     </div>
 
     <button type="submit" name="signup" class="btn-submit user" id="signupBtn">
@@ -522,7 +565,28 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
 </div>
 
 <script>
-// ── Tab switching ─────────────────────────────────────────────
+function togglePw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon  = btn.querySelector('i');
+  const show  = input.type === 'password';
+  input.type  = show ? 'text' : 'password';
+  icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+
+// ── Dark mode toggle with persistence ────────────────────────
+function toggleDark() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('zythera_dark', isDark ? '1' : '0');
+  document.getElementById('darkToggle').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+}
+// Apply on load
+(function() {
+  if (localStorage.getItem('zythera_dark') === '1') {
+    document.body.classList.add('dark');
+    const btn = document.getElementById('darkToggle');
+    if (btn) btn.textContent = 'Light Mode';
+  }
+})();
 function switchTab(tab) {
   document.getElementById('loginTab').classList.toggle('active',  tab==='login');
   document.getElementById('signupTab').classList.toggle('active', tab==='signup');
