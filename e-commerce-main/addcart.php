@@ -71,10 +71,7 @@ if (!$found) {
 saveCart($userEmail, $cart);
 $_SESSION['cart'][$userEmail] = $cart;
 
-$totalItemsCount = 0;
-foreach ($cart as $item) {
-    $totalItemsCount += (int)($item['qty'] ?? 1);
-}
+$totalItemsCount = count($cart);
 
 echo json_encode([
     'success'     => true,

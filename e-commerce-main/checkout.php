@@ -52,6 +52,19 @@ $errors      = [];
 $orderPlaced = false;
 $placedOrderInfo = [];
 
+// ── Allowed locations (used for validation and datalists) ──────
+$provinces = [
+  'Metro Manila','Cavite','Laguna','Batangas','Bulacan','Pampanga','Rizal',
+  'Quezon','Nueva Ecija','Cebu','Davao del Sur','Iloilo','Bohol','Pangasinan'
+];
+
+$cities = [
+  'Manila','Quezon City','Makati','Pasig','Taguig','Parañaque','Caloocan','Las Piñas',
+  'Cavite City','Bacoor','Imus','Santa Rosa','San Pedro','Biñan','Calamba','Batangas City',
+  'Malolos','San Fernando','Angeles','Antipolo','Lucena','Tuguegarao','Cebu City','Mandaue',
+  'Davao City','Iloilo City','Bacolod','Tagbilaran','Dagupan'
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName    = trim($_POST['full_name']    ?? '');
     $phone       = trim($_POST['phone']        ?? '');
@@ -69,6 +82,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$province)  $errors[] = 'Province is required.';
     if (!$zip)       $errors[] = 'ZIP Code is required.';
     if (!$payMethod) $errors[] = 'Please select a payment method.';
+
+    // Additional validation: ensure city/province are from allowed lists
+    if ($province && !in_array($province, $provinces, true)) {
+      $errors[] = 'Please select a valid province from the list.';
+    }
+    if ($city && !in_array($city, $cities, true)) {
+      $errors[] = 'Please select a valid city from the list.';
+    }
+
+    // Phone: digits only, 10-11 characters (Philippine numbers)
+    if ($phone && !preg_match('/^[0-9]{10,11}$/', $phone)) {
+      $errors[] = 'Phone number must be 10 or 11 digits (numbers only).';
+    }
+
+    // ZIP: 4 digits
+    if ($zip && !preg_match('/^[0-9]{4}$/', $zip)) {
+      $errors[] = 'ZIP Code must be 4 digits.';
+    }
+
+    // Full name basic sanity check
+    if ($fullName && !preg_match('/^[\p{L} .\'-]{2,100}$/u', $fullName)) {
+      $errors[] = 'Full name appears invalid.';
+    }
+
+    // Payment method whitelist
+    $allowedPay = ['Cash on Delivery (COD)','GCash','Bank Transfer','Maya'];
+    if ($payMethod && !in_array($payMethod, $allowedPay, true)) {
+      $errors[] = 'Invalid payment method.';
+    }
 
     if (empty($errors)) {
         try {
@@ -209,6 +251,11 @@ body{background:var(--cream);min-height:100vh;padding-top:70px;}
   font-family:'DM Sans',sans-serif;font-size:.92rem;
   color:var(--deep);transition:.2s;appearance:none;
 }
+
+.field input.is-invalid,.field select.is-invalid,.field textarea.is-invalid{
+  border-color:#dc3545;background:#fff !important;
+}
+.live-error{color:#dc3545;font-size:.78rem;margin-top:6px;display:none;padding-left:6px}
 .field textarea{min-height:80px;resize:none;padding-top:20px;}
 .field input:focus,.field select:focus,.field textarea:focus{
   border-color:var(--green);background:#fff;
@@ -331,16 +378,18 @@ footer .footer-brand{
         <h5><i class="fas fa-map-marker-alt me-2" style="color:var(--green);"></i>Delivery Details</h5>
 
         <div class="field">
-          <input type="text" name="full_name"
+          <input type="text" id="full_name" name="full_name"
             value="<?= htmlspecialchars($_POST['full_name'] ?? $userName) ?>"
             placeholder=" " required>
           <label>Full Name *</label>
+          <div id="fullNameError" class="live-error">&nbsp;</div>
         </div>
 
         <div class="field">
           <input type="tel" name="phone" placeholder=" " required
             value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>">
           <label>Phone Number *</label>
+          <div id="phoneError" class="live-error">&nbsp;</div>
         </div>
 
         <div class="field">
@@ -352,14 +401,14 @@ footer .footer-brand{
         <div class="row g-2">
           <div class="col-6">
             <div class="field">
-              <input type="text" name="city" placeholder=" " required
+              <input list="cityList" id="city" name="city" placeholder=" " required
                 value="<?= htmlspecialchars($_POST['city'] ?? '') ?>">
               <label>City / Municipality *</label>
             </div>
           </div>
           <div class="col-6">
             <div class="field">
-              <input type="text" name="province" placeholder=" " required
+              <input list="provinceList" id="province" name="province" placeholder=" " required
                 value="<?= htmlspecialchars($_POST['province'] ?? '') ?>">
               <label>Province *</label>
             </div>
@@ -369,9 +418,10 @@ footer .footer-brand{
         <div class="row g-2">
           <div class="col-6">
             <div class="field">
-              <input type="text" name="zip" placeholder=" " required maxlength="4"
+              <input type="text" id="zip" name="zip" placeholder=" " required maxlength="4"
                 value="<?= htmlspecialchars($_POST['zip'] ?? '') ?>">
               <label>ZIP Code *</label>
+              <div id="zipError" class="live-error">&nbsp;</div>
             </div>
           </div>
           <div class="col-6">
@@ -386,6 +436,17 @@ footer .footer-brand{
           <textarea name="notes" placeholder=" "><?= htmlspecialchars($_POST['notes'] ?? '') ?></textarea>
           <label>Delivery Notes (optional)</label>
         </div>
+        <!-- Datalists for searchable city/province selection -->
+        <datalist id="cityList">
+          <?php foreach ($cities as $_c): ?>
+            <option value="<?= htmlspecialchars($_c) ?>"></option>
+          <?php endforeach; ?>
+        </datalist>
+        <datalist id="provinceList">
+          <?php foreach ($provinces as $_p): ?>
+            <option value="<?= htmlspecialchars($_p) ?>"></option>
+          <?php endforeach; ?>
+        </datalist>
       </div>
 
       <!-- Payment Method -->
@@ -511,9 +572,93 @@ document.querySelectorAll('.pay-option input[type=radio]').forEach(radio => {
   });
 });
 
-// Prevent double-submit
-document.getElementById('checkoutForm')?.addEventListener('submit', function() {
+// Live validation for full name, phone and ZIP (inline feedback while typing)
+(function(){
+  const phoneInput = document.querySelector('input[name=phone]');
+  const phoneError = document.getElementById('phoneError');
+  const fullInput = document.getElementById('full_name');
+  const fullError = document.getElementById('fullNameError');
+  const zipInput = document.getElementById('zip');
+  const zipError = document.getElementById('zipError');
+
+  // Full name live validation
+  if (fullInput && fullError) {
+    fullInput.addEventListener('input', function(){
+      const v = (this.value || '').trim();
+      if (v === '') {
+        fullError.style.display = 'none'; this.classList.remove('is-invalid'); return;
+      }
+      if (!/^[\p{L} .'\-]*$/u.test(v)) {
+        fullError.textContent = 'Invalid characters in name.';
+        fullError.style.display = 'block'; this.classList.add('is-invalid'); return;
+      }
+      if (v.length < 2) {
+        fullError.textContent = 'Full name is too short.';
+        fullError.style.display = 'block'; this.classList.add('is-invalid'); return;
+      }
+      if (v.length > 100) {
+        fullError.textContent = 'Full name is too long.';
+        fullError.style.display = 'block'; this.classList.add('is-invalid'); return;
+      }
+      fullError.style.display = 'none'; this.classList.remove('is-invalid');
+    });
+  }
+
+  // Phone live validation
+  if (phoneInput && phoneError) {
+    phoneInput.addEventListener('input', function(){
+      const v = (this.value || '').trim();
+      if (v === '') { phoneError.style.display = 'none'; this.classList.remove('is-invalid'); return; }
+      if (!/^[0-9]*$/.test(v)) { phoneError.textContent = 'Only digits are allowed.'; phoneError.style.display = 'block'; this.classList.add('is-invalid'); return; }
+      if (v.length > 11) { phoneError.textContent = 'Phone number cannot exceed 11 digits.'; phoneError.style.display = 'block'; this.classList.add('is-invalid'); return; }
+      if (v.length < 10) { phoneError.textContent = 'Phone number is too short (10–11 digits).'; phoneError.style.display = 'block'; this.classList.add('is-invalid'); return; }
+      phoneError.style.display = 'none'; this.classList.remove('is-invalid');
+    });
+  }
+
+  // ZIP live validation
+  if (zipInput && zipError) {
+    zipInput.addEventListener('input', function(){
+      const v = (this.value || '').trim();
+      if (v === '') { zipError.style.display = 'none'; this.classList.remove('is-invalid'); return; }
+      if (!/^[0-9]*$/.test(v)) { zipError.textContent = 'Only digits allowed.'; zipError.style.display = 'block'; this.classList.add('is-invalid'); return; }
+      if (v.length > 4) { zipError.textContent = 'ZIP cannot exceed 4 digits.'; zipError.style.display = 'block'; this.classList.add('is-invalid'); return; }
+      if (v.length < 4) { zipError.textContent = 'ZIP must be 4 digits.'; zipError.style.display = 'block'; this.classList.add('is-invalid'); return; }
+      zipError.style.display = 'none'; this.classList.remove('is-invalid');
+    });
+  }
+})();
+
+// Prevent double-submit and perform client-side validation
+document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
   const btn = this.querySelector('.btn-place');
+  const errors = [];
+
+  const cityVal = (document.getElementById('city')?.value || '').trim();
+  const provinceVal = (document.getElementById('province')?.value || '').trim();
+  const phoneVal = (this.querySelector('input[name=phone]')?.value || '').trim();
+  const zipVal = (this.querySelector('input[name=zip]')?.value || '').trim();
+
+  // Helper to check datalist option existence
+  function datalistHas(listId, val) {
+    if (!val) return false;
+    const opts = document.querySelectorAll('#' + listId + ' option');
+    return Array.from(opts).some(o => o.value.toLowerCase() === val.toLowerCase());
+  }
+
+  if (!datalistHas('cityList', cityVal)) errors.push('Please select a valid city from the list.');
+  if (!datalistHas('provinceList', provinceVal)) errors.push('Please select a valid province from the list.');
+
+  if (!/^[0-9]{10,11}$/.test(phoneVal)) errors.push('Phone number must be 10 or 11 digits (numbers only).');
+  if (!/^[0-9]{4}$/.test(zipVal)) errors.push('ZIP Code must be 4 digits.');
+
+  if (errors.length) {
+    e.preventDefault();
+    if (btn) btn.disabled = false;
+    alert(errors.join('\n'));
+    return false;
+  }
+
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Placing Order...';

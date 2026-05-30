@@ -259,6 +259,87 @@ function saveOrderToDB(string $email, array $order): void {
     }
 }
 
+// ── REVIEW TABLE ────────────────────────────────────────────
+function createReviewsTableIfNotExists(): void {
+    try {
+        $db = getDBConnection();
+        $db->exec("CREATE TABLE IF NOT EXISTS reviews (
+            review_id INT NOT NULL AUTO_INCREMENT,
+            ord_no INT NOT NULL,
+            order_id VARCHAR(50) NOT NULL,
+            email VARCHAR(191) NOT NULL,
+            rating TINYINT NOT NULL DEFAULT 5,
+            comment TEXT NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (review_id),
+            UNIQUE KEY unique_order_review (order_id),
+            KEY email (email),
+            CONSTRAINT reviews_ibfk_1 FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (PDOException $e) {
+        die("createReviewsTableIfNotExists ERROR: " . $e->getMessage());
+    }
+}
+
+function loadReviewForOrder(string $orderId): ?object {
+    try {
+        createReviewsTableIfNotExists();
+        $db = getDBConnection();
+        $stmt = $db->prepare("SELECT r.*, u.name AS author_name, u.profile_pic AS author_pic
+            FROM reviews r
+            LEFT JOIN users u ON u.email = r.email
+            WHERE r.order_id = ?
+            LIMIT 1");
+        $stmt->execute([$orderId]);
+        return $stmt->fetch() ?: null;
+    } catch (PDOException $e) {
+        die("loadReviewForOrder ERROR: " . $e->getMessage());
+    }
+}
+
+function saveReviewForOrder(string $email, string $orderId, int $rating, string $comment): void {
+    try {
+        createReviewsTableIfNotExists();
+        $db = getDBConnection();
+        $stmt = $db->prepare("SELECT ord_no FROM orders WHERE order_id = ? AND email = ? LIMIT 1");
+        $stmt->execute([$orderId, $email]);
+        $order = $stmt->fetch();
+        if (!$order) {
+            throw new PDOException('Order not found.');
+        }
+
+        $insert = $db->prepare("INSERT INTO reviews (ord_no, order_id, email, rating, comment)
+            VALUES (?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment), created_at = NOW()");
+        $insert->execute([
+            (int)$order->ord_no,
+            $orderId,
+            $email,
+            max(1, min(5, $rating)),
+            $comment,
+        ]);
+    } catch (PDOException $e) {
+        die("saveReviewForOrder ERROR: " . $e->getMessage());
+    }
+}
+
+function loadReviews(int $limit = 8): array {
+    try {
+        createReviewsTableIfNotExists();
+        $db = getDBConnection();
+        $stmt = $db->prepare("SELECT r.*, u.name AS author_name, u.profile_pic AS author_pic
+            FROM reviews r
+            LEFT JOIN users u ON u.email = r.email
+            ORDER BY r.created_at DESC
+            LIMIT ?");
+        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        die("loadReviews ERROR: " . $e->getMessage());
+    }
+}
+
 // ── LOAD ORDERS ───────────────────────────────────────────────
 function loadOrders(): array {
     try {
@@ -277,6 +358,7 @@ function loadOrders(): array {
             ");
             $itemStmt->execute([$order->ord_no]);
             $order->items = $itemStmt->fetchAll();
+            $order->review = loadReviewForOrder($order->order_id);
         }
         return $orders;
     } catch (PDOException $e) {
@@ -304,6 +386,7 @@ function loadUserOrders(string $email): array {
             ");
             $itemStmt->execute([$order->ord_no]);
             $order->items = $itemStmt->fetchAll();
+            $order->review = loadReviewForOrder($order->order_id);
         }
         return $orders;
     } catch (PDOException $e) {

@@ -303,8 +303,8 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
             <!-- ── REAL TEAM PHOTO ── -->
             <div class="col-12">
               <div class="team-photo-card">
-                <img src="team.jpeg" alt="The ZYTHERA Team">
-                <div class="team-caption>
+                <img src="../team.jpeg" alt="The ZYTHERA Team">
+                <div class="team-caption">
                   <h6>The ZYTHERA Team</h6>
                   <small>Design, sourcing, and customer experience — all under one roof.</small>
                 </div>

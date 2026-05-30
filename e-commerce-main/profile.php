@@ -430,32 +430,6 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
 
     <div class="section-card">
         <div class="section-title">
-            <i class="fas fa-cart-shopping" style="color:var(--dark--green);"></i>
-            My Cart
-            <span id="cartBadge" class="badge rounded-pill ms-1"
-                  style="background:var(--green);color:#fff;font-size:.7rem;padding:4px 9px;">
-                <?= $cartTotalQty ?>
-            </span>
-        </div>
-        <div id="cartBody"></div>
-        <div id="cartTotals" class="totals-box" style="<?= empty($cart) ? 'display:none;' : '' ?>"></div>
-        <div id="cartActions" class="d-flex gap-2 mt-3 flex-wrap" style="<?= empty($cart) ? 'display:none!important;' : '' ?>">
-            <a href="checkout.php" class="btn-green btn flex-fill" style="text-align:center;padding:.75rem;">
-                Proceed to Checkout
-            </a>
-            <a href="website.php" class="btn btn-outline-secondary rounded-pill" style="padding:.75rem 1.4rem;font-weight:600;">
-                <i class="fas fa-plus me-1"></i>Add More
-            </a>
-        </div>
-        <div class="mt-2" style="text-align:center;">
-            <a href="orders.php" style="font-size:.8rem;color:var(--mid);text-decoration:none;font-weight:600;">
-                <i class="fas fa-receipt me-1"></i>View Order Tracking →
-            </a>
-        </div>
-    </div>
-
-    <div class="section-card">
-        <div class="section-title">
             <i class="fas fa-receipt" style="color:var(--dark--green);"></i>
             Order History
             <span class="badge rounded-pill ms-1"

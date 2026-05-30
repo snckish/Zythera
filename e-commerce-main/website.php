@@ -35,20 +35,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
                 VALUES (?, ?, ?, ?)
             ");
             $ins->execute([$cName, $cEmail, $cSubject, $cMsg]);
-            $contactSuccess = true;
+      // If request is AJAX, return JSON so client can clear only the message field
+      $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+      if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit;
+      }
+      // Non-AJAX fallback: PRG so the form clears and the message isn't re-submitted
+      header('Location: website.php?contact_sent=1#contact');
+      exit;
         } catch (PDOException $e) {
-            $contactError = 'Could not send message. Please try again.';
+      $contactError = 'Could not send message. Please try again.';
+      $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+      if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => $contactError]);
+        exit;
+      }
         }
     } else {
-        $contactError = 'Please fill in your name, email, and message.';
+    $contactError = 'Please fill in your name, email, and message.';
+    $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    if ($isAjax) {
+      header('Content-Type: application/json');
+      echo json_encode(['success' => false, 'error' => $contactError]);
+      exit;
+    }
     }
 }
 
+// If redirected after successful send, show success message
+if (!empty($_GET['contact_sent'])) {
+  $contactSuccess = true;
+}
+
 $cartCount = 0;
-if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
-  foreach ($_SESSION['cart'][$userEmail] as $item) {
-    $cartCount += is_array($item) ? (int)($item['qty'] ?? 1) : 1;
-  }
+if ($userEmail && !empty($_SESSION['cart'][$userEmail]) && is_array($_SESSION['cart'][$userEmail])) {
+  $cartCount = count($_SESSION['cart'][$userEmail]);
 }
 
 // FIX: Fetch the inventory array directly from the database using your loadInventory() function
@@ -65,6 +89,8 @@ usort($inventory, function ($a, $b) {
   $ib = is_object($b) ? (int)$b->inv_id : (int)($b['inv_id'] ?? 0);
   return $ia <=> $ib;
 });
+
+$reviews = loadReviews();
 ?>
 
 <!DOCTYPE html>
@@ -659,97 +685,53 @@ usort($inventory, function ($a, $b) {
       </button>
 
       <div class="review-scroll-track" id="reviewTrack">
-
-        <!-- Card 1 -->
-        <div class="review-item">
-          <div class="review-header">
-            <img src="https://i.pravatar.cc/80?img=1" class="avatar" alt="Angela Cruz">
-            <div>
-              <div style="font-weight:700;color:#fff;font-size:.9rem;">Angela Cruz</div>
-              <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+        <?php if (!empty($reviews)): ?>
+          <?php foreach ($reviews as $review): ?>
+            <?php $stars = str_repeat('★', max(1, min(5, (int)($review->rating ?? 5)))); ?>
+            <div class="review-item">
+              <div class="review-header">
+                <img src="<?= !empty($review->author_pic) ? htmlspecialchars($review->author_pic) : 'https://i.pravatar.cc/80?img=' . rand(1, 70) ?>" class="avatar" alt="<?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>">
+                <div>
+                  <div style="font-weight:700;color:#fff;font-size:.9rem;">
+                    <?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>
+                  </div>
+                  <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+                </div>
+              </div>
+              <div class="stars mb-2" style="color:#f5c842;"><?= $stars ?></div>
+              <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
+                <?= nl2br(htmlspecialchars($review->comment)) ?>
+              </p>
             </div>
-          </div>
-          <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
-          <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-            The sofa exceeded my expectations. Very comfortable, elegant, and perfect for our living room.
-          </p>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="review-item">
-          <div class="review-header">
-            <img src="https://i.pravatar.cc/80?img=5" class="avatar" alt="Michael Reyes">
-            <div>
-              <div style="font-weight:700;color:#fff;font-size:.9rem;">Michael Reyes</div>
-              <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <div class="review-item">
+            <div class="review-header">
+              <img src="https://i.pravatar.cc/80?img=13" class="avatar" alt="Verified Buyer">
+              <div>
+                <div style="font-weight:700;color:#fff;font-size:.9rem;">Verified Buyer</div>
+                <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+              </div>
             </div>
+            <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
+            <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
+              The sofa exceeded my expectations. Very comfortable, elegant, and perfect for our living room.
+            </p>
           </div>
-          <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
-          <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-            Excellent quality and very fast delivery. The furniture looks premium and modern.
-          </p>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="review-item">
-          <div class="review-header">
-            <img src="https://i.pravatar.cc/80?img=8" class="avatar" alt="Sophia Lim">
-            <div>
-              <div style="font-weight:700;color:#fff;font-size:.9rem;">Sophia Lim</div>
-              <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+          <div class="review-item">
+            <div class="review-header">
+              <img src="https://i.pravatar.cc/80?img=25" class="avatar" alt="Verified Buyer">
+              <div>
+                <div style="font-weight:700;color:#fff;font-size:.9rem;">Verified Buyer</div>
+                <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+              </div>
             </div>
+            <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
+            <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
+              Excellent quality and very fast delivery. The furniture looks premium and modern.
+            </p>
           </div>
-          <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
-          <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-            Very durable materials and beautiful finish. Definitely worth the purchase.
-          </p>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="review-item">
-          <div class="review-header">
-            <img src="https://i.pravatar.cc/80?img=12" class="avatar" alt="Daniel Garcia">
-            <div>
-              <div style="font-weight:700;color:#fff;font-size:.9rem;">Daniel Garcia</div>
-              <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
-            </div>
-          </div>
-          <div class="stars mb-2" style="color:#f5c842;">★★★★☆</div>
-          <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-            Smooth transaction and secure packaging. Customer support was very responsive.
-          </p>
-        </div>
-
-        <!-- Card 5 -->
-        <div class="review-item">
-          <div class="review-header">
-            <img src="https://i.pravatar.cc/80?img=15" class="avatar" alt="Patricia Santos">
-            <div>
-              <div style="font-weight:700;color:#fff;font-size:.9rem;">Patricia Santos</div>
-              <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
-            </div>
-          </div>
-          <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
-          <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-            The design looks luxurious and matches our interior perfectly. Love it!
-          </p>
-        </div>
-
-        <!-- Card 6 -->
-        <div class="review-item">
-          <div class="review-header">
-            <img src="https://i.pravatar.cc/80?img=20" class="avatar" alt="Ramon Torres">
-            <div>
-              <div style="font-weight:700;color:#fff;font-size:.9rem;">Ramon Torres</div>
-              <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
-            </div>
-          </div>
-          <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
-          <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-            Built to last and beautifully crafted. The whole family loves the new set!
-          </p>
-        </div>
-
+        <?php endif; ?>
       </div>
 
       <!-- Right arrow -->
@@ -780,6 +762,67 @@ usort($inventory, function ($a, $b) {
   })();
 </script>
 
+<script>
+  // Contact form functionality that needs the DOM to be ready first
+  window.addEventListener('DOMContentLoaded', function() {
+    // If server-rendered success alert exists (PRG path), fade and remove it after a short delay
+    (function(){
+      const alert = document.getElementById('contactSuccessAlert');
+      if (!alert) return;
+      // start fading after 1 second, then remove after the transition
+      setTimeout(() => {
+        alert.style.opacity = '0';
+        setTimeout(() => { if (alert.parentNode) alert.parentNode.removeChild(alert); }, 400);
+      }, 1000);
+    })();
+
+    // AJAX submit for contact form: clears only the message textarea and shows a toast
+    (function(){
+      const form = document.getElementById('contactForm');
+      const toast = document.getElementById('contactToast');
+      if (!form || !toast) return;
+
+      function showToast(msg, isError) {
+        toast.textContent = msg;
+        toast.classList.toggle('error', !!isError);
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3500);
+      }
+
+      form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        const btn = this.querySelector('button[type=submit]');
+        if (btn) { btn.disabled = true; }
+
+        const data = new FormData(this);
+        if (!data.has('send_message')) data.append('send_message', '1');
+
+        try {
+          const res = await fetch('website.php', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: data
+          });
+          const json = await res.json();
+          if (json && json.success) {
+            const ta = form.querySelector('textarea[name=c_message]');
+            const subject = form.querySelector('input[name=c_subject]');
+            if (ta) ta.value = '';
+            if (subject) subject.value = '';
+            showToast("Message sent! We'll get back to you soon.", false);
+          } else {
+            showToast(json.error || 'Could not send message. Please try again.', true);
+          }
+        } catch (err) {
+          showToast('Network error. Please try again later.', true);
+        } finally {
+          if (btn) { btn.disabled = false; }
+        }
+      });
+    })();
+  });
+</script>
+
 
   <!-- CONTACT -->
   <section class="section" id="contact">
@@ -790,21 +833,19 @@ usort($inventory, function ($a, $b) {
           <div class="contact-card">
             <h5 class="fw-bold mb-4" style="font-family:'Playfair Display',serif;color:var(--green);">Message Us</h5>
             <?php if ($contactSuccess): ?>
-            <div style="background:#dcfce7;color:#166534;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
-              <i class="fas fa-check-circle me-2"></i>Message sent! We'll get back to you soon.
-            </div>
             <?php elseif ($contactError): ?>
             <div style="background:#fee2e2;color:#b91c1c;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
               <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($contactError) ?>
             </div>
             <?php endif; ?>
-            <form method="POST" action="website.php#contact">
+            <form id="contactForm" method="POST" action="website.php#contact">
               <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
               <div class="input-box"><input type="email" name="c_email" placeholder=" " value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>" required><label>Email Address</label></div>
               <div class="input-box"><input type="text" name="c_subject" placeholder=" " value="<?= htmlspecialchars($_POST['c_subject'] ?? '') ?>"><label>Subject</label></div>
               <div class="input-box"><textarea name="c_message" placeholder=" " required><?= htmlspecialchars($_POST['c_message'] ?? '') ?></textarea><label>Your Message</label></div>
               <button type="submit" name="send_message" class="btn w-100 fw-bold text-white rounded-pill py-2" style="background:var(--green);">Send Message</button>
             </form>
+            <div id="contactToast" class="toast-fixed" aria-live="polite" aria-atomic="true"></div>
           </div>
         </div>
         <div class="col-md-6">
@@ -956,9 +997,6 @@ usort($inventory, function ($a, $b) {
       <a href="checkout.php" style="display:block;background:var(--green);color:#fff;text-align:center;padding:14px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;transition:.2s;">
         Checkout Now
       </a>
-      <a href="profile.php" style="display:block;text-align:center;margin-top:10px;color:#7aab7a;font-size:.8rem;text-decoration:none;">
-        View full cart in My Profile →
-      </a>
     </div>
   </div>
   <div id="cartBackdrop" onclick="closeCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;backdrop-filter:blur(2px);"></div>
@@ -1017,7 +1055,7 @@ usort($inventory, function ($a, $b) {
       const subEl     = document.getElementById('cartSubtotal');
       const countEl   = document.getElementById('cartItemCount');
 
-      let subtotal = 0, totalQty = 0;
+      let subtotal = 0, totalQty = 0, distinctCount = cartItemsJS.length;
 
       if (cartItemsJS.length === 0) {
         container.innerHTML = `
@@ -1092,10 +1130,10 @@ usort($inventory, function ($a, $b) {
       if (subEl)  subEl.textContent = '₱' + subtotal.toLocaleString('en-PH');
       if (footer) footer.style.display = 'block';
       if (countEl) {
-        countEl.textContent = totalQty === 1 ? '1 item in cart' : totalQty + ' items in cart';
+        countEl.textContent = distinctCount === 1 ? '1 item in cart' : distinctCount + ' items in cart';
       }
       const badge = document.getElementById('cart-badge');
-      if (badge) { badge.textContent = totalQty; badge.style.display = totalQty > 0 ? '' : 'none'; }
+      if (badge) { badge.textContent = distinctCount; badge.style.display = distinctCount > 0 ? '' : 'none'; }
     }
 
     // ── Qty stepper in cart sidebar (calls profile.php POST via fetch) ──
