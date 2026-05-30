@@ -52,7 +52,7 @@ $errors      = [];
 $orderPlaced = false;
 $placedOrderInfo = [];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName    = trim($_POST['full_name']    ?? '');
     $phone       = trim($_POST['phone']        ?? '');
     $address     = trim($_POST['address']      ?? '');
@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                 'shipping_info' => $orderData['shipping_info'],
             ];
 
-            header('Location: orders.php?order_placed=1&order_id=' . urlencode($orderId));
+            header('Location: order.php?order_placed=1&order_id=' . urlencode($orderId));
             exit;
 
         } catch (Exception $e) {
@@ -320,6 +320,7 @@ footer .footer-brand{
   <?php endif; ?>
 
   <form method="POST" id="checkoutForm">
+    <input type="hidden" name="place_order" value="1">
   <div class="row g-4">
 
     <!-- LEFT: Delivery + Payment -->
