@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log In / Sign Up</title>
+
+<style>
+:root{
+  --cream:#f5f2ec;
+  --light:#d4e4d4;
+  --mid:#7aab7a;
+  --dark:#2d5a2d;
+  --deep:#1a2e1a;
+}
+
+body.dark{
+  --cream:#1a2e1a;
+  --light:#2d5a2d;
+  --mid:#7aab7a;
+  --dark:#d4e4d4;
+  --deep:#f5f2ec;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI;}
+
+body{
+  height:100vh;
+  background:linear-gradient(135deg,var(--cream),var(--mid));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.container{
+  width:100%;
+  max-width:700px; /* bigger form */
+  max-width:900px; /* wider */
+  min-height:520px; /* taller to remove empty feel */
+  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,0.18);
+  border-radius:20px;
+  padding:60px 70px; /* more breathing space */
+  box-shadow:0 10px 40px rgba(0,0,0,0.25);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+h2{
+  text-align:center;
+  margin-bottom:30px;
+  color:var(--deep);
+  font-size:30px; /* bigger title */
+}
+
+/* BIGGER TABS */
+.tabs{
+  display:flex;
+  margin-bottom:25px;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.tabs button{
+  flex:1;
+  padding:18px;
+  font-size:18px; /* bigger tab text */
+  font-weight:bold;
+  border:none;
+  cursor:pointer;
+  background:var(--light);
+  color:var(--deep);
+  transition:0.3s;
+}
+
+.tabs .active{
+  background:var(--dark);
+  color:white;
+}
+
+.form{display:none}
+.form.active{display:block}
+
+.input-group{
+  position:relative;
+  margin-bottom:18px;
+}
+
+.input-group input{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:10px;
+  outline:none;
+  font-size:16px; /* bigger input text */
+}
+
+.input-group label{
+  position:absolute;
+  left:14px;
+  top:16px;
+  font-size:13px; /* bigger label */
+  color:#777;
+  transition:0.3s;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label{
+  top:-8px;
+  font-size:10px;
+  color:var(--dark);
+}
+
+.extra{
+  display:flex;
+  justify-content:space-between;
+  font-size:14px; /* bigger small text */
+  margin-bottom:15px;
+}
+
+button.submit{
+  padding:16px;
+  border:none;
+  border-radius:10px;
+  background:var(--dark);
+  color:white;
+  width:100%;
+  font-weight:bold;
+  font-size:17px; /* bigger button text */
+}
+
+.toggle{
+  position:absolute;
+  top:20px;
+  right:20px;
+  cursor:pointer;
+}
+
+.toggle-group{
+  position:absolute;
+  top:20px;
+  right:20px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.top-bar{
+  position:absolute;
+  top:20px;
+  right:20px;
+  display:flex;
+  flex-direction:column;   /* 👈 vertical stack */
+  gap:10px;
+  align-items:flex-end;
+}
+
+/* shared button style */
+.home-btn,
+.dark-wrapper{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  background:rgba(255, 255, 255, 0.25);
+  padding:10px 14px;
+  border-radius:30px;
+  color:var(--deep);
+  overflow:hidden;
+  width:44px;
+  transition:0.4s ease;
+  white-space:nowrap;
+  cursor:pointer;
+}
+
+/* icon */
+.home-btn .icon,
+.dark-wrapper .icon{
+  font-size:18px;
+}
+
+/* hidden text */
+.home-btn .text,
+.dark-wrapper .text{
+  opacity:0;
+  transform:translateX(-10px);
+  transition:0.3s ease;
+}
+
+/* hover expand */
+.home-btn:hover,
+.dark-wrapper:hover{
+  width:170px;
+  background:rgba(255,255,255,0.45);
+}
+
+.home-btn:hover .text,
+.dark-wrapper:hover .text{
+  opacity:1;
+  transform:translateX(0);
+}
+
+.footer-brand {
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  position: relative;
+  bottom: 0;
+}
+
+.footer-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.brand-name {
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--deep);
+}
+</style>
+</head>
+
+<body>
+<div class="top-bar">
+  <a href="website.html" class="home-btn">
+    <span class="text">Back to Home</span>
+  </a>
+
+  <div class="dark-wrapper" onclick="toggleMode()">
+    <span class="icon">🌓</span>
+    <span class="text">Dark Mode</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <h2>Welcome!</h2>
+
+  <div class="tabs">
+    <button id="loginTab" class="active">Login</button>
+    <button id="signupTab">Sign Up</button>
+  </div>
+
+  <!-- LOGIN -->
+  <form id="loginForm" class="form active" method="POST">
+    <div class="input-group">
+      <input type="email" name="email" required placeholder=" ">
+      <label>Email</label>
+    </div>
+
+    <div class="input-group">
+      <input type="password" name="password" required placeholder=" ">
+      <label>Password</label>
+    </div>
+
+    <div class="extra">
+      <label><input type="checkbox"> Remember me</label>
+      <a href="#">Forgot?</a>
+    </div>
+
+    <button class="submit">Login</button>
+  </form>
+
+  <!-- SIGNUP -->
+  <form id="signupForm" class="form" method="POST">
+    <div class="input-group">
+      <input type="text" name="name" required placeholder=" ">
+      <label>Full Name</label>
+    </div>
+
+    <div class="input-group">
+      <input type="email" name="email" required placeholder=" ">
+      <label>Email</label>
+    </div>
+
+    <div class="input-group">
+      <input type="password" name="password" required placeholder=" ">
+      <label>Password</label>
+    </div>
+
+    <button class="submit">Sign Up</button>
+  </form>
+
+  <!-- 🔥 FOOTER INSIDE CARD (CENTER BOTTOM) -->
+  <div class="footer-brand">
+    <img src="/Applications/XAMPP/xamppfiles/htdocs/php_work/e-commerce/pci/Group 15.svg"
+         alt="ZAFIRAH Logo"
+         class="footer-logo">
+
+    <span class="brand-name">ZAFIRAH</span>
+  </div>
+
+</div>
+<script>
+const loginTab=document.getElementById('loginTab');
+const signupTab=document.getElementById('signupTab');
+const loginForm=document.getElementById('loginForm');
+const signupForm=document.getElementById('signupForm');
+
+loginTab.onclick=()=>{
+  loginTab.classList.add('active');
+  signupTab.classList.remove('active');
+  loginForm.classList.add('active');
+  signupForm.classList.remove('active');
+}
+
+signupTab.onclick=()=>{
+  signupTab.class.add('active');
+  loginTab.classList.remove('active');
+  signupForm.classList.add('active');
+  loginForm.classList.remove('active');
+}
+
+function toggleMode(){
+  document.body.classList.toggle('dark');
+}
+</script>
+
+</body>
+</html>

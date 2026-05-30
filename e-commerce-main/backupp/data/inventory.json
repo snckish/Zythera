@@ -1,0 +1,74 @@
+[
+    {
+        "id": 1,
+        "name": "Cloud Sofa",
+        "size": "210cm x 90cm",
+        "color": "Beige, Gray",
+        "price": 12999,
+        "description": "Soft cushioning designed for everyday comfort and relaxation. Made with premium fabric and high-density foam.",
+        "stock": 12,
+        "category": "Sofa",
+        "image": "pci\/image_3.png",
+        "saved_at": "May 05, 2026 09:57 PM"
+    },
+    {
+        "id": 2,
+        "name": "Modern Sofa",
+        "size": "210cm x 90cm",
+        "color": "Tan, White",
+        "price": 11599,
+        "description": "Minimalist sofa with a clean and functional design. Perfect for study areas or modern living rooms.",
+        "stock": 14,
+        "category": "Sofa",
+        "image": "pci\/download_(6).jpeg",
+        "saved_at": "May 05, 2026 09:57 PM"
+    },
+    {
+        "id": 3,
+        "name": "Modern Chair",
+        "size": "70cm x 85cm",
+        "color": "Cream",
+        "price": 6299,
+        "description": "Minimalist chair with a clean and functional design. Ergonomic back support for long hours of seating.",
+        "stock": 20,
+        "category": "Chair",
+        "image": "pci\/download_(1).jpeg",
+        "saved_at": "May 05, 2026 09:57 PM"
+    },
+    {
+        "id": 4,
+        "name": "Accent Chair",
+        "size": "70cm x 85cm",
+        "color": "White Bouncle",
+        "price": 7299,
+        "description": "Elegant seating piece that adds style to any room. Featuring high-quality upholstery and sturdy wooden legs.",
+        "stock": 15,
+        "category": "Chair",
+        "image": "pci\/BUNKOR00195433_3_Supersize.jpg",
+        "saved_at": "May 05, 2026 09:58 PM"
+    },
+    {
+        "id": 5,
+        "name": "Living Room Set",
+        "size": "3-Seater + 2-Seater + Table",
+        "color": "Ivory White",
+        "price": 25499,
+        "description": "Complete set designed for a balanced and modern living space. Solid wood frame with premium leather cushions.",
+        "stock": 10,
+        "category": "Set",
+        "image": "pci\/download_(3).jpeg",
+        "saved_at": "May 05, 2026 09:59 PM"
+    },
+    {
+        "id": 6,
+        "name": "Luxury Set",
+        "size": "5-Piece Modular Set",
+        "color": "Dark Wood \/ Brown",
+        "price": 30999,
+        "description": "Premium furniture collection with elegant finishing and comfort. The ultimate choice for a sophisticated home.",
+        "stock": 8,
+        "category": "Set",
+        "image": "pci\/images_(5).jpeg",
+        "saved_at": "May 05, 2026 10:00 PM"
+    }
+]

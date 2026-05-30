@@ -1,0 +1,572 @@
+/* COLORS */
+:root {
+  --cream: #f5f2ec;
+  --sage: #d4e4d4;
+  --green: #7aab7a;
+  --deep-green: #2d5a2d;
+  --dark: #1a2e1a;
+  --accent: #c97b63;
+}
+
+/* BASE */
+body {
+  background: var(--cream);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  color: var(--dark);
+}
+
+section {
+  padding: 40px 20px;
+}
+
+/* Smooth cards */
+.card-soft {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+/* LAYOUT */
+.container-custom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.section {
+  padding: 60px 0;
+}
+
+/* NAV WRAPPER */
+.navbar-custom {
+  background: var(--cream);
+  padding: 15px 0;
+}
+
+.navbar-inner {
+  width: 100%;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* RIGHT SIDE */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.navbar-custom {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: #fff; /* important so content doesn't overlap */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* BRAND */
+.brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--deep-green);
+  letter-spacing: 8px;
+  margin-left: -10px; /* adjust value */
+}
+
+
+/* LINKS */
+.nav-link {
+  text-decoration: none;
+  color: var(--dark);
+  font-size: 14px;
+  position: relative;
+}
+
+/* ARROW */
+.arrow {
+  display: inline-block;
+  transform: rotate(90deg);
+  margin-left: 4px;
+}
+
+/* DROPDOWN WRAPPER */
+.dropdown {
+  position: relative;
+}
+
+/* DROPDOWN MENU */
+.dropdown-menu-custom {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  min-width: 160px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  padding: 10px 0;
+  display: none;
+  flex-direction: column;
+  z-index: 999;
+}
+
+/* DROPDOWN ITEMS */
+.dropdown-menu-custom a {
+  padding: 10px 15px;
+  text-decoration: none;
+  color: var(--dark);
+  font-size: 13px;
+  display: block;
+}
+
+/* HOVER EFFECT */
+.dropdown-menu-custom a:hover {
+  background: var(--sage);
+}
+
+/* SHOW ON HOVER */
+.dropdown:hover .dropdown-menu-custom {
+  display: flex;
+}
+
+/* CART */
+.cart-icon {
+  font-size: 18px;
+  cursor: pointer;
+}
+
+
+.login-btn{
+
+  color:var(--dark);
+  padding:8px 16px;
+  border-radius:8px;
+  transition:0.3s;
+}
+
+/* HERO CONTAINER */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 650px; /* Maaari mong palitan ito ng 100vh kung gusto mong full screen */
+  overflow: hidden;
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* OVERLAY LAYER */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;       /* Inilalagay ang text sa baba (Bottom) */
+  justify-content: flex-start; /* Inilalagay ang text sa kaliwa (Left) */
+  padding-left: 80px;          /* Spacing mula sa kaliwang gilid */
+  padding-bottom: 100px;       /* Spacing mula sa ilalim para hindi dikit sa edge */
+  background: rgba(0, 0, 0, 0.1); /* Optional: Bahagyang dilim para mas lutang ang puting text */
+}
+
+/* TEXT STYLING (GLASSMORPHISM) */
+.hero-text {
+  max-width: 450px;
+  font-family: 'Playfair Display', serif; /* Font para sa luxury feel */
+  font-size: 20px;
+  font-style: italic;           /* Bagay para sa mga quotes */
+  line-height: 1.8;
+  color: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  
+  /* Glass Effect */
+  background: rgba(255, 255, 255, 0.12); 
+  backdrop-filter: blur(15px);  /* Mas malinaw na frosted glass effect */
+  -webkit-backdrop-filter: blur(15px); /* Support para sa Safari */
+  
+  /* Accent Border */
+  border-left: 5px solid var(--); 
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+/* IMAGE BANNER (2 CARDS) */
+.image-card-banner {
+  height: 220px;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.image-card-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.image-card-banner:hover img {
+  transform: scale(1.05);
+}
+
+/* OVERLAY */
+.card-overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 16px;
+  color: white;
+  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+}
+
+/* PRODUCTS */
+.product-card {
+  border-radius: 18px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.product-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.product-info {
+  padding: 12px;
+}
+
+.product-info .desc {
+  font-size: 12px;
+  opacity: 0.7;
+  display: block;
+  margin-top: 4px;
+}
+
+/* REVIEW */
+.review-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 20px;
+  max-height: 250px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* SCROLL AREA */
+.review-content {
+  max-height: 210px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* CUSTOM SCROLLBAR */
+.review-content::-webkit-scrollbar {
+  width: 6px;
+}
+.review-content::-webkit-scrollbar-thumb {
+  background: var(--green);
+  border-radius: 10px;
+}
+
+/* ITEM */
+.review-item {
+  background: var(--sage);
+  border-radius: 15px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+}
+
+/* HEADER */
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+/* AVATAR */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* STARS */
+.stars {
+  color: #f4b400;
+  font-size: 14px;
+}
+
+/* TEXT */
+.review-item p {
+  font-size: 14px;
+  margin: 0;
+  color: #555;
+}
+
+.scroll-track {
+  width: 6px;
+  height: 100%;
+  background: #eee;
+  border-radius: 10px;
+  position: relative;
+}
+
+.scroll-thumb {
+  width: 100%;
+  height: 40px;
+  background: var(--accent);
+  border-radius: 10px;
+  position: absolute;
+  top: 0;
+  transition: top 0.2s ease;
+}
+
+/* FORM */
+.form-card {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  max-width: 630px;
+  margin: auto;
+}
+
+.form-field {
+  height: 90px;
+  background: var(--sage);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.btn-custom {
+  width: 140px;
+  height: 40px;
+  border-radius: 20px;
+  background: var(--deep-green);
+  color: white;
+  border: none;
+}
+
+.form-fieldd {
+  height: 200px;
+  background: var(--sage);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.form-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+  /* Product Info Improvements */
+.product-info h6 {
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: var(--deep-green);
+}
+
+.product-info .price {
+  font-weight: 800;
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.btn-see-more {
+  background: none;
+  border: none;
+  color: var(--deep-green);
+  font-size: 11px;
+  font-weight: bold;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.btn-add-cart {
+  background-color: var(--deep-green);
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.btn-add-cart:hover {
+  background-color: var(--dark);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.input-group-text {
+  background-color: var(--sage);
+  border: none;
+  font-size: 12px;
+}
+
+.form-control:focus {
+  border-color: var(--green);
+  box-shadow: none;
+}
+
+.cat-filter button {
+  border: none;
+  padding: 8px 16px;
+  margin: 5px;
+  background: #eee;
+  cursor: pointer;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+
+.cat-filter button.active,
+.cat-filter button:hover {
+  background: #2f5d50;
+  color: #fff;
+}
+
+  .custom-input {
+    background-color: var(--sage) !important; /* #d4e4d4 from your variables */
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 12px 15px !important;
+    color: var(--dark) !important;
+}
+
+.custom-input::placeholder {
+    color: rgba(26, 46, 26, 0.5); /* Semi-transparent dark green */
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--deep-green);
+    margin-left: 5px;
+    margin-bottom: 8px;
+}
+
+/* Para sa Dropdown/Select */
+.form-select.custom-input {
+    background-image: url("data:image/svg+xml,..."); /* Standard arrow icon */
+}
+
+.btn-custom:hover {
+    background-color: var(--green) !important;
+    transform: translateY(-2px);
+    transition: 0.3s ease;
+}
+
+  .input-box {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.input-box input,
+.input-box textarea {
+  width: 100%;
+  padding: 14px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+  background: #d4e4d4;
+  transition: 0.3s ease;
+}
+
+.input-box textarea {
+  height: 90px;
+  resize: none;
+}
+
+/* LABEL */
+.input-box label {
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  font-size: 14px;
+  color: #686767;
+  pointer-events: none;
+  transition: 0.3s ease;
+  background: #d4e4d4;
+  padding: 0 5px;
+}
+
+/* FLOAT EFFECT */
+.input-box input:focus,
+.input-box textarea:focus {
+  box-shadow: 0 0 8px rgba(45, 90, 45, 0.2);
+}
+
+.input-box input:focus + label,
+.input-box input:valid + label,
+.input-box textarea:focus + label,
+.input-box textarea:valid + label {
+  top: -8px;
+  font-size: 12px;
+}
+
+
+
+/* FOOTER */
+.footer-brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: seagreen;
+}
+
+.footer-logo {    
+  width: 28px;   /* adjust size */
+  height: 28px;
+  object-fit: contain;
+}
+
+.footer {
+  background-color: var(--cream); /* Gamitin ang root variables mo */
+  padding: 60px 0 20px;
+  color: var(--dark);
+  border-top: 1px solid var(--sage);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-heading {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--deep-green);
+}
+
+.cat-filter button {
+    border: 1px solid #2d5a2d;
+    background: white;
+    color: #2d5a2d;
+    padding: 8px 20px;
+    margin: 0 5px;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.cat-filter button.active, .cat-filter button:hover {
+    background: #2d5a2d;
+    color: white;
+}

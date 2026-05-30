@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZAFIRAH</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white navbar-custom fixed-top">
+
+  <div class="container">
+
+    <!-- LEFT: BRAND ONLY -->
+    <div class="brand fw-bold">
+      ZAFIRAH
+    </div>
+
+    <!-- RIGHT: ALL LINKS -->
+    <div class="ms-auto d-flex align-items-center gap-3">
+
+      <!-- PRODUCTS DROPDOWN -->
+      <div class="dropdown">
+        <a class="nav-link product-link" href="#">
+          Products <span class="arrow">›</span>
+        </a>
+
+        <div class="dropdown-menu-custom">
+          <a href="#">New Arrivals</a>
+          <a href="#">Best Sellers</a>
+          <a href="#">Sale</a>
+          <a href="#">Collections</a>
+        </div>
+      </div>
+
+      <a class="nav-link" href="#">About</a>
+
+      <a class="nav-link login-btn" href="logsign.html">Log In</a>
+ <a class="nav-link login-btn" href="#">🛒</a>
+</div>
+    </div>
+
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <img src="pci/image8.png" class="hero-img">
+
+  <div class="hero-overlay">
+    <div class="hero-text">
+      “A quiet collection of furniture crafted for lives that deserve stillness, beauty, and meaning.”
+    </div>
+  </div>
+</div>
+
+<!-- TWO IMAGE CARDS -->
+<section class="section">
+  <div class="container-custom">
+    <div class="row g-4">
+
+      <div class="col-md-6">
+        <div class="image-card-banner">
+  <img src="pci/image5.png" class="hero-img">
+          <div class="card-overlay">
+            <h5>Modern Living</h5>
+            <p>Clean aesthetic</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="image-card-banner">
+  <img src="pci/scandinavian-interior-mockup-wall-decal-background1(1).png" class="hero-img">
+          <div class="card-overlay">
+            <h5> Minimal Setup</h5>
+            <p>Comfort & style</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FILTER -->
+<section class="section">
+  <div class="container-custom">
+
+    <div class="cat-filter text-center mb-4">
+      <button onclick="filterProducts('all')" class="active">All</button>
+      <button onclick="filterProducts('sofa')">Sofa</button>
+      <button onclick="filterProducts('chair')">Chair</button>
+      <button onclick="filterProducts('set')">Set</button>
+    </div>
+
+   <!-- PRODUCTS SECTION -->
+<section class="section">
+  <div class="container-custom">
+    <div class="row g-4">
+
+      <!-- CLOUD SOFA -->
+      <div class="col-md-4 product-item sofa">
+        <div class="product-card">
+          <img src="pci/image3.png" alt="Cloud Sofa">
+          <div class="product-info">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6>Cloud Sofa</h6>
+              <span class="badge bg-success mb-2">Stock: 12</span>
+            </div>
+            <p class="price">₱12,999</p>
+            <div class="product-specs mb-2">
+              <small class="text-muted d-block"><b>Size:</b> 210cm x 90cm</small>
+              <small class="text-muted d-block"><b>Color:</b> Beige, Gray</small>
+            </div>
+            <div class="desc-container">
+              <small class="desc-short">Soft cushioning designed for everyday comfort...</small>
+              <small class="desc-full d-none">Soft cushioning designed for everyday comfort and relaxation. Made with premium fabric and high-density foam.</small>
+              <button class="btn-see-more" onclick="toggleDesc(this)">See More</button>
+            </div>
+            <hr>
+            <div class="cart-action mt-3">
+              <div class="input-group mb-2">
+                <span class="input-group-text">Qty</span>
+                <input type="number" class="form-control" value="1" min="1" max="12">
+              </div>
+              <button class="btn btn-add-cart w-100"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODERN CHAIR (Sofa Category) -->
+      <div class="col-md-4 product-item sofa">
+        <div class="product-card">
+          <img src="pci/download(6).jpeg" alt="Modern Chair">
+          <div class="product-info">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6>Modern Chair</h6>
+              <span class="badge bg-success mb-2">Stock: 8</span>
+            </div>
+            <p class="price">₱5,499</p>
+            <div class="product-specs mb-2">
+              <small class="text-muted d-block"><b>Size:</b> 60cm x 75cm</small>
+              <small class="text-muted d-block"><b>Color:</b> Tan, White</small>
+            </div>
+            <div class="desc-container">
+              <small class="desc-short">Minimalist chair with a clean and functional design...</small>
+              <small class="desc-full d-none">Minimalist chair with a clean and functional design. Perfect for study areas or modern living rooms.</small>
+              <button class="btn-see-more" onclick="toggleDesc(this)">See More</button>
+            </div>
+            <hr>
+            <div class="cart-action mt-3">
+              <div class="input-group mb-2">
+                <span class="input-group-text">Qty</span>
+                <input type="number" class="form-control" value="1" min="1" max="8">
+              </div>
+              <button class="btn btn-add-cart w-100"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODERN CHAIR (Chair Category) -->
+      <div class="col-md-4 product-item chair">
+        <div class="product-card">
+          <img src="pci/download(1).jpeg" alt="Modern Chair">
+          <div class="product-info">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6>Modern Chair</h6>
+              <span class="badge bg-success mb-2">Stock: 5</span>
+            </div>
+            <p class="price">₱5,499</p>
+            <div class="product-specs mb-2">
+              <small class="text-muted d-block"><b>Size:</b> 60cm x 75cm</small>
+              <small class="text-muted d-block"><b>Color:</b> Cream</small>
+            </div>
+            <div class="desc-container">
+              <small class="desc-short">Minimalist chair with a clean and functional design...</small>
+              <small class="desc-full d-none">Minimalist chair with a clean and functional design. Ergonomic back support for long hours of seating.</small>
+              <button class="btn-see-more" onclick="toggleDesc(this)">See More</button>
+            </div>
+            <hr>
+            <div class="cart-action mt-3">
+              <div class="input-group mb-2">
+                <span class="input-group-text">Qty</span>
+                <input type="number" class="form-control" value="1" min="1" max="5">
+              </div>
+              <button class="btn btn-add-cart w-100"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCENT CHAIR -->
+      <div class="col-md-4 product-item chair">
+        <div class="product-card">
+          <img src="pci/BUNKOR00195433_3_Supersize.jpg" alt="Accent Chair">
+          <div class="product-info">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6>Accent Chair</h6>
+              <span class="badge bg-success mb-2">Stock: 3</span>
+            </div>
+            <p class="price">₱6,299</p>
+            <div class="product-specs mb-2">
+              <small class="text-muted d-block"><b>Size:</b> 70cm x 85cm</small>
+              <small class="text-muted d-block"><b>Color:</b> White Boucle</small>
+            </div>
+            <div class="desc-container">
+              <small class="desc-short">Elegant seating piece that adds style to any room...</small>
+              <small class="desc-full d-none">Elegant seating piece that adds style to any room. Featuring high-quality upholstery and sturdy wooden legs.</small>
+              <button class="btn-see-more" onclick="toggleDesc(this)">See More</button>
+            </div>
+            <hr>
+            <div class="cart-action mt-3">
+              <div class="input-group mb-2">
+                <span class="input-group-text">Qty</span>
+                <input type="number" class="form-control" value="1" min="1" max="3">
+              </div>
+              <button class="btn btn-add-cart w-100"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVING ROOM SET -->
+      <div class="col-md-4 product-item set">
+        <div class="product-card">
+          <img src="pci/download(3).jpeg" alt="Living Room Set">
+          <div class="product-info">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6>Living Room Set</h6>
+              <span class="badge bg-success mb-2">Stock: 2</span>
+            </div>
+            <p class="price">₱25,499</p>
+            <div class="product-specs mb-2">
+              <small class="text-muted d-block"><b>Set:</b> 3-Seater + 2-Seater + Table</small>
+              <small class="text-muted d-block"><b>Color:</b> Ivory White</small>
+            </div>
+            <div class="desc-container">
+              <small class="desc-short">Complete set designed for a balanced living space...</small>
+              <small class="desc-full d-none">Complete set designed for a balanced and modern living space. Solid wood frame with premium leather cushions.</small>
+              <button class="btn-see-more" onclick="toggleDesc(this)">See More</button>
+            </div>
+            <hr>
+            <div class="cart-action mt-3">
+              <div class="input-group mb-2">
+                <span class="input-group-text">Qty</span>
+                <input type="number" class="form-control" value="1" min="1" max="2">
+              </div>
+              <button class="btn btn-add-cart w-100"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LUXURY SET -->
+      <div class="col-md-4 product-item set">
+        <div class="product-card">
+          <img src="pci/images(5).jpeg" alt="Luxury Set">
+          <div class="product-info">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6>Luxury Set</h6>
+              <span class="badge bg-success mb-2">Stock: 4</span>
+            </div>
+            <p class="price">₱30,999</p>
+            <div class="product-specs mb-2">
+              <small class="text-muted d-block"><b>Set:</b> 5-Piece Modular Set</small>
+              <small class="text-muted d-block"><b>Color:</b> Dark Wood / Brown</small>
+            </div>
+            <div class="desc-container">
+              <small class="desc-short">Premium furniture collection with elegant finishing...</small>
+              <small class="desc-full d-none">Premium furniture collection with elegant finishing and comfort. The ultimate choice for a sophisticated home.</small>
+              <button class="btn-see-more" onclick="toggleDesc(this)">See More</button>
+            </div>
+            <hr>
+            <div class="cart-action mt-3">
+              <div class="input-group mb-2">
+                <span class="input-group-text">Qty</span>
+                <input type="number" class="form-control" value="1" min="1" max="4">
+              </div>
+              <button class="btn btn-add-cart w-100"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- REVIEW -->
+<section class="section">
+  <div class="container-custom">
+    <div class="review-card">
+
+      <div class="review-content">
+
+        <!-- REVIEW ITEM -->
+        <div class="review-item">
+          <div class="review-header">
+            <img src="https://i.pravatar.cc/40?img=1" class="avatar">
+            <div>
+              <b>Maria Santos</b>
+              <div class="stars">★★★★★</div>
+            </div>
+          </div>
+          <p>Very satisfied with the quality and overall design.</p>
+        </div>
+
+        <div class="review-item">
+          <div class="review-header">
+            <img src="https://i.pravatar.cc/40?img=2" class="avatar">
+            <div>
+              <b>John Cruz</b>
+              <div class="stars">★★★★☆</div>
+            </div>
+          </div>
+          <p>It completely upgraded the look of my living room.</p>
+        </div>
+
+        <div class="review-item">
+          <div class="review-header">
+            <img src="https://i.pravatar.cc/40?img=3" class="avatar">
+            <div>
+              <b>Ana Reyes</b>
+              <div class="stars">★★★★★</div>
+            </div>
+          </div>
+          <p>Simple, modern, and elegant design — exactly what I wanted.</p>
+        </div>
+
+        <div class="review-item">
+          <div class="review-header">
+            <img src="https://i.pravatar.cc/40?img=4" class="avatar">
+            <div>
+              <b>Chris Tan</b>
+              <div class="stars">★★★★★</div>
+            </div>
+          </div>
+          <p>Great quality and very comfortable. Worth the price.</p>
+        </div>
+
+              <div class="review-item">
+          <div class="review-header">
+            <img src="https://i.pravatar.cc/40?img=5" class="avatar">
+            <div>
+              <b>Mae Abiera</b>
+              <div class="stars">★★★★☆</div>
+            </div>
+          </div>
+          <p>The furniture feels premium and fits perfectly in my home interior.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container-custom">
+    <div class="row g-3">
+
+      <!-- LEFT CARD -->
+      <div class="col-md-6">
+        <div class="form-card h-100">
+               <h4>Message Us </h4><br>
+
+          <div class="input-box">
+            <input type="text" required>
+            <label>Full Name</label>
+          </div>
+
+          <div class="input-box">
+            <input type="email" required>
+            <label>Email Address</label>
+          </div>
+
+          <div class="input-box">
+            <input type="text" required>
+            <label>Subject</label>
+          </div>
+
+          <div class="input-box">
+            <textarea required></textarea>
+            <label>Your Message</label>
+          </div>
+
+          <button class="btn btn-custom mt-2">Submit</button>
+        </div>
+      </div>
+
+<!-- RIGHT CARD: Contact Info -->
+<div class="col-md-6">
+  <div class="form-card card-soft h-100 p-4 d-flex flex-column justify-content-center" style="background: white; color: var(--deep--green);">
+    
+    <h3 style="font-family: 'Intel', san-serif; margin-bottom: 22px;">Contact Info</h3>
+    
+    <div class="contact-detail mb-4">
+      <h6 class="text-uppercase" style="opacity: 0.7; font-size: 12px; letter-spacing: 2px;">Visit Us</h6>
+      <p>123 Furniture Street, Modern City, Philippines</p>
+    </div>
+
+    <div class="contact-detail mb-4">
+      <h6 class="text-uppercase" style="opacity: 0.7; font-size: 12px; letter-spacing: 2px;">Call Us</h6>
+      <p>+63 912 345 6789<br>+63 2 888 0000</p>
+    </div>
+
+    <div class="contact-detail mb-4">
+      <h6 class="text-uppercase" style="opacity: 0.7; font-size: 12px; letter-spacing: 2px;">Email Us</h6>
+      <p>zafirah@gmail.com</p>
+    </div>
+
+<div class="social-links mt-4">
+  <h6 class="text-uppercase mb-3" style="opacity: 0.7; font-size: 12px; letter-spacing: 2px;">
+    Follow Our Aesthetic</h6>
+
+  <div class="d-flex gap-2">
+
+    <!-- Facebook -->
+    <div class="social-icon">
+      <i class="fab fa-facebook-f"></i>
+    </div>
+
+    <!-- Instagram -->
+    <div class="social-icon">
+      <i class="fab fa-instagram"></i>
+    </div>
+
+  </div>
+</div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+
+  <div class="footer-container">
+
+    <!-- BRAND -->
+    <div class="footer-brand">
+      <img src="pci/Group15.svg"
+           alt="ZAFIRAH Logo"
+           class="footer-logo">
+
+      <span class="brand-name">ZAFIRAH</span>
+    </div>
+
+
+  </div>
+  
+</footer>
+<script>
+
+function filterProducts(category) {
+  let items = document.querySelectorAll('.product-item');
+  let buttons = document.querySelectorAll('.cat-filter button');
+
+  // active button style
+  buttons.forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  items.forEach(item => {
+    if (category === 'all') {
+      item.style.display = 'block';
+    } else {
+      item.style.display = item.classList.contains(category) ? 'block' : 'none';
+    }
+  });
+}
+
+function toggleDesc(button) {
+  const container = button.parentElement;
+  const shortDesc = container.querySelector('.desc-short');
+  const fullDesc = container.querySelector('.desc-full');
+  
+  if (fullDesc.classList.contains('d-none')) {
+    fullDesc.classList.remove('d-none');
+    shortDesc.classList.add('d-none');
+    button.innerText = "See Less";
+  } else {
+    fullDesc.classList.add('d-none');
+    shortDesc.classList.remove('d-none');
+    button.innerText = "See More";
+  }
+}
+
+const content = document.getElementById("reviewContent");
+const thumb = document.querySelector(".scroll-thumb");
+
+content.addEventListener("scroll", () => {
+  const scrollRatio = content.scrollTop / (content.scrollHeight - content.clientHeight);
+  const maxMove = content.clientHeight - thumb.offsetHeight;
+  thumb.style.top = scrollRatio * maxMove + "px";
+});
+</script>
+
+</body>
+</html>
