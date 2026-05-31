@@ -100,7 +100,13 @@ $reviews = loadReviews();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZYTHERA | FURNITURE</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+    body{font-family:var(--ui-font);}
+    h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
+    p,small,.caption,.text-muted{font-family:var(--text-font);}
+  </style>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
@@ -114,10 +120,11 @@ $reviews = loadReviews();
     }
 
     * {
-      font-family: 'DM Sans', sans-serif;
+      box-sizing: border-box;
     }
 
     body {
+      font-family: var(--ui-font);
       background: var(--cream);
       padding-top: 70px;
     }
@@ -172,7 +179,7 @@ $reviews = loadReviews();
       max-width: 700px;
       text-align: center;
       color: #fff;
-      font-family: 'Playfair Display', serif;
+      font-family: var(--logo-font);
       font-size: clamp(1.3rem, 3vw, 2rem);
       font-style: italic;
       line-height: 1.7;
@@ -192,7 +199,7 @@ $reviews = loadReviews();
       border-radius: 50px;
       color: #fff;
       text-decoration: none;
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ui-font);
       font-size: .9rem;
       font-weight: 600;
       backdrop-filter: blur(4px);
@@ -266,7 +273,7 @@ $reviews = loadReviews();
       padding: .65rem 1rem;
       font-weight: 600;
       width: 100%;
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ui-font);
       transition: .2s;
     }
 
@@ -413,7 +420,7 @@ $reviews = loadReviews();
       font-size: .9rem;
       background: var(--cream);
       outline: none;
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ui-font);
       transition: .2s;
     }
 

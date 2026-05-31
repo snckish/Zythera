@@ -33,7 +33,13 @@ if ($adminRole !== 'admin') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZYTHERA | ADMIN</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+    :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+    body{font-family:var(--ui-font);}
+    h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
+    p,small,.caption,.text-muted{font-family:var(--text-font);}
+    </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
@@ -709,34 +715,25 @@ if ($searchQuery !== '') {
     ?>
     <div class="order-card mb-3" id="order-card-<?= htmlspecialchars($orderId) ?>">
         <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-            <span class="order-user-tag"><i class="fas fa-user me-1"></i><?= htmlspecialchars($oEmail) ?></span>
             <?php if ($orderId !== ''): ?>
             <span style="background:#f0f7f0;color:#2d5a2d;border-radius:50px;padding:2px 10px;font-size:.72rem;font-weight:700;">
                 #<?= htmlspecialchars($orderId) ?>
             </span>
             <?php endif; ?>
+            <span class="order-user-tag"><i class="fas fa-user me-1"></i><?= htmlspecialchars($oEmail) ?></span>
+
             <?php if ($orderPayMethod !== ''): ?>
-            <span style="background:#f5f2ec;color:#666;border-radius:50px;padding:2px 10px;font-size:.72rem;">
+            <span style="background:#f5f2f0;color:#666;border-radius:50px;padding:2px 10px;font-size:.72rem;">
                 <i class="fas fa-credit-card me-1"></i><?= htmlspecialchars($orderPayMethod) ?>
             </span>
             <?php endif; ?>
-            <!-- Status Badge + Update -->
+
             <span id="status-badge-<?= htmlspecialchars($orderId) ?>"
                 style="background:<?= $sc['bg'] ?>;color:<?= $sc['color'] ?>;border:1px solid <?= $sc['border'] ?>;
                 border-radius:50px;padding:2px 10px;font-size:.72rem;font-weight:700;">
                 <?= htmlspecialchars($orderStatus) ?>
             </span>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <select class="form-select form-select-sm" style="width:auto;font-size:.75rem;border-radius:8px;"
-                    id="status-sel-<?= htmlspecialchars($orderId) ?>"
-                    onchange="updateOrderStatus('<?= htmlspecialchars($oEmail, ENT_QUOTES) ?>','<?= htmlspecialchars($orderId, ENT_QUOTES) ?>',this.value)">
-                    <option value="">— Update Status —</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Processing">Processing</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                </select>
                 <small class="text-muted"><i class="fas fa-calendar me-1"></i><?= htmlspecialchars($orderDate) ?></small>
                 <button onclick="toggleOrderDetail('<?= htmlspecialchars($orderId, ENT_QUOTES) ?>')"
                   style="background:#f0f7f0;color:#2d5a2d;border:1px solid #d4e4d4;border-radius:8px;padding:3px 10px;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;">
@@ -744,17 +741,38 @@ if ($searchQuery !== '') {
                 </button>
             </div>
         </div>
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <select style="min-width:220px;padding:8px 12px;font-size:.82rem;border-radius:10px;border:2px solid #d4e4d4;background:#f9f9f6;color:#2d5a2d;font-family:inherit;cursor:pointer;outline:none;"
+                id="status-sel-<?= htmlspecialchars($orderId) ?>"
+                onchange="updateOrderStatus('<?= htmlspecialchars($oEmail, ENT_QUOTES) ?>','<?= htmlspecialchars($orderId, ENT_QUOTES) ?>',this.value)">
+                <option value="">— Update Status —</option>
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+
+        </div>
         <?php
         $orderSubtotal2 = 0;
         foreach ($orderItems as $oi):
             $oiPrice = (float)($oi->price ?? 0);
             $oiQty   = (int)($oi->qty ?? 1);
             $oiName  = $oi->product_name ?? 'Item';
+            $oiImage = trim((string)($oi->image ?? ''));
             $oiLine  = $oiPrice * $oiQty;
             $orderSubtotal2 += $oiLine;
         ?>
-        <div style="display:flex;justify-content:space-between;font-size:.85rem;padding:6px 0;border-bottom:1px dashed #f0f0eb;">
-            <span><?= htmlspecialchars($oiName) ?> <b style="color:#7aab7a;">×<?= $oiQty ?></b></span>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;padding:6px 0;border-bottom:1px dashed #f0f0eb;">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                <?php if ($oiImage): ?>
+                <img src="<?= htmlspecialchars($oiImage) ?>" alt="<?= htmlspecialchars($oiName) ?>" style="width:48px;height:48px;object-fit:cover;border-radius:12px;border:1px solid #e5e5e5;background:#fff;">
+                <?php endif; ?>
+                <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    <?= htmlspecialchars($oiName) ?> <b style="color:#7aab7a;">×<?= $oiQty ?></b>
+                </span>
+            </div>
             <?php if ($oiPrice > 0): ?>
             <span style="color:#2d5a2d;font-weight:600;">₱<?= number_format($oiLine) ?></span>
             <?php endif; ?>
@@ -766,14 +784,7 @@ if ($searchQuery !== '') {
             <span>₱<?= number_format($orderShipping) ?></span>
         </div>
         <?php endif; ?>
-        <?php if (!empty($shippingAddr)): ?>
-        <div style="font-size:.75rem;color:#999;margin-top:4px;">
-            <i class="fas fa-map-marker-alt me-1" style="color:var(--sage-dark);"></i><?= htmlspecialchars($shippingAddr) ?>
-            <?php if (!empty($shippingInfo['phone'])): ?>
-            &nbsp;·&nbsp; <i class="fas fa-phone me-1"></i><?= htmlspecialchars($shippingInfo['phone']) ?>
-            <?php endif; ?>
-        </div>
-        <?php endif; ?>
+
         <?php if ($orderStoredTotal > 0): ?>
         <div class="text-end fw-bold mt-2" style="color:#2d5a2d;">
             Order Total: ₱<?= number_format($orderStoredTotal) ?>
@@ -807,19 +818,6 @@ if ($searchQuery !== '') {
                     $shippingInfo['zip']      ?? '',
                 ]))) ?: '—' ?></div>
               </div>
-            </div>
-            <!-- Quick status update buttons -->
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <?php foreach (['Pending','Processing','Shipped','Delivered','Cancelled'] as $qs):
-                $qColors = ['Pending'=>'#fff7ed,#c2410c','Processing'=>'#eff6ff,#1d4ed8',
-                            'Shipped'=>'#f0f9ff,#0369a1','Delivered'=>'#f0fdf4,#15803d','Cancelled'=>'#fef2f2,#b91c1c'];
-                [$qBg,$qFg] = explode(',', $qColors[$qs]);
-              ?>
-              <button onclick="quickStatus('<?= htmlspecialchars($oEmail, ENT_QUOTES) ?>','<?= htmlspecialchars($orderId, ENT_QUOTES) ?>','<?= $qs ?>')"
-                style="background:<?= $qBg ?>;color:<?= $qFg ?>;border:1px solid <?= $qFg ?>33;border-radius:50px;padding:4px 12px;font-size:.72rem;font-weight:700;cursor:pointer;">
-                <?= $qs ?>
-              </button>
-              <?php endforeach; ?>
             </div>
         </div>
 
@@ -1125,9 +1123,6 @@ function updateOrderStatus(email, orderId, newStatus) {
                 badge.style.color      = sc.color;
                 badge.style.border     = '1px solid ' + sc.border;
             }
-            // Reset select back to placeholder
-            const sel = document.getElementById('status-sel-' + orderId);
-            if (sel) sel.value = '';
             showToast('Order #' + orderId + ' → ' + newStatus);
         } else {
             alert(data.message || 'Could not update status.');

@@ -352,9 +352,10 @@ function loadOrders(): array {
 
         foreach ($orders as &$order) {
             $itemStmt = $db->prepare("
-                SELECT *
-                FROM order_items
-                WHERE ord_no = ?
+                SELECT oi.*, inv.image AS image
+                FROM order_items oi
+                LEFT JOIN inventory inv ON inv.inv_id = oi.inv_id
+                WHERE oi.ord_no = ?
             ");
             $itemStmt->execute([$order->ord_no]);
             $order->items = $itemStmt->fetchAll();
@@ -380,9 +381,10 @@ function loadUserOrders(string $email): array {
 
         foreach ($orders as &$order) {
             $itemStmt = $db->prepare("
-                SELECT *
-                FROM order_items
-                WHERE ord_no = ?
+                SELECT oi.*, inv.image AS image
+                FROM order_items oi
+                LEFT JOIN inventory inv ON inv.inv_id = oi.inv_id
+                WHERE oi.ord_no = ?
             ");
             $itemStmt->execute([$order->ord_no]);
             $order->items = $itemStmt->fetchAll();

@@ -24,42 +24,6 @@ if (!$dbUser) {
     exit;
 }
 
- $reviewErrors = [];
- $reviewSuccess = '';
- if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_order_id'])) {
-   $reviewOrderId = trim($_POST['review_order_id'] ?? '');
-   $ratingValue   = $_POST['rating'] ?? null;
-   $rating        = is_numeric($ratingValue) ? (int)$ratingValue : 0;
-   $comment       = trim($_POST['comment'] ?? '');
-
-   if ($reviewOrderId === '') {
-     $reviewErrors[] = 'Invalid order reference.';
-   }
-   if ($rating < 1 || $rating > 5) {
-     $reviewErrors[] = 'Please select a rating from 1 to 5 stars.';
-   }
-   if ($comment === '') {
-     $reviewErrors[] = 'Please write your review so we can share it with other customers.';
-   }
-
-   if (empty($reviewErrors)) {
-     $checkStmt = $db->prepare("SELECT status FROM orders WHERE order_id = ? AND email = ? LIMIT 1");
-     $checkStmt->execute([$reviewOrderId, $userEmail]);
-     $reviewOrder = $checkStmt->fetch();
-
-     if (!$reviewOrder) {
-       $reviewErrors[] = 'Order not found.';
-     } elseif (!in_array(strtolower($reviewOrder['status']), ['delivered', 'completed'], true)) {
-       $reviewErrors[] = 'Reviews are only accepted after your order has been delivered.';
-     }
-   }
-
-   if (empty($reviewErrors)) {
-     saveReviewForOrder($userEmail, $reviewOrderId, $rating, $comment);
-     $reviewSuccess = 'Thanks! Your review has been submitted successfully.';
-   }
- }
-
 // FIX: Load all orders with their items properly
 $allOrders = [];
 $oStmt = $db->prepare("SELECT * FROM orders WHERE email = ? ORDER BY date DESC");
@@ -94,11 +58,6 @@ if ($orderId !== '') {
     $selectedOrder = $allOrders[0] ?? null;
 }
 
-if ($selectedOrder) {
-  $orderId = $selectedOrder->order_id ?? $orderId;
-  $oReview = loadReviewForOrder($orderId);
-}
-
 $cartItems = loadCartForUser($userEmail);
 $cartCount = 0;
 foreach ($cartItems as $ci) $cartCount += (int)($ci['qty'] ?? 1);
@@ -123,7 +82,13 @@ function getStepIndex(string $status): int {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZYTHERA | Order Details</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+  body{font-family:var(--ui-font);} 
+  h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);} 
+  p,small,.caption,.text-muted{font-family:var(--text-font);} 
+</style>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -245,3 +210,191 @@ function getStepIndex(string $status): int {
       <div style="font-weight:700;color:#14532d;font-size:1rem;">Order Placed!</div>
       <div style="color:#15803d;font-size:.85rem;margin-top:2px;"><?= $orderPlacedFlash ?><?= $orderPlacedId ? ' — Order <strong>#' . $orderPlacedId . '</strong>' : '' ?></div>
       <div style="color:#16a34a;font-size:.78rem;margin-top:4px;">You can track your delivery status below. We'll update it as your order progresses.</div>
+    </div>
+    <button onclick="document.getElementById('orderFlash').style.display='none'" style="background:none;border:none;color:#15803d;font-size:1.2rem;cursor:pointer;padding:4px;">✕</button>
+  </div>
+  <?php endif; ?>
+
+  <?php if (!$selectedOrder): ?>
+  <div class="empty-state">
+    <i class="fas fa-box-open"></i>
+    <p class="fw-semibold" style="color:#aaa;">Could not find that order.</p>
+    <a href="profile.php" class="btn btn-sm btn-outline-success rounded-pill mt-2 px-4">Back to Profile</a>
+  </div>
+  <?php else: ?>
+
+  <?php
+    $o           = $selectedOrder;
+    $oStatus     = $o->status ?? 'Pending';
+    $isCancelled = strtolower($oStatus) === 'cancelled';
+    $stepIndex   = $isCancelled ? -1 : getStepIndex($oStatus);
+    $oItems      = $o->items ?? [];
+    $subtotal    = (float)($o->subtotal ?? 0);
+    $shipping    = (float)($o->shipping ?? 150);
+    $total       = (float)($o->total ?? ($subtotal + $shipping));
+    $oDate       = $o->date ?? '';
+    $orderId     = $o->order_id ?? '—';
+    $payMethod   = $o->pay_method ?? '';
+    $fullName    = $o->full_name ?? '';
+    $phone       = $o->phone     ?? '';
+    $address     = $o->address   ?? '';
+    $city        = $o->city      ?? '';
+    $province    = $o->province  ?? '';
+    $zip         = $o->zip       ?? '';
+    $notes       = $o->notes     ?? '';
+
+    $stClass = match(strtolower($oStatus)) {
+      'processing'             => 'st-processing',
+      'shipped'                => 'st-shipped',
+      'delivered','completed'  => 'st-delivered',
+      'cancelled'              => 'st-cancelled',
+      default                  => 'st-pending',
+    };
+  ?>
+
+  <div class="section-card">
+    <div class="order-box" data-order-id="<?= htmlspecialchars($orderId) ?>">
+
+      <!-- Order Meta Grid -->
+      <div class="row g-2 align-items-center mb-3">
+        <div class="col-6 col-md-3">
+          <small class="text-muted d-block" style="font-size:.7rem;">Order #</small>
+          <div class="fw-bold" style="color:var(--deep);font-size:.88rem;"><?= htmlspecialchars($orderId) ?></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <small class="text-muted d-block" style="font-size:.7rem;">Date &amp; Time</small>
+          <div class="fw-bold" style="color:var(--deep);font-size:.88rem;"><?= $oDate ? date('M d, Y h:i A', strtotime($oDate)) : 'N/A' ?></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <small class="text-muted d-block" style="font-size:.7rem;">Payment Method</small>
+          <div class="fw-bold" style="color:var(--deep);font-size:.88rem;"><?= htmlspecialchars($payMethod ?: 'N/A') ?></div>
+        </div>
+        <div class="col-6 col-md-3 text-md-end">
+          <small class="text-muted d-block" style="font-size:.7rem;">Status</small>
+          <span class="order-status <?= $stClass ?> dyn-status-badge"><?= htmlspecialchars($oStatus) ?></span>
+        </div>
+      </div>
+
+      <!-- Order Status Timeline -->
+      <?php if ($isCancelled): ?>
+      <div class="cancelled-bar"><i class="fas fa-times-circle fa-lg"></i>This order was cancelled.</div>
+      <?php else: ?>
+      <div class="section-label mb-1">Order Status</div>
+      <div class="timeline-wrap">
+        <?php foreach ($statusSteps as $idx => $step):
+          $isDone   = $idx < $stepIndex;
+          $isActive = $idx === $stepIndex;
+          $isFuture = $idx > $stepIndex;
+          $dotClass = $isDone ? 'done' : ($isActive ? 'active' : 'future');
+          $icons    = ['fas fa-clock','fas fa-cog','fas fa-truck','fas fa-check-circle'];
+        ?>
+        <div class="tl-step">
+          <?php if ($isDone && $idx > 0): ?><div class="tl-line-done"></div><?php endif; ?>
+          <div class="tl-dot <?= $dotClass ?>"><i class="<?= $icons[$idx] ?>"></i></div>
+          <div class="tl-label <?= $isFuture ? 'future' : '' ?>"><?= $step ?></div>
+        </div>
+        <?php endforeach; ?>
+      </div>
+      <div class="dyn-status-msg mb-3" style="background:var(--cream);border-radius:12px;padding:10px 16px;font-size:.84rem;color:#555;">
+        <?php $statusMsgs = [
+          'Pending'    => 'Your order has been received and is awaiting confirmation.',
+          'Processing' => 'We\'re preparing your furniture for shipment.',
+          'Shipped'    => 'Your order is on its way! Estimated arrival in 3–7 business days.',
+          'Delivered'  => 'Your order has been delivered. Enjoy your new furniture!',
+          'Completed'  => 'Order completed. Thank you for shopping with us!',
+        ];
+        echo $statusMsgs[$oStatus] ?? 'Your order is being processed.';
+        ?>
+      </div>
+      <?php endif; ?>
+
+      <!-- Items Ordered -->
+      <div class="fw-bold mb-2" style="font-size:.78rem;letter-spacing:1px;text-transform:uppercase;color:var(--green);">Items Ordered</div>
+      <div style="border:2px solid var(--sage);border-radius:12px;overflow:hidden;margin-bottom:12px;">
+        <?php foreach ($oItems as $oi):
+          $oiName  = $oi->product_name ?? '?';
+          $oiQty   = (int)($oi->qty   ?? 1);
+          $oiPrice = (float)($oi->price ?? 0);
+          $oiLine  = $oiPrice * $oiQty;
+          $oiImg   = trim((string)($oi->image ?? '')) ?: 'pci/Group_15.png';
+        ?>
+        <div class="d-flex align-items-center gap-3 px-3 py-2" style="border-bottom:1px solid var(--sage);">
+          <div style="width:72px;min-width:72px;">
+            <img src="<?= htmlspecialchars($oiImg) ?>" alt="<?= htmlspecialchars($oiName) ?>" style="width:72px;height:72px;object-fit:cover;border-radius:14px;border:1px solid #e5e5e5;background:#fff;">
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:.88rem;font-weight:700;color:var(--deep);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($oiName) ?></div>
+            <div style="font-size:.76rem;color:#999;">₱<?= number_format($oiPrice, 2) ?> × <?= $oiQty ?></div>
+          </div>
+          <span style="font-weight:700;color:var(--green);font-size:.88rem;white-space:nowrap;">₱<?= number_format($oiLine, 2) ?></span>
+        </div>
+        <?php endforeach; ?>
+      </div>
+
+      <!-- Totals -->
+      <div class="totals-box mb-3">
+        <div class="totals-row"><span>Subtotal</span><span>₱<?= number_format($subtotal, 2) ?></span></div>
+        <div class="totals-row"><span><i class="fas fa-truck me-1"></i>Shipping</span><span>₱<?= number_format($shipping, 2) ?></span></div>
+        <div class="totals-row grand"><span>Total Paid</span><span>₱<?= number_format($total, 2) ?></span></div>
+      </div>
+
+      <!-- Customer Details -->
+      <div class="p-3" style="background:var(--cream);border-radius:10px;">
+        <small class="d-block mb-1" style="font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">Customer Details</small>
+        <div class="fw-bold" style="color:var(--deep);"><?= htmlspecialchars($fullName ?: ($dbUser->name ?? '')) ?></div>
+        <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars(implode(', ', array_filter([$address, $city, $province, $zip])) ?: 'No Address Provided') ?></div>
+        <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars($phone ?: 'No Contact Number') ?></div>
+        <?php if ($notes): ?>
+        <div style="font-size:.82rem;color:#999;margin-top:4px;font-style:italic;"><i class="fas fa-sticky-note me-1" style="color:var(--terra);"></i><?= htmlspecialchars($notes) ?></div>
+        <?php endif; ?>
+      </div>
+
+    </div>
+  </div><!-- /section-card -->
+
+  <?php endif; ?>
+</div>
+</div>
+
+<footer>
+  <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
+  <span class="footer-brand">ZYTHERA</span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function pollOrderStatus() {
+  fetch('get_order.php', { credentials: 'same-origin' })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.orders) return;
+      data.orders.forEach(o => {
+        const badge = document.querySelector('[data-order-id="' + o.order_id + '"] .dyn-status-badge');
+        if (badge) {
+          badge.textContent = o.status;
+          badge.className = 'status-pill dyn-status-badge ' + statusClass(o.status);
+        }
+        const msg = document.querySelector('[data-order-id="' + o.order_id + '"] .dyn-status-msg');
+        if (msg) msg.textContent = statusMsg(o.status);
+      });
+    }).catch(() => {});
+}
+function statusClass(s) {
+  const m = { pending:'sp-pending', processing:'sp-processing', shipped:'sp-shipped', delivered:'sp-delivered', completed:'sp-delivered', cancelled:'sp-cancelled' };
+  return m[s.toLowerCase()] || 'sp-pending';
+}
+function statusMsg(s) {
+  const m = {
+    'Pending':    'Your order has been received and is awaiting confirmation.',
+    'Processing': 'We re preparing your furniture for shipment.',
+    'Shipped':    'Your order is on its way! Estimated arrival in 3–7 business days.',
+    'Delivered':  'Your order has been delivered. Enjoy your new furniture!',
+    'Completed':  'Order completed. Thank you for shopping with us!',
+    'Cancelled':  'This order was cancelled.',
+  };
+  return m[s] || 'Your order is being processed.';
+}
+setInterval(pollOrderStatus, 30000);
+</script>
+</body>
+</html>

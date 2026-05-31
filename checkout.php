@@ -52,12 +52,26 @@ $errors      = [];
 $orderPlaced = false;
 $placedOrderInfo = [];
 
+// ── Allowed locations (used for validation and datalists) ──────
+$provinces = [
+  'Metro Manila','Cavite','Laguna','Batangas','Bulacan','Pampanga','Rizal',
+  'Quezon','Nueva Ecija','Cebu','Davao del Sur','Iloilo','Bohol','Pangasinan'
+];
+
+$cities = [
+  'Manila','Quezon City','Makati','Pasig','Taguig','Parañaque','Caloocan','Las Piñas',
+  'Cavite City','Bacoor','Imus','Santa Rosa','San Pedro','Biñan','Calamba','Batangas City',
+  'Malolos','San Fernando','Angeles','Antipolo','Lucena','Tuguegarao','Cebu City','Mandaue',
+  'Davao City','Iloilo City','Bacolod','Tagbilaran','Dagupan'
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName    = trim($_POST['full_name']    ?? '');
     $phone       = trim($_POST['phone']        ?? '');
     $address     = trim($_POST['address']      ?? '');
-    $city        = trim($_POST['city']         ?? '');
+    $country     = trim($_POST['country']      ?? 'Philippines');
     $province    = trim($_POST['province']     ?? '');
+    $city        = trim($_POST['city']         ?? '');
     $zip         = trim($_POST['zip']          ?? '');
     $payMethod   = trim($_POST['pay_method']   ?? '');
     $notes       = trim($_POST['notes']        ?? '');
@@ -65,10 +79,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$fullName)  $errors[] = 'Full name is required.';
     if (!$phone)     $errors[] = 'Phone number is required.';
     if (!$address)   $errors[] = 'Complete address is required.';
-    if (!$city)      $errors[] = 'City is required.';
     if (!$province)  $errors[] = 'Province is required.';
+    if (!$city)      $errors[] = 'City is required.';
     if (!$zip)       $errors[] = 'ZIP Code is required.';
     if (!$payMethod) $errors[] = 'Please select a payment method.';
+
+    if ($province && !in_array($province, $provinces, true))
+      $errors[] = 'Please select a valid province from the list.';
+    if ($city && !in_array($city, $cities, true))
+      $errors[] = 'Please select a valid city from the list.';
+    if ($phone && !preg_match('/^[0-9]{10,11}$/', $phone))
+      $errors[] = 'Phone number must be 10 or 11 digits (numbers only).';
+    if ($zip && !preg_match('/^[0-9]{4}$/', $zip))
+      $errors[] = 'ZIP Code must be 4 digits.';
+    if ($fullName && !preg_match('/^[\p{L} .\'-]{2,100}$/u', $fullName))
+      $errors[] = 'Full name appears invalid.';
+
+    $allowedPay = ['Cash on Delivery (COD)','GCash','Bank Transfer','Maya'];
+    if ($payMethod && !in_array($payMethod, $allowedPay, true))
+      $errors[] = 'Invalid payment method.';
 
     if (empty($errors)) {
         try {
@@ -175,7 +204,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZYTHERA | Checkout</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+  body{font-family:var(--ui-font);}
+  h1,h2,h3,h4,h5,.navbar-brand{font-family:var(--logo-font)}
+  p,small{font-family:var(--text-font)}
+</style>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -209,6 +244,11 @@ body{background:var(--cream);min-height:100vh;padding-top:70px;}
   font-family:'DM Sans',sans-serif;font-size:.92rem;
   color:var(--deep);transition:.2s;appearance:none;
 }
+
+.field input.is-invalid,.field select.is-invalid,.field textarea.is-invalid{
+  border-color:#dc3545;background:#fff !important;
+}
+.live-error{color:#dc3545;font-size:.78rem;margin-top:6px;display:none;padding-left:6px}
 .field textarea{min-height:80px;resize:none;padding-top:20px;}
 .field input:focus,.field select:focus,.field textarea:focus{
   border-color:var(--green);background:#fff;
@@ -285,6 +325,50 @@ footer .footer-brand{
 .checkout-card > div[style*="overflow-y:auto"]::-webkit-scrollbar-track{background:var(--sage);border-radius:4px;}
 .checkout-card > div[style*="overflow-y:auto"]::-webkit-scrollbar-thumb{background:var(--green);border-radius:4px;}
 .checkout-card > div[style*="overflow-y:auto"]::-webkit-scrollbar-thumb:hover{background:var(--deep);}
+
+/* ── Payment expand panels ── */
+.pay-panel{
+  display:none;
+  background:#f8fdf8;border:1.5px solid var(--sage);
+  border-radius:14px;padding:18px 18px 14px;
+  margin-top:6px;margin-bottom:10px;
+  animation:fadeSlide .2s ease;
+}
+.pay-panel.show{display:block;}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+/* QR block */
+.qr-block{text-align:center;padding:10px 0;}
+.qr-block img{width:160px;height:160px;border-radius:12px;border:2px solid var(--sage);object-fit:cover;}
+.qr-label{font-size:.78rem;color:#777;margin-top:8px;}
+.qr-number{font-weight:700;font-size:1rem;color:var(--green);letter-spacing:1px;margin-top:4px;}
+
+/* Card input fields inside panel */
+.card-field{position:relative;margin-bottom:14px;}
+.card-field input{
+  width:100%;padding:13px 14px 5px;
+  background:#fff;border:1.5px solid var(--sage);
+  border-radius:12px;outline:none;
+  font-family:'DM Sans',sans-serif;font-size:.9rem;
+  color:var(--deep);transition:.2s;
+}
+.card-field input:focus{border-color:var(--green);}
+.card-field label{
+  position:absolute;left:14px;top:13px;
+  font-size:.8rem;color:#aaa;pointer-events:none;transition:.2s;
+}
+.card-field input:focus~label,
+.card-field input:not(:placeholder-shown)~label{
+  top:3px;font-size:.63rem;color:var(--green);font-weight:600;
+}
+
+/* COD info box */
+.cod-info{
+  display:flex;align-items:flex-start;gap:12px;
+  background:#f0fdf4;border-radius:12px;padding:14px;
+}
+.cod-info i{color:var(--green);font-size:1.2rem;margin-top:2px;flex-shrink:0;}
+.cod-info p{margin:0;font-size:.85rem;color:#444;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -330,58 +414,75 @@ footer .footer-brand{
       <div class="checkout-card">
         <h5><i class="fas fa-map-marker-alt me-2" style="color:var(--green);"></i>Delivery Details</h5>
 
+        <!-- 1. Full Name -->
         <div class="field">
-          <input type="text" name="full_name"
+          <input type="text" id="full_name" name="full_name"
             value="<?= htmlspecialchars($_POST['full_name'] ?? $userName) ?>"
             placeholder=" " required>
           <label>Full Name *</label>
+          <div id="fullNameError" class="live-error">&nbsp;</div>
         </div>
 
+        <!-- 2. Phone Number -->
         <div class="field">
-          <input type="tel" name="phone" placeholder=" " required
+          <input type="tel" name="phone" id="phone" placeholder=" " required
             value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>">
           <label>Phone Number *</label>
+          <div id="phoneError" class="live-error">&nbsp;</div>
         </div>
 
+        <!-- 3. House / Street -->
         <div class="field">
           <input type="text" name="address" placeholder=" " required
             value="<?= htmlspecialchars($_POST['address'] ?? '') ?>">
           <label>House / Unit / Street Address *</label>
         </div>
 
-        <div class="row g-2">
-          <div class="col-6">
-            <div class="field">
-              <input type="text" name="city" placeholder=" " required
-                value="<?= htmlspecialchars($_POST['city'] ?? '') ?>">
-              <label>City / Municipality *</label>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="field">
-              <input type="text" name="province" placeholder=" " required
-                value="<?= htmlspecialchars($_POST['province'] ?? '') ?>">
-              <label>Province *</label>
-            </div>
-          </div>
+        <!-- 4. Country (dropdown) -->
+        <div class="field">
+          <select name="country" id="country" required>
+            <option value="Philippines" selected>Philippines</option>
+          </select>
+          <label>Country *</label>
         </div>
 
-        <div class="row g-2">
-          <div class="col-6">
-            <div class="field">
-              <input type="text" name="zip" placeholder=" " required maxlength="4"
-                value="<?= htmlspecialchars($_POST['zip'] ?? '') ?>">
-              <label>ZIP Code *</label>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="field">
-              <input type="text" value="Philippines" readonly placeholder=" ">
-              <label>Country</label>
-            </div>
-          </div>
+        <!-- 5. Province (dropdown) -->
+        <div class="field">
+          <select name="province" id="province" required onchange="filterCities()">
+            <option value="">— Select Province —</option>
+            <?php foreach ($provinces as $_p): ?>
+              <option value="<?= htmlspecialchars($_p) ?>"
+                <?= ($_POST['province'] ?? '') === $_p ? 'selected' : '' ?>>
+                <?= htmlspecialchars($_p) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <label>Province *</label>
         </div>
 
+        <!-- 6. City (dropdown) -->
+        <div class="field">
+          <select name="city" id="city" required>
+            <option value="">— Select City —</option>
+            <?php foreach ($cities as $_c): ?>
+              <option value="<?= htmlspecialchars($_c) ?>"
+                <?= ($_POST['city'] ?? '') === $_c ? 'selected' : '' ?>>
+                <?= htmlspecialchars($_c) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <label>City / Municipality *</label>
+        </div>
+
+        <!-- 7. ZIP Code -->
+        <div class="field">
+          <input type="text" id="zip" name="zip" placeholder=" " required maxlength="4"
+            value="<?= htmlspecialchars($_POST['zip'] ?? '') ?>">
+          <label>ZIP Code *</label>
+          <div id="zipError" class="live-error">&nbsp;</div>
+        </div>
+
+        <!-- 8. Delivery Notes -->
         <div class="field">
           <textarea name="notes" placeholder=" "><?= htmlspecialchars($_POST['notes'] ?? '') ?></textarea>
           <label>Delivery Notes (optional)</label>
@@ -392,45 +493,117 @@ footer .footer-brand{
       <div class="checkout-card">
         <h5><i class="fas fa-credit-card me-2" style="color:var(--green);"></i>Payment Method</h5>
 
-        <label class="pay-option" id="pay-cod">
-          <input type="radio" name="pay_method" value="Cash on Delivery (COD)"
+        <!-- ── COD ── -->
+        <label class="pay-option" id="lbl-cod" onclick="togglePay('cod')">
+          <input type="radio" name="pay_method" value="Cash on Delivery (COD)" id="radio-cod"
             <?= ($_POST['pay_method'] ?? '') === 'Cash on Delivery (COD)' ? 'checked' : '' ?>>
           <div class="pay-icon"><i class="fas fa-hand-holding-usd"></i></div>
-          <div>
+          <div style="flex:1;">
             <div style="font-weight:600;font-size:.9rem;">Cash on Delivery</div>
             <div style="font-size:.75rem;color:#999;">Pay when your furniture arrives</div>
           </div>
         </label>
+        <div class="pay-panel" id="panel-cod">
+          <div class="cod-info">
+            <i class="fas fa-truck"></i>
+            <p>No payment needed now. Our rider will collect the exact amount of <strong>₱<?= number_format($total) ?></strong> upon delivery. Please prepare the exact amount.</p>
+          </div>
+        </div>
 
-        <label class="pay-option" id="pay-gcash">
-          <input type="radio" name="pay_method" value="GCash"
+        <!-- ── GCash ── -->
+        <label class="pay-option" id="lbl-gcash" onclick="togglePay('gcash')">
+          <input type="radio" name="pay_method" value="GCash" id="radio-gcash"
             <?= ($_POST['pay_method'] ?? '') === 'GCash' ? 'checked' : '' ?>>
           <div class="pay-icon"><i class="fas fa-mobile-alt"></i></div>
-          <div>
+          <div style="flex:1;">
             <div style="font-weight:600;font-size:.9rem;">GCash</div>
             <div style="font-size:.75rem;color:#999;">Pay via GCash e-wallet</div>
           </div>
         </label>
-
-        <label class="pay-option" id="pay-bank">
-          <input type="radio" name="pay_method" value="Bank Transfer"
-            <?= ($_POST['pay_method'] ?? '') === 'Bank Transfer' ? 'checked' : '' ?>>
-          <div class="pay-icon"><i class="fas fa-university"></i></div>
-          <div>
-            <div style="font-weight:600;font-size:.9rem;">Bank Transfer</div>
-            <div style="font-size:.75rem;color:#999;">BDO, BPI, Metrobank, UnionBank</div>
+        <div class="pay-panel" id="panel-gcash">
+          <div class="qr-block">
+            <img src="pci/gcash_qr.png"
+                 onerror="this.outerHTML='<div style=\'width:160px;height:160px;border-radius:12px;border:2px dashed #d4e4d4;display:flex;align-items:center;justify-content:center;margin:0 auto;background:#f8fdf8;\'><span style=\'font-size:.75rem;color:#aaa;text-align:center;\'>GCash QR<br>Code Here</span></div>'"
+                 alt="GCash QR Code">
+            <div class="qr-label">Scan with your GCash app</div>
+            <div class="qr-number"><i class="fas fa-mobile-alt me-1"></i>09XX-XXX-XXXX</div>
+            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong>ZYTHERA FURNITURE</strong></div>
           </div>
-        </label>
+          <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:10px;">
+            <i class="fas fa-info-circle me-1"></i>
+            Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify before shipping.
+          </div>
+        </div>
 
-        <label class="pay-option" id="pay-maya">
-          <input type="radio" name="pay_method" value="Maya"
+        <!-- ── Maya ── -->
+        <label class="pay-option" id="lbl-maya" onclick="togglePay('maya')">
+          <input type="radio" name="pay_method" value="Maya" id="radio-maya"
             <?= ($_POST['pay_method'] ?? '') === 'Maya' ? 'checked' : '' ?>>
           <div class="pay-icon"><i class="fas fa-wallet"></i></div>
-          <div>
+          <div style="flex:1;">
             <div style="font-weight:600;font-size:.9rem;">Maya</div>
             <div style="font-size:.75rem;color:#999;">Pay via Maya (PayMaya) e-wallet</div>
           </div>
         </label>
+        <div class="pay-panel" id="panel-maya">
+          <div class="qr-block">
+            <img src="pci/maya_qr.png"
+                 onerror="this.outerHTML='<div style=\'width:160px;height:160px;border-radius:12px;border:2px dashed #d4e4d4;display:flex;align-items:center;justify-content:center;margin:0 auto;background:#f8fdf8;\'><span style=\'font-size:.75rem;color:#aaa;text-align:center;\'>Maya QR<br>Code Here</span></div>'"
+                 alt="Maya QR Code">
+            <div class="qr-label">Scan with your Maya app</div>
+            <div class="qr-number"><i class="fas fa-wallet me-1"></i>09XX-XXX-XXXX</div>
+            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong>ZYTHERA FURNITURE</strong></div>
+          </div>
+          <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:10px;">
+            <i class="fas fa-info-circle me-1"></i>
+            Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify before shipping.
+          </div>
+        </div>
+
+        <!-- ── Bank Transfer / Card ── -->
+        <label class="pay-option" id="lbl-bank" onclick="togglePay('bank')">
+          <input type="radio" name="pay_method" value="Bank Transfer" id="radio-bank"
+            <?= ($_POST['pay_method'] ?? '') === 'Bank Transfer' ? 'checked' : '' ?>>
+          <div class="pay-icon"><i class="fas fa-university"></i></div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:.9rem;">Bank Transfer / Card</div>
+            <div style="font-size:.75rem;color:#999;">BDO, BPI, Metrobank, UnionBank</div>
+          </div>
+        </label>
+        <div class="pay-panel" id="panel-bank">
+          <div style="font-size:.8rem;font-weight:600;color:var(--green);margin-bottom:12px;">
+            <i class="fas fa-credit-card me-1"></i>Card Details
+          </div>
+          <div class="card-field">
+            <input type="text" id="card_name" name="card_name" placeholder=" "
+              value="<?= htmlspecialchars($_POST['card_name'] ?? '') ?>"
+              autocomplete="cc-name">
+            <label>Name on Card</label>
+          </div>
+          <div class="card-field">
+            <input type="text" id="card_number" name="card_number" placeholder=" "
+              value="<?= htmlspecialchars($_POST['card_number'] ?? '') ?>"
+              maxlength="19" autocomplete="cc-number" oninput="fmtCard(this)">
+            <label>Card Number</label>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="card-field">
+              <input type="text" id="card_expiry" name="card_expiry" placeholder=" "
+                value="<?= htmlspecialchars($_POST['card_expiry'] ?? '') ?>"
+                maxlength="5" autocomplete="cc-exp" oninput="fmtExpiry(this)">
+              <label>MM / YY</label>
+            </div>
+            <div class="card-field">
+              <input type="password" id="card_cvv" name="card_cvv" placeholder=" "
+                value="" maxlength="4" autocomplete="cc-csc">
+              <label>CVV</label>
+            </div>
+          </div>
+          <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:4px;">
+            <i class="fas fa-lock me-1"></i>Your card details are encrypted and secure.
+          </div>
+        </div>
+
       </div>
 
     </div><!-- /col-lg-7 -->
@@ -502,18 +675,125 @@ footer .footer-brand{
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Highlight selected payment option
-document.querySelectorAll('.pay-option input[type=radio]').forEach(radio => {
-  if (radio.checked) radio.closest('.pay-option').classList.add('selected');
-  radio.addEventListener('change', () => {
-    document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
-    if (radio.checked) radio.closest('.pay-option').classList.add('selected');
-  });
-});
+// ── Payment panel toggle ──────────────────────────────────────
+const PAY_GROUPS = ['cod','gcash','maya','bank'];
 
-// Prevent double-submit
-document.getElementById('checkoutForm')?.addEventListener('submit', function() {
-  const btn = this.querySelector('.btn-place');
+function togglePay(group) {
+  // Check the radio
+  const radio = document.getElementById('radio-' + group);
+  if (radio) radio.checked = true;
+
+  PAY_GROUPS.forEach(g => {
+    const lbl   = document.getElementById('lbl-' + g);
+    const panel = document.getElementById('panel-' + g);
+    if (g === group) {
+      lbl?.classList.toggle('selected');
+      panel?.classList.toggle('show');
+    } else {
+      lbl?.classList.remove('selected');
+      panel?.classList.remove('show');
+    }
+  });
+}
+
+// Restore on page reload (e.g. after server-side error)
+(function(){
+  PAY_GROUPS.forEach(g => {
+    const radio = document.getElementById('radio-' + g);
+    if (radio?.checked) {
+      document.getElementById('lbl-' + g)?.classList.add('selected');
+      document.getElementById('panel-' + g)?.classList.add('show');
+    }
+  });
+})();
+
+// ── Card number formatter (XXXX XXXX XXXX XXXX) ──────────────
+function fmtCard(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,16);
+  el.value = v.replace(/(\d{4})(?=\d)/g,'$1 ');
+}
+
+// ── Expiry formatter (MM/YY) ─────────────────────────────────
+function fmtExpiry(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,4);
+  if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
+  el.value = v;
+}
+
+// ── Live validation ───────────────────────────────────────────
+(function(){
+  const phoneInput = document.getElementById('phone');
+  const phoneError = document.getElementById('phoneError');
+  const fullInput  = document.getElementById('full_name');
+  const fullError  = document.getElementById('fullNameError');
+  const zipInput   = document.getElementById('zip');
+  const zipError   = document.getElementById('zipError');
+
+  if (fullInput && fullError) {
+    fullInput.addEventListener('input', function(){
+      const v = (this.value||'').trim();
+      if (!v) { fullError.style.display='none'; this.classList.remove('is-invalid'); return; }
+      if (!/^[\p{L} .'\-]*$/u.test(v)) { fullError.textContent='Invalid characters.'; fullError.style.display='block'; this.classList.add('is-invalid'); return; }
+      if (v.length<2) { fullError.textContent='Name too short.'; fullError.style.display='block'; this.classList.add('is-invalid'); return; }
+      fullError.style.display='none'; this.classList.remove('is-invalid');
+    });
+  }
+
+  if (phoneInput && phoneError) {
+    phoneInput.addEventListener('input', function(){
+      const v = (this.value||'').trim();
+      if (!v) { phoneError.style.display='none'; this.classList.remove('is-invalid'); return; }
+      if (!/^[0-9]*$/.test(v)) { phoneError.textContent='Digits only.'; phoneError.style.display='block'; this.classList.add('is-invalid'); return; }
+      if (v.length>11) { phoneError.textContent='Max 11 digits.'; phoneError.style.display='block'; this.classList.add('is-invalid'); return; }
+      if (v.length<10) { phoneError.textContent='Min 10 digits.'; phoneError.style.display='block'; this.classList.add('is-invalid'); return; }
+      phoneError.style.display='none'; this.classList.remove('is-invalid');
+    });
+  }
+
+  if (zipInput && zipError) {
+    zipInput.addEventListener('input', function(){
+      const v = (this.value||'').trim();
+      if (!v) { zipError.style.display='none'; this.classList.remove('is-invalid'); return; }
+      if (!/^[0-9]*$/.test(v)) { zipError.textContent='Digits only.'; zipError.style.display='block'; this.classList.add('is-invalid'); return; }
+      if (v.length>4) { zipError.textContent='Max 4 digits.'; zipError.style.display='block'; this.classList.add('is-invalid'); return; }
+      if (v.length<4) { zipError.textContent='Must be 4 digits.'; zipError.style.display='block'; this.classList.add('is-invalid'); return; }
+      zipError.style.display='none'; this.classList.remove('is-invalid');
+    });
+  }
+})();
+
+// ── Submit validation ─────────────────────────────────────────
+document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
+  const btn      = this.querySelector('.btn-place');
+  const errs     = [];
+  const phoneVal = (document.getElementById('phone')?.value||'').trim();
+  const zipVal   = (document.getElementById('zip')?.value||'').trim();
+  const provVal  = (document.getElementById('province')?.value||'').trim();
+  const cityVal  = (document.getElementById('city')?.value||'').trim();
+  const payVal   = this.querySelector('input[name=pay_method]:checked')?.value||'';
+
+  if (!provVal) errs.push('Please select a province.');
+  if (!cityVal) errs.push('Please select a city.');
+  if (!payVal)  errs.push('Please select a payment method.');
+  if (!/^[0-9]{10,11}$/.test(phoneVal)) errs.push('Phone must be 10–11 digits.');
+  if (!/^[0-9]{4}$/.test(zipVal)) errs.push('ZIP Code must be 4 digits.');
+
+  if (payVal === 'Bank Transfer') {
+    const cardNum = (document.getElementById('card_number')?.value||'').replace(/\s/g,'');
+    const expiry  = (document.getElementById('card_expiry')?.value||'').trim();
+    const cvv     = (document.getElementById('card_cvv')?.value||'').trim();
+    if (cardNum.length < 13) errs.push('Please enter a valid card number.');
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) errs.push('Please enter a valid expiry (MM/YY).');
+    if (cvv.length < 3) errs.push('Please enter a valid CVV.');
+  }
+
+  if (errs.length) {
+    e.preventDefault();
+    if (btn) btn.disabled = false;
+    alert(errs.join('\n'));
+    return false;
+  }
+
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Placing Order...';
