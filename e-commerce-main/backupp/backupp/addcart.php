@@ -1,52 +1,58 @@
 <?php
-require 'config.php'; // starts session and loads users/inventory
-
+require 'config.php';
 header('Content-Type: application/json');
 
-// ── 1. Must be logged in ──────────────────────────────────────────────────────
-$userEmail = $_SESSION['logged_in_user'] ?? null;
-if (!$userEmail) {
+if (empty($_SESSION['logged_in_user'])) {
     echo json_encode(['success' => false, 'redirect' => 'logsign.php']);
     exit;
 }
 
-// ── 2. Validate input ─────────────────────────────────────────────────────────
-$id    = isset($_POST['id'])    ? (int)$_POST['id']        : 0;
-$name  = isset($_POST['name'])  ? trim($_POST['name'])      : '';
-$price = isset($_POST['price']) ? (float)$_POST['price']   : 0.0;
-$qty   = isset($_POST['qty'])   ? max(1, (int)$_POST['qty']): 1;
+$userEmail = $_SESSION['logged_in_user'];
 
-if (!$id || !$name || $price <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Invalid product data.']);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
     exit;
 }
 
-// ── 3. Stock check ────────────────────────────────────────────────────────────
-$inventory = $_SESSION['inventory'] ?? [];
-$stockItem = null;
-foreach ($inventory as $inv) {
-    $inv = (object)$inv;
-    if ((int)$inv->id === $id) { $stockItem = $inv; break; }
-}
+$productId = (int)($_POST['inv_id'] ?? ($_POST['id'] ?? 0));
+$name      = trim($_POST['name']     ?? '');
+$price     = (float)($_POST['price'] ?? 0);
+$qty       = max(1, (int)($_POST['qty'] ?? 1));
+$image     = trim($_POST['image']    ?? '');
 
-if ($stockItem && (int)$stockItem->stock === 0) {
-    echo json_encode(['success' => false, 'message' => 'Sorry, this item is out of stock.']);
+if ($productId <= 0) {
+    echo json_encode(['success' => false, 'message' => 'Invalid product parameters.']);
     exit;
 }
 
-// ── 4. Init cart for this user ────────────────────────────────────────────────
-if (!isset($_SESSION['cart'][$userEmail])) {
-    $_SESSION['cart'][$userEmail] = [];
+$db   = getDBConnection();
+$stmt = $db->prepare("SELECT stock, name, price, image FROM inventory WHERE inv_id = ? LIMIT 1");
+$stmt->execute([$productId]);
+$invItem = $stmt->fetch();
+
+if (!$invItem) {
+    echo json_encode(['success' => false, 'message' => 'Product not found in inventory.']);
+    exit;
 }
 
-$cart = &$_SESSION['cart'][$userEmail];
+$availableStock = (int)$invItem->stock;
+if ($availableStock <= 0) {
+    echo json_encode(['success' => false, 'message' => 'This item is currently out of stock.']);
+    exit;
+}
 
-// ── 5. Add or increment quantity ──────────────────────────────────────────────
+$name  = $name  ?: $invItem->name;
+$price = $price ?: (float)$invItem->price;
+$image = $image ?: $invItem->image;
+
+$cart = loadCartForUser($userEmail);
+
 $found = false;
 foreach ($cart as &$item) {
-    if (is_array($item) && (int)$item['id'] === $id) {
-        $item['qty'] = (int)$item['qty'] + $qty;
-        $found = true;
+    if ((int)$item['inv_id'] === $productId) {
+        $newQty      = (int)$item['qty'] + $qty;
+        $item['qty'] = min($newQty, $availableStock);
+        $found       = true;
         break;
     }
 }
@@ -54,23 +60,22 @@ unset($item);
 
 if (!$found) {
     $cart[] = [
-        'id'    => $id,
-        'name'  => htmlspecialchars($name),
-        'price' => $price,
-        'qty'   => $qty,
+        'inv_id' => $productId,
+        'name'   => $name,
+        'price'  => $price,
+        'qty'    => min($qty, $availableStock),
+        'image'  => $image,
     ];
 }
 
-// ── 6. Total item count (for badge in website.php) ───────────────────────────
-$totalItems = 0;
-foreach ($cart as $cartItem) {
-    $totalItems += is_array($cartItem) ? (int)($cartItem['qty'] ?? 1) : 1;
-}
+saveCart($userEmail, $cart);
+$_SESSION['cart'][$userEmail] = $cart;
+
+$totalItemsCount = count($cart);
 
 echo json_encode([
     'success'     => true,
-    'total_items' => $totalItems,
-    'message'     => htmlspecialchars($name) . ' added to cart!',
+    'total_items' => $totalItemsCount,
+    'cart'        => array_values($cart),
 ]);
 exit;
-?>
