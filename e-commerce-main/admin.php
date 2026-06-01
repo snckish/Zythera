@@ -42,6 +42,8 @@ if ($adminRole !== 'admin') {
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="dark-mode.css">
+    <script src="dark-mode.js"></script>
 
     <style>
         :root {
@@ -329,6 +331,21 @@ if ($adminRole !== 'admin') {
             top: 0;
             z-index: 100;
         }
+        body.dark .sidebar-link,
+        body.dark .sidebar-link.active,
+        body.dark .sidebar-label,
+        body.dark .sidebar-footer,
+        body.dark .sidebar-footer a {
+            color: #f5fbf5 !important;
+        }
+        body.dark .sidebar-link {
+            background: rgba(255,255,255,.02) !important;
+            border-color: rgba(255,255,255,.08) !important;
+        }
+        body.dark .sidebar-link.active {
+            background: rgba(90,158,90,.22) !important;
+            border-left-color: rgba(255,255,255,.14) !important;
+        }
 
         .order-card {
             background: #fff;
@@ -348,7 +365,289 @@ if ($adminRole !== 'admin') {
             padding: 2px 10px;
             margin-bottom: 6px;
         }
+
+        /* ══════════════════════════════════════════
+           DARK MODE — full admin panel overrides
+           ══════════════════════════════════════════ */
+        body.dark {
+            --cream: #0f1a0f;
+            --sage-light: #1e3a1e;
+            --sage-dark: #5a9e5a;
+            --deep-green: #a8d5a8;
+            --white: #1a2a1a;
+            background-color: #0f1a0f !important;
+            color: #d4e8d4 !important;
+        }
+
+        /* Navbar / top bar */
+        body.dark .top-navbar {
+            background: #1a2a1a !important;
+            border-bottom-color: rgba(255,255,255,.08) !important;
+        }
+        body.dark #sectionTitle { color: #a8d5a8 !important; }
+
+        /* User capsule */
+        body.dark .user-capsule {
+            background: #1e3a1e !important;
+            border-color: rgba(255,255,255,.1) !important;
+        }
+        body.dark .user-name { color: #c8e8c8 !important; }
+        body.dark #datetime  { color: #a8d5a8 !important; }
+
+        /* Cards */
+        body.dark .card {
+            background-color: #1a2a1a !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,.4) !important;
+        }
+
+        /* Form controls */
+        body.dark .form-control,
+        body.dark .form-select {
+            background-color: #1e3a1e !important;
+            color: #d4e8d4 !important;
+            border-color: #2e4a2e !important;
+        }
+        body.dark .form-control:focus,
+        body.dark .form-select:focus {
+            background-color: #243c24 !important;
+            border-color: #5a9e5a !important;
+            color: #e8f5e8 !important;
+        }
+        body.dark .form-control::placeholder { color: rgba(168,213,168,.45) !important; }
+        body.dark .form-label { color: #a8d5a8 !important; }
+
+        /* Tables — Bootstrap 5 uses CSS vars, must override all of them */
+        body.dark .table {
+            color: #e8f5e8 !important;
+            --bs-table-bg: #1a2a1a;
+            --bs-table-striped-bg: #1e3a1e;
+            --bs-table-hover-bg: #243c24;
+            --bs-table-color: #e8f5e8;
+            --bs-table-border-color: #2e4a2e;
+        }
+        body.dark .table thead,
+        body.dark .table-success {
+            background-color: #1e3a1e !important;
+            color: #c8e8c8 !important;
+            --bs-table-bg: #1e3a1e;
+            --bs-table-color: #c8e8c8;
+        }
+        body.dark .table th {
+            color: #c8e8c8 !important;
+            background-color: #1e3a1e !important;
+            border-color: #2e4a2e !important;
+        }
+        body.dark .table td {
+            color: #e8f5e8 !important;
+            background-color: #1a2a1a !important;
+            border-color: #2e4a2e !important;
+        }
+        body.dark .table tbody tr { background-color: #1a2a1a !important; }
+        body.dark .table-hover tbody tr:hover td { background-color: #243c24 !important; }
+        body.dark .table-bordered { border-color: #2e4a2e !important; }
+        body.dark .table-bordered td,
+        body.dark .table-bordered th { border-color: #2e4a2e !important; }
+        /* Messages table */
+        body.dark #section-messages .table td,
+        body.dark #section-messages .table th { color: #e8f5e8 !important; background-color: #1a2a1a !important; }
+        body.dark #section-messages .table thead tr th { background-color: #1e3a1e !important; color: #c8e8c8 !important; }
+        body.dark #section-messages .table td.fw-semibold { color: #ffffff !important; }
+        body.dark #section-messages .table td[style*="color:#999"] { color: #8ab88a !important; }
+
+        /* Search bar */
+        body.dark .search-wrap input {
+            background: #1e3a1e !important;
+            border-color: #2e4a2e !important;
+            color: #d4e8d4 !important;
+        }
+        body.dark .search-wrap input:focus {
+            background: #243c24 !important;
+            border-color: #5a9e5a !important;
+        }
+        body.dark .search-icon { color: #5a9e5a !important; }
+        body.dark .clear-btn   { color: #a8d5a8 !important; }
+
+        /* Buttons */
+        body.dark .btn-edit {
+            background-color: #1e3a1e !important;
+            color: #a8d5a8 !important;
+            border: 1px solid #2e4a2e !important;
+        }
+        body.dark .btn-outline-success {
+            color: #5a9e5a !important;
+            border-color: #5a9e5a !important;
+        }
+        body.dark .btn-outline-success:hover {
+            background-color: #5a9e5a !important;
+            color: #fff !important;
+        }
+        body.dark .btn-outline-secondary {
+            color: #a8d5a8 !important;
+            border-color: #2e4a2e !important;
+        }
+
+        /* Result count */
+        body.dark #result-count { color: #7aab7a !important; }
+
+        /* Highlight mark */
+        body.dark mark {
+            background: #2d5a2d !important;
+            color: #c8f0c8 !important;
+        }
+
+        /* No-results row */
+        body.dark #noResults td { color: #7aab7a !important; }
+
+        /* Order cards */
+        body.dark .order-card {
+            background: #1a2a1a !important;
+            border-left-color: #5a9e5a !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,.3) !important;
+        }
+        body.dark .order-user-tag {
+            background: #1e3a1e !important;
+            color: #a8d5a8 !important;
+        }
+
+        /* Order inline styles — hardcoded bg overrides */
+        body.dark [style*="background:#f9f9f6"],
+        body.dark [style*="background: #f9f9f6"] {
+            background: #1e3a1e !important;
+        }
+        body.dark [style*="background:#f0f7f0"],
+        body.dark [style*="background: #f0f7f0"] {
+            background: #1e3a1e !important;
+        }
+        body.dark [style*="background:#f5f2f0"],
+        body.dark [style*="background: #f5f2f0"] {
+            background: #242424 !important;
+        }
+
+        /* Order detail panel boxes */
+        body.dark div[style*="border-radius:10px"][style*="padding:10px"] {
+            background: #1e3a1e !important;
+        }
+        body.dark div[style*="border-top:2px dashed"] {
+            border-top-color: #2e4a2e !important;
+        }
+        body.dark [style*="border-bottom:1px dashed"] {
+            border-bottom-color: #2e4a2e !important;
+        }
+
+        /* Hardcoded text colors — all bumped to readable whites/light greens */
+        body.dark [style*="color:#1a2e1a"],
+        body.dark [style*="color: #1a2e1a"] {
+            color: #e8f5e8 !important;
+        }
+        body.dark [style*="color:#2d5a2d"],
+        body.dark [style*="color: #2d5a2d"] {
+            color: #c8e8c8 !important;
+        }
+        body.dark [style*="color:#888"],
+        body.dark [style*="color: #888"] {
+            color: #9ab89a !important;
+        }
+        body.dark [style*="color:#666"],
+        body.dark [style*="color: #666"] {
+            color: #a8c8a8 !important;
+        }
+        body.dark [style*="color:#444"],
+        body.dark [style*="color: #444"] {
+            color: #c8e8c8 !important;
+        }
+        body.dark [style*="color:#999"],
+        body.dark [style*="color: #999"] {
+            color: #8ab88a !important;
+        }
+        body.dark [style*="color:#7aab7a"] {
+            color: #7acc7a !important;
+        }
+
+        /* Payment method tag — #f5f2f0 bg with #666 text → both need overrides */
+        body.dark span[style*="background:#f5f2f0"],
+        body.dark span[style*="background: #f5f2f0"] {
+            background: #2a3a2a !important;
+            color: #c8e8c8 !important;
+        }
+
+        /* Status select dropdowns inside orders */
+        body.dark select[id^="status-sel-"] {
+            background: #1e3a1e !important;
+            color: #d4e8d4 !important;
+            border-color: #2e4a2e !important;
+        }
+
+        /* Detail toggle button */
+        body.dark button[style*="background:#f0f7f0"] {
+            background: #1e3a1e !important;
+            color: #a8d5a8 !important;
+            border-color: #2e4a2e !important;
+        }
+
+        /* Order ID badge */
+        body.dark span[style*="background:#f0f7f0"] {
+            background: #1e3a1e !important;
+            color: #a8d5a8 !important;
+        }
+
+        /* User summary stat boxes */
+        body.dark div[style*="flex:1"][style*="background:#f9f9f6"] {
+            background: #1e3a1e !important;
+        }
+        body.dark div[style*="background:#f9f9f6"] {
+            background: #1e3a1e !important;
+        }
+
+        /* Analytics icon bg tints */
+        body.dark div[style*="background:#2d5a2d18"] {
+            background: rgba(90,158,90,.15) !important;
+        }
+
+        /* Status badges — pastel backgrounds become invisible in dark mode */
+        body.dark span[id^="status-badge-"] {
+            filter: brightness(0.6) saturate(1.8) !important;
+            color: #fff !important;
+        }
+
+        /* Order item product name text */
+        body.dark .order-card span[style*="min-width:0"] { color: #e8f5e8 !important; }
+
+        /* Shipping fee / date text */
+        body.dark .order-card [style*="color:#888"] { color: #9ab89a !important; }
+
+        /* Order total text */
+        body.dark .order-card .text-end.fw-bold { color: #7acc7a !important; }
+
+        /* Text-muted utility */
+        body.dark .text-muted { color: #8ab88a !important; }
+
+        /* Small / caption text */
+        body.dark small.text-muted { color: #8ab88a !important; }
+
+        /* Product image border */
+        body.dark img[style*="border:1px solid #e5e5e5"] {
+            border-color: #2e4a2e !important;
+            background: #1a2a1a !important;
+        }
+
+        /* Section icon boxes (sage-light bg) */
+        body.dark div[style*="background:var(--sage-light)"],
+        body.dark div[style*="background: var(--sage-light)"] {
+            background: #1e3a1e !important;
+        }
     </style>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  if(localStorage.getItem('zythera_dark')==='1'){
+    document.documentElement.style.background='#111e11';
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background='';
+    });
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -745,7 +1044,7 @@ if ($searchQuery !== '') {
             <select style="min-width:220px;padding:8px 12px;font-size:.82rem;border-radius:10px;border:2px solid #d4e4d4;background:#f9f9f6;color:#2d5a2d;font-family:inherit;cursor:pointer;outline:none;"
                 id="status-sel-<?= htmlspecialchars($orderId) ?>"
                 onchange="updateOrderStatus('<?= htmlspecialchars($oEmail, ENT_QUOTES) ?>','<?= htmlspecialchars($orderId, ENT_QUOTES) ?>',this.value)">
-                <option value="">— Update Status —</option>
+                <option value=""> Update Status </option>
                 <option value="Pending">Pending</option>
                 <option value="Processing">Processing</option>
                 <option value="Shipped">Shipped</option>
@@ -1162,7 +1461,8 @@ function showToast(msg, isError = false) {
         t.style.cssText = 'position:fixed;bottom:24px;right:24px;color:#fff;padding:14px 22px;border-radius:12px;font-size:.86rem;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.2);transition:.3s;';
         document.body.appendChild(t);
     }
-    t.style.background = isError ? '#dc2626' : '#2d5a2d';
+    t.style.background = isError ? '#b91c1c' : '#166534';
+    t.style.color = '#ffffff';
     t.textContent = msg;
     t.style.opacity = '1';
     setTimeout(() => t.style.opacity = '0', 3500);

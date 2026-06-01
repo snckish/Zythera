@@ -213,6 +213,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="dark-mode.css">
+<script src="dark-mode.js"></script>
 <style>
 :root{--green:#2d5a2d;--sage:#d4e4d4;--cream:#f5f2ec;--deep:#1a2e1a;--terra:#bc8a7b;}
 *{font-family:'DM Sans',sans-serif;box-sizing:border-box;}
@@ -370,6 +372,18 @@ footer .footer-brand{
 .cod-info i{color:var(--green);font-size:1.2rem;margin-top:2px;flex-shrink:0;}
 .cod-info p{margin:0;font-size:.85rem;color:#444;line-height:1.5;}
 </style>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  if(localStorage.getItem('zythera_dark')==='1'){
+    document.documentElement.style.background='#111e11';
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background='';
+    });
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -449,7 +463,7 @@ footer .footer-brand{
         <!-- 5. Province (dropdown) -->
         <div class="field">
           <select name="province" id="province" required onchange="filterCities()">
-            <option value="">— Select Province —</option>
+            <option value=""> Select Province </option>
             <?php foreach ($provinces as $_p): ?>
               <option value="<?= htmlspecialchars($_p) ?>"
                 <?= ($_POST['province'] ?? '') === $_p ? 'selected' : '' ?>>
@@ -463,7 +477,7 @@ footer .footer-brand{
         <!-- 6. City (dropdown) -->
         <div class="field">
           <select name="city" id="city" required>
-            <option value="">— Select City —</option>
+            <option value=""> Select City </option>
             <?php foreach ($cities as $_c): ?>
               <option value="<?= htmlspecialchars($_c) ?>"
                 <?= ($_POST['city'] ?? '') === $_c ? 'selected' : '' ?>>

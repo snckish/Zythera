@@ -487,7 +487,40 @@ body.dark .btn-submit.user{
 body.dark .btn-submit.user:hover{background:#1a3a1a;}
 body.dark .btn-submit.admin{background:#0f1f0f;color:#fff;}
 </style>
+<link rel="stylesheet" href="dark-mode.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="dark-mode.js"></script>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  var dark = localStorage.getItem('zythera_dark') === '1';
+  if (dark) {
+    document.documentElement.classList.add('zd');
+    document.documentElement.style.background = '#111e11';
+    if (document.body) document.body.classList.add('dark');
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background = '';
+      var btn = document.getElementById('darkToggle');
+      if (btn) btn.textContent = 'Light Mode';
+    });
+  } else {
+    document.documentElement.style.background = '#ffffff';
+  }
+})();
+function toggleDark(){
+  var dark = !document.body.classList.contains('dark');
+  document.documentElement.classList.toggle('zd', dark);
+  document.body.classList.toggle('dark', dark);
+  localStorage.setItem('zythera_dark', dark ? '1' : '0');
+  var age = dark ? 60*60*24*365 : 0;
+  document.cookie = 'zythera_dark=' + (dark ? '1' : '0') + ';path=/;max-age=' + age;
+  document.documentElement.style.background = dark ? '#111e11' : '#ffffff';
+  if (!dark) document.documentElement.style.background = '';
+  var btn = document.getElementById('darkToggle');
+  if(btn) btn.textContent = dark ? 'Light Mode' : 'Dark Mode';
+}
+</script>
 </head>
 <body>
 
@@ -579,20 +612,7 @@ function togglePw(inputId, btn) {
   icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
 }
 
-// ── Dark mode toggle with persistence ────────────────────────
-function toggleDark() {
-  const isDark = document.body.classList.toggle('dark');
-  localStorage.setItem('zythera_dark', isDark ? '1' : '0');
-  document.getElementById('darkToggle').textContent = isDark ? 'Light Mode' : 'Dark Mode';
-}
-// Apply on load
-(function() {
-  if (localStorage.getItem('zythera_dark') === '1') {
-    document.body.classList.add('dark');
-    const btn = document.getElementById('darkToggle');
-    if (btn) btn.textContent = 'Light Mode';
-  }
-})();
+// Dark mode handled by inline script above
 function switchTab(tab) {
   document.getElementById('loginTab').classList.toggle('active',  tab==='login');
   document.getElementById('signupTab').classList.toggle('active', tab==='signup');

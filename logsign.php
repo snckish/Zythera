@@ -487,7 +487,9 @@ body.dark .btn-submit.user{
 body.dark .btn-submit.user:hover{background:#1a3a1a;}
 body.dark .btn-submit.admin{background:#0f1f0f;color:#fff;}
 </style>
+<link rel="stylesheet" href="e-commerce-main/dark-mode.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="e-commerce-main/dark-mode.js" defer></script>
 </head>
 <body>
 
@@ -581,18 +583,22 @@ function togglePw(inputId, btn) {
 
 // ── Dark mode toggle with persistence ────────────────────────
 function toggleDark() {
-  const isDark = document.body.classList.toggle('dark');
-  localStorage.setItem('zythera_dark', isDark ? '1' : '0');
-  document.getElementById('darkToggle').textContent = isDark ? 'Light Mode' : 'Dark Mode';
-}
-// Apply on load
-(function() {
-  if (localStorage.getItem('zythera_dark') === '1') {
-    document.body.classList.add('dark');
-    const btn = document.getElementById('darkToggle');
-    if (btn) btn.textContent = 'Light Mode';
+  const isDark = !document.body.classList.contains('dark');
+  if (window.__zythera_setDark) {
+    window.__zythera_setDark(isDark);
+  } else {
+    localStorage.setItem('zythera_dark', isDark ? '1' : '0');
+    document.body.classList.toggle('dark', isDark);
+    document.getElementById('darkToggle').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    document.cookie = 'zythera_dark=' + (isDark ? '1' : '0') + ';path=/;max-age=' + (isDark?60*60*24*365:0);
   }
-})();
+}
+// Load handled by shared script, but ensure button text if localStorage already set
+document.addEventListener('DOMContentLoaded', function(){
+  if (localStorage.getItem('zythera_dark') === '1') {
+    const btn = document.getElementById('darkToggle'); if (btn) btn.textContent = 'Light Mode';
+  }
+});
 function switchTab(tab) {
   document.getElementById('loginTab').classList.toggle('active',  tab==='login');
   document.getElementById('signupTab').classList.toggle('active', tab==='signup');

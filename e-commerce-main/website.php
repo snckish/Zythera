@@ -110,6 +110,8 @@ $reviews = loadReviews();
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dark-mode.css">
+  <script src="dark-mode.js"></script>
   <style>
     :root {
       --green: #2d5a2d;
@@ -526,6 +528,18 @@ $reviews = loadReviews();
       background: #dc2626;
     }
   </style>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  if(localStorage.getItem('zythera_dark')==='1'){
+    document.documentElement.style.background='#111e11';
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background='';
+    });
+  }
+})();
+</script>
 </head>
 
 <body>
@@ -870,13 +884,13 @@ $reviews = loadReviews();
               <p class="text-uppercase small text-muted mb-1" style="letter-spacing:2px;font-size:.72rem;">Email Us</p>
               <p class="mb-0">zythera@gmail.com</p>
             </div>
-            <div>
-              <p class="text-uppercase small text-muted mb-2" style="letter-spacing:2px;font-size:.72rem;">Follow Us</p>
+
+            <p class="text-uppercase small text-muted mb-2" style="letter-spacing:2px;font-size:.72rem;">Follow Us</p>
               <div class="d-flex gap-2">
                 <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
                 <div class="social-icon"><i class="fab fa-instagram"></i></div>
-                <div class="social-icon"><i class="fab fa-tiktok"></i></div>
-              </div>
+                <div class="social-icon"><i class="fab fa-tiktok"></i></div> 
+                
             </div>
           </div>
         </div>

@@ -36,6 +36,8 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dark-mode.css">
+  <script src="dark-mode.js"></script>
   <style>
     :root {
       --green: #2d5a2d;
@@ -118,6 +120,18 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
       .team-photo-card img { height: 240px; }
     }
   </style>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  if(localStorage.getItem('zythera_dark')==='1'){
+    document.documentElement.style.background='#111e11';
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background='';
+    });
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -133,6 +147,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
           <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
           <?php if ($userEmail): ?>
+
             <div class="d-flex align-items-center bg-light rounded-pill px-3 py-1 border shadow-sm gap-2">
               <div class="text-end d-none d-md-block">
                 <p class="mb-0 fw-bold" style="font-size:.8rem;color:var(--green);"><?= htmlspecialchars($userName) ?></p>
@@ -154,6 +169,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
                 </ul>
               </div>
             </div>
+            
             <?php if ($userRole !== 'admin'): ?>
             <a href="javascript:void(0)" onclick="openCart()" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

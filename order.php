@@ -533,7 +533,7 @@ function getStepIndex(string $status): int {
   const labels = [...group.querySelectorAll('label')].reverse(); // re-reverse for display order
   labels.forEach((lbl, i) => {
     lbl.addEventListener('mouseenter', () => {
-      labels.forEach((l, j) => l.style.color = j <= i ? '#f5c842' : '#d1d5db');
+      labels.forEach((l, j) => l.style.color = j <= i ? '#2d5a2d' : '#d1d5db');
     });
     lbl.addEventListener('mouseleave', () => {
       labels.forEach(l => l.style.color = '');

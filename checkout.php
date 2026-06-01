@@ -449,7 +449,7 @@ footer .footer-brand{
         <!-- 5. Province (dropdown) -->
         <div class="field">
           <select name="province" id="province" required onchange="filterCities()">
-            <option value="">— Select Province —</option>
+            <option value=""> Select Province </option>
             <?php foreach ($provinces as $_p): ?>
               <option value="<?= htmlspecialchars($_p) ?>"
                 <?= ($_POST['province'] ?? '') === $_p ? 'selected' : '' ?>>
@@ -463,7 +463,7 @@ footer .footer-brand{
         <!-- 6. City (dropdown) -->
         <div class="field">
           <select name="city" id="city" required>
-            <option value="">— Select City —</option>
+            <option value=""> Select City </option>
             <?php foreach ($cities as $_c): ?>
               <option value="<?= htmlspecialchars($_c) ?>"
                 <?= ($_POST['city'] ?? '') === $_c ? 'selected' : '' ?>>

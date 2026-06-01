@@ -107,7 +107,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZYTHERAE | MY PROFILE</title>
+    <title>ZYTHERA | MY PROFILE</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
@@ -117,6 +117,8 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="dark-mode.css">
+    <script src="dark-mode.js"></script>
     <style>
         :root {
             --green: #2d5a2d;
@@ -580,6 +582,20 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             letter-spacing: 4px;
         }
     </style>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  if(localStorage.getItem('zythera_dark')==='1'){
+    document.documentElement.classList.add('zd');
+    if (document.body) document.body.classList.add('dark');
+    document.documentElement.style.background='#111e11';
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background='';
+    });
+  }
+})();
+</script>
 </head>
 
 <body>
@@ -667,6 +683,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                 </div>
             </div>
 
+                <?php if ($userRole !== 'admin'): ?>
                 <!-- ── ORDER HISTORY ── -->
                 <div class="section-card">
                     <div class="section-title">
@@ -725,6 +742,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                         </div>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
         </div>
 
         <footer>
@@ -865,6 +883,15 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                         behavior: 'smooth',
                         block: 'start'
                     }), 300);
+                }
+
+                function togglePw() {
+                    const input = document.getElementById('pwField');
+                    if (!input) return;
+                    const show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    const icon = document.querySelector('.fa-eye, .fa-eye-slash');
+                    if (icon) icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
                 }
             </script>
         <?php endif; ?>
