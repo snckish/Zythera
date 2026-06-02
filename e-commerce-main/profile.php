@@ -94,6 +94,23 @@ if ($userRole !== 'admin') {
 }
 
 $pic = $dbUser->profile_pic ?? null;
+// Use DB-stored picture when present; otherwise fall back for admin users only
+if (empty($pic) && (($dbUser->role ?? '') === 'admin')) {
+    $email_l = strtolower($dbUser->email ?? '');
+    if ($email_l === 'zythera@gmail.com') {
+        $pic = 'pci/pfp/beti.jpg';
+    } elseif ($email_l === 'admin@gmail.com') {
+        $pic = 'pci/pfp/admin.jpg';
+    } elseif ($email_l === 'mei@gmail.com') {
+        $pic = 'pci/pfp/mei.jpg';
+    } else {
+        // fallback to name-based heuristics
+        $lname = strtolower($dbUser->name ?? '');
+        if (strpos($lname, 'mei') !== false) $pic = 'pci/pfp/mei.jpg';
+        elseif (strpos($lname, 'beti') !== false) $pic = 'pci/pfp/beti.jpg';
+        else $pic = null;
+    }
+}
 $_SESSION['profile_pic'][$userEmail] = $pic;
 
 $stockMap = [];
@@ -629,7 +646,20 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                         <?php if (!empty($user['profile_pic'])): ?>
                             <img src="<?= htmlspecialchars($user['profile_pic']) ?>" alt="Profile Photo">
                         <?php else: ?>
-                            <?= strtoupper(substr($user['name'], 0, 1)) ?>
+                            <?php if (($user['role'] ?? '') === 'admin'): 
+                                $lname = strtolower($user['name'] ?? '');
+                                if (strpos($lname, 'mei') !== false) {
+                                    $fallbackPic = 'pci/pfp/mei.jpg';
+                                } elseif (strpos($lname, 'beti') !== false) {
+                                    $fallbackPic = 'pci/pfp/beti.jpg';
+                                } else {
+                                    $fallbackPic = 'pci/pfp/mei.jpg';
+                                }
+                            ?>
+                                <img src="<?= htmlspecialchars($fallbackPic) ?>" alt="Profile Photo">
+                            <?php else: ?>
+                                <?= strtoupper(substr($user['name'], 0, 1)) ?>
+                            <?php endif; ?>
                         <?php endif; ?>
                         <div class="avatar-overlay"><i class="fas fa-camera" style="color:#fff;font-size:1.3rem;"></i></div>
                     </div>

@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_order_id'])) {
     if (empty($reviewErrors)) {
         $checkStmt = $db->prepare("SELECT status FROM orders WHERE order_id = ? AND email = ? LIMIT 1");
         $checkStmt->execute([$reviewOrderId, $userEmail]);
-        $reviewOrder = $checkStmt->fetch();
+        $reviewOrder = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$reviewOrder) {
             $reviewErrors[] = 'Order not found.';
@@ -465,9 +465,7 @@ function getStepIndex(string $status): int {
   <div class="section-card">
 
     <?php if (!empty($reviewSuccess)): ?>
-      <div class="alert alert-success p-3 mb-3" style="border-radius:16px;font-size:.88rem;">
-        <i class="fas fa-check-circle me-2"></i><?= htmlspecialchars($reviewSuccess) ?>
-      </div>
+      <!-- Floating toast handled at page footer for consistent positioning -->
     <?php endif; ?>
     <?php if (!empty($reviewErrors)): ?>
       <div class="alert alert-danger p-3 mb-3" style="border-radius:16px;font-size:.88rem;">
@@ -513,7 +511,31 @@ function getStepIndex(string $status): int {
       <div class="section-label mb-2">Your Review</div>
       <div style="background:var(--cream);border-radius:16px;padding:20px;">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
-          <img src="<?= htmlspecialchars(!empty($oReview->author_pic) ? $oReview->author_pic : 'https://i.pravatar.cc/80?img=12') ?>"
+          <?php
+            $authorPic = $oReview->author_pic ?? null;
+            $aEmail = strtolower($oReview->author_email ?? '');
+            $an = strtolower($oReview->author_name ?? '');
+            // Only apply fallbacks when no author_pic is provided
+            if (empty($authorPic)) {
+              if ($aEmail === 'zythera@gmail.com') {
+                $authorPic = 'pci/pfp/beti.jpg';
+              } elseif ($aEmail === 'admin@gmail.com') {
+                $authorPic = 'pci/pfp/admin.jpg';
+              } elseif ($aEmail === 'mei@gmail.com') {
+                $authorPic = 'pci/pfp/mei.jpg';
+              } elseif (strpos($an, 'mei') !== false) {
+                $authorPic = 'pci/pfp/mei.jpg';
+              } elseif (strpos($an, 'beti') !== false) {
+                $authorPic = 'pci/pfp/beti.jpg';
+              } else {
+                $authorPic = 'https://i.pravatar.cc/80?img=12';
+              }
+            } elseif (!(strpos($authorPic, 'http') === 0 || file_exists(__DIR__ . '/' . $authorPic))) {
+              // Provided author_pic exists but is invalid on disk; fall back
+              $authorPic = 'https://i.pravatar.cc/80?img=12';
+            }
+          ?>
+          <img src="<?= htmlspecialchars($authorPic) ?>"
                alt="Reviewer" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--sage);">
           <div>
             <div style="font-weight:700;color:var(--deep);font-size:.95rem;"><?= htmlspecialchars($oReview->author_name ?: ($fullName ?: 'You')) ?></div>
@@ -536,6 +558,11 @@ function getStepIndex(string $status): int {
   <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
   <span class="footer-brand">ZYTHERA</span>
 </footer>
+
+<!-- Review success toast (lower-left) -->
+<?php if (!empty($reviewSuccess)): ?>
+  <?php $toastMessage = $reviewSuccess; $toastType = 'success'; include __DIR__ . '/includes/_toast.php'; ?>
+<?php endif; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>

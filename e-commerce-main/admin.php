@@ -704,12 +704,22 @@ if ($adminRole !== 'admin') {
         $adminEmail = $_SESSION['logged_in_user'] ?? 'Admin';
         $db = getDBConnection();
 
-$stmt = $db->prepare("SELECT name FROM users WHERE email = ?");
+$stmt = $db->prepare("SELECT name, profile_pic FROM users WHERE email = ?");
 $stmt->execute([$adminEmail]);
 
 $adminData = $stmt->fetch();
 
 $adminName = $adminData ? $adminData->name : 'Admin';
+$adminPic  = $adminData->profile_pic ?? null;
+// Use DB profile_pic if present; otherwise apply admin fallbacks
+if (empty($adminPic)) {
+    $aEmail = strtolower($adminEmail ?? '');
+    if ($aEmail === 'zythera@gmail.com') $adminPic = 'pci/pfp/beti.jpg';
+    elseif ($aEmail === 'admin@gmail.com') $adminPic = 'pci/pfp/admin.jpg';
+    elseif ($aEmail === 'mei@gmail.com' || strpos(strtolower($adminName), 'mei') !== false) $adminPic = 'pci/pfp/mei.jpg';
+    elseif (strpos(strtolower($adminName), 'beti') !== false) $adminPic = 'pci/pfp/beti.jpg';
+    else $adminPic = 'pci/pfp/mei.jpg';
+}
         ?>
         <div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-bottom:10px;">
             <i class="fas fa-user-shield me-2"></i><?= htmlspecialchars($adminName) ?>
@@ -732,7 +742,7 @@ $adminName = $adminData ? $adminData->name : 'Admin';
             <span class="user-name">Welcome back, <?= htmlspecialchars($adminName) ?></span>
             <span id="datetime" style="font-size:.7rem;color:var(--deep-green);opacity:.65;display:block;"></span>
         </div>
-        <div class="user-avatar"><?= strtoupper(substr($adminName, 0, 2)) ?></div>
+        <div class="user-avatar"><img src="<?= htmlspecialchars($adminPic) ?>" alt="Admin" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.12);"></div>
     </div>
 </nav>
 

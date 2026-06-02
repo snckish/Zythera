@@ -161,6 +161,18 @@ $cart   = ($userRole !== 'admin') ? ($_SESSION['cart'][$userEmail] ?? []) : [];
 // Always load orders fresh from file
 $orders = ($userRole !== 'admin') ? (loadOrders()[$userEmail] ?? []) : [];
 $pic    = $_SESSION['profile_pic'][$userEmail];
+// Only apply admin fallbacks when no profile picture exists in session/DB
+if (($userRole ?? '') === 'admin' && empty($pic)) {
+    $aEmail = strtolower($userEmail ?? '');
+    if ($aEmail === 'zythera@gmail.com') {
+        $pic = 'pci/pfp/beti.jpg';
+    } elseif ($aEmail === 'admin@gmail.com') {
+        $pic = 'pci/pfp/admin.jpg';
+    } elseif ($aEmail === 'mei@gmail.com') {
+        $pic = 'pci/pfp/mei.jpg';
+    }
+    $_SESSION['profile_pic'][$userEmail] = $pic;
+}
 
 // Stock map from current inventory
 $stockMap = [];

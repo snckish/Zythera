@@ -285,7 +285,7 @@ function loadReviewForOrder(string $orderId): ?object {
     try {
         createReviewsTableIfNotExists();
         $db = getDBConnection();
-        $stmt = $db->prepare("SELECT r.*, u.name AS author_name, u.profile_pic AS author_pic
+            $stmt = $db->prepare("SELECT r.*, u.name AS author_name, u.profile_pic AS author_pic, u.email AS author_email
             FROM reviews r
             LEFT JOIN users u ON u.email = r.email
             WHERE r.order_id = ?
@@ -327,7 +327,7 @@ function loadReviews(int $limit = 8): array {
     try {
         createReviewsTableIfNotExists();
         $db = getDBConnection();
-        $stmt = $db->prepare("SELECT r.*, u.name AS author_name, u.profile_pic AS author_pic
+            $stmt = $db->prepare("SELECT r.*, u.name AS author_name, u.profile_pic AS author_pic, u.email AS author_email
             FROM reviews r
             LEFT JOIN users u ON u.email = r.email
             ORDER BY r.created_at DESC

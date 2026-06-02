@@ -133,7 +133,26 @@ if ($userRole !== 'admin') {
 }
 
 $pic = $dbUser->profile_pic ?? null;
+// If the user is an admin and has no uploaded profile picture, map specific admin emails to official avatars
+if (empty($pic) && (($dbUser->role ?? '') === 'admin')) {
+    $email_l = strtolower($dbUser->email ?? '');
+    if ($email_l === 'zythera@gmail.com') {
+        $pic = 'pci/pfp/beti.jpg';
+    } elseif ($email_l === 'admin@gmail.com') {
+        $pic = 'pci/pfp/admin.jpg';
+    } elseif ($email_l === 'mei@gmail.com') {
+        $pic = 'pci/pfp/mei.jpg';
+    } else {
+        // fallback to name-based heuristics
+        $lname = strtolower($dbUser->name ?? '');
+        if (strpos($lname, 'mei') !== false) $pic = 'pci/pfp/mei.jpg';
+        elseif (strpos($lname, 'beti') !== false) $pic = 'pci/pfp/beti.jpg';
+        else $pic = null;
+    }
+}
 $_SESSION['profile_pic'][$userEmail] = $pic;
+// Ensure the page-level user array reflects the resolved picture
+$user['profile_pic'] = $pic;
 
 $stockMap = [];
 foreach ($_SESSION['inventory'] ?? [] as $inv) {

@@ -93,13 +93,15 @@ CREATE TABLE IF NOT EXISTS messages (
 ) ENGINE=InnoDB;
 
 -- SEED ADMIN ACCOUNTS (PASSWORD: 123456qw)
-INSERT INTO users (email, name, password, role) VALUES 
-('zythera@gmail.com', 'Zythera Admin', '$2y$10$wE706Xo61K.5jE2r98YfEexfHhCWh0S/kYI0b21pAnYvG82m3H68C', 'admin'),
-('admin@gmail.com', 'System Admin', '$2y$10$wE706Xo61K.5jE2r98YfEexfHhCWh0S/kYI0b21pAnYvG82m3H68C', 'admin')
+INSERT INTO users (email, name, password, role, profile_pic) VALUES 
+('zythera@gmail.com', 'Zythera Admin', '$2y$10$wE706Xo61K.5jE2r98YfEexfHhCWh0S/kYI0b21pAnYvG82m3H68C', 'admin', 'pci/pfp/beti.jpg'),
+('admin@gmail.com', 'System Admin', '$2y$10$wE706Xo61K.5jE2r98YfEexfHhCWh0S/kYI0b21pAnYvG82m3H68C', 'admin', 'pci/pfp/admin.jpg'),
+('mei@gmail.com', 'Mei', '$2y$10$wE706Xo61K.5jE2r98YfEexfHhCWh0S/kYI0b21pAnYvG82m3H68C', 'admin', 'pci/pfp/mei.jpg')
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),
     password = VALUES(password),
-    role = VALUES(role);
+    role = VALUES(role),
+    profile_pic = VALUES(profile_pic);
 
 -- SEED INVENTORY
 INSERT INTO inventory (name, size, color, price, description, stock, category, image) VALUES
@@ -199,13 +201,15 @@ CREATE TABLE IF NOT EXISTS messages (
 ) ENGINE=InnoDB;
 
 -- SEED ADMIN ACCOUNTS (PASSWORD: 123456qw)
-INSERT INTO users (email, name, password, role) VALUES 
-('zythera@gmail.com', 'Zythera Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin'),
-('admin@gmail.com', 'System Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin')
+INSERT INTO users (email, name, password, role, profile_pic) VALUES 
+('zythera@gmail.com', 'Zythera Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pci/pfp/beti.jpg'),
+('admin@gmail.com', 'System Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pci/pfp/admin.jpg'),
+('mei@gmail.com', 'Mei', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pci/pfp/mei.jpg')
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),
     password = VALUES(password),
-    role = VALUES(role);
+    role = VALUES(role),
+    profile_pic = VALUES(profile_pic);
 
 
 -- INVENTORY TABLE
