@@ -118,7 +118,7 @@ function getStepIndex(string $status): int {
         --mid: #7aab7a;
         --terra: #bc8a7b;
     }
-    * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
+    * { font-family: var(--ui-font); box-sizing: border-box; }
     body { background: var(--cream); display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
     .navbar { background: #fff; box-shadow: 0 1px 12px rgba(0,0,0,.07); }
     .navbar-brand { font-family: 'Playfair Display', serif; color: var(--green) !important; letter-spacing: 4px; font-size: 1.5rem; }
@@ -391,7 +391,7 @@ function getStepIndex(string $status): int {
                 </label>
               <?php endfor; ?>
             </div>
-            <textarea name="comment" rows="4" style="width:100%;border:2px solid #d4e4d4;border-radius:14px;padding:14px;font-family:'DM Sans',sans-serif;resize:none;" placeholder="Share your thoughts about the furniture delivery and quality..."></textarea>
+            <textarea name="comment" rows="4" style="width:100%;border:2px solid #d4e4d4;border-radius:14px;padding:14px;font-family: var(--ui-font);resize:none;" placeholder="Share your thoughts about the furniture delivery and quality..."></textarea>
             <button type="submit" class="btn-place" style="width:auto;padding:12px 18px;">Submit Review</button>
           </form>
         </div>

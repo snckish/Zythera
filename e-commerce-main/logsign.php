@@ -274,7 +274,7 @@ if (!empty($_SESSION['logged_in_user'])) {
 body{
   min-height:100vh;
   background:linear-gradient(135deg,#c8dcc8 0%,#f5f2ec 60%,#e8d8c8 100%);
-  font-family:'DM Sans',sans-serif;
+  font-family: var(--ui-font);
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   padding:80px 16px 32px;
@@ -338,7 +338,7 @@ body{
 }
 .tabs button{
   flex:1;padding:11px;border:none;border-radius:50px;
-  background:transparent;font-family:'DM Sans',sans-serif;
+  background:transparent;font-family: var(--ui-font);
   font-size:.9rem;font-weight:600;color:var(--green);
   cursor:pointer;transition:.25s;
 }
@@ -357,7 +357,7 @@ body{
   width:100%;padding:15px 14px 7px;
   background:var(--sage);border:2px solid transparent;
   border-radius:var(--radius);outline:none;
-  font-family:'DM Sans',sans-serif;font-size:.95rem;
+  font-family: var(--ui-font);font-size:.95rem;
   color:var(--deep);transition:.2s;appearance:none;
 }
 .field input:focus,.field select:focus{
@@ -379,7 +379,7 @@ body{
 /* ── Submit ── */
 .btn-submit{
   width:100%;padding:14px;border:none;border-radius:50px;
-  font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;
+  font-family: var(--ui-font);font-size:1rem;font-weight:700;
   cursor:pointer;transition:.25s;margin-top:4px;letter-spacing:.5px;
 }
 .btn-submit.user {background:var(--green);color:#fff;}

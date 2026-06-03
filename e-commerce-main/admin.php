@@ -56,7 +56,7 @@ if ($adminRole !== 'admin') {
 
         body { 
             background-color: var(--cream); 
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
             color: var(--deep-green);
         }
 
@@ -88,7 +88,7 @@ if ($adminRole !== 'admin') {
             border-radius: 12px;
             padding: 0.75rem 1rem;
             color: var(--deep-green);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Lora', sans-serif;
             transition: all 0.3s ease;
         }
 
@@ -111,7 +111,7 @@ if ($adminRole !== 'admin') {
 
         .form-label {
             color: var(--deep-green);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Lora', sans-serif;
         }
 
         .btn-zythera {
@@ -190,7 +190,7 @@ if ($adminRole !== 'admin') {
             color: var(--deep-green);
             outline: none;
             transition: .2s;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
         }
 
         .search-wrap input:focus {

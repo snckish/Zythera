@@ -46,7 +46,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
       --terra: #bc8a7b;
       --deep:  #1a2e1a;
     }
-    * { font-family: 'DM Sans', sans-serif; }
+    * { font-family: var(--ui-font); }
     body { background: var(--cream); padding-top: 70px; }
 
     .navbar { background: #fff !important; box-shadow: 0 1px 12px rgba(0,0,0,.07); }

@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root{--green:#2d5a2d;--sage:#d4e4d4;--cream:#f5f2ec;--deep:#1a2e1a;--terra:#bc8a7b;}
-*{font-family:'DM Sans',sans-serif;box-sizing:border-box;}
+*{font-family: var(--ui-font);box-sizing:border-box;}
 body{background:var(--cream);min-height:100vh;padding-top:70px;}
 
 .navbar{background:#fff!important;box-shadow:0 1px 12px rgba(0,0,0,.07);}
@@ -241,7 +241,7 @@ body{background:var(--cream);min-height:100vh;padding-top:70px;}
   width:100%;padding:15px 14px 7px;
   background:var(--sage);border:2px solid transparent;
   border-radius:14px;outline:none;
-  font-family:'DM Sans',sans-serif;font-size:.92rem;
+  font-family: var(--ui-font);font-size:.92rem;
   color:var(--deep);transition:.2s;appearance:none;
 }
 
@@ -349,7 +349,7 @@ footer .footer-brand{
   width:100%;padding:13px 14px 5px;
   background:#fff;border:1.5px solid var(--sage);
   border-radius:12px;outline:none;
-  font-family:'DM Sans',sans-serif;font-size:.9rem;
+  font-family: var(--ui-font);font-size:.9rem;
   color:var(--deep);transition:.2s;
 }
 .card-field input:focus{border-color:var(--green);}

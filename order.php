@@ -148,7 +148,7 @@ function getStepIndex(string $status): int {
         --mid: #7aab7a;
         --terra: #bc8a7b;
     }
-    * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
+    * { font-family: var(--ui-font); box-sizing: border-box; }
     body { background: var(--cream); display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
     .navbar { background: #fff; box-shadow: 0 1px 12px rgba(0,0,0,.07); }
     .navbar-brand { font-family: 'Playfair Display', serif; color: var(--green) !important; letter-spacing: 4px; font-size: 1.5rem; }

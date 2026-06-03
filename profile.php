@@ -191,7 +191,7 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
         }
 
         * {
-            font-family: 'DM Sans', sans-serif;
+            font-family: var(--ui-font);
             box-sizing: border-box;
         }
 

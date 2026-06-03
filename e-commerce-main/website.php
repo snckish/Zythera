@@ -208,7 +208,7 @@ $reviews = loadReviews();
       color: #fff;
       font-family: var(--logo-font);
       font-size: clamp(1.3rem, 3vw, 2rem);
-      font-style: italic;
+      font-style: bold;
       line-height: 1.7;
       padding: 40px;
       border: 1px solid rgba(147, 174, 153, 0.2);

@@ -150,7 +150,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
         }
 
         * {
-            font-family: 'DM Sans', sans-serif;
+            font-family: var(--ui-font);
             box-sizing: border-box;
         }
 
