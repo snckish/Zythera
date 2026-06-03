@@ -1321,122 +1321,14 @@ if ($searchQuery !== '') {
 <div id="section-messages" style="display:none;">
 <?php
 $contactMsgs = [];
-$sentMessages = [];
 try {
     $db2 = getDBConnection();
     $contactStmt = $db2->query("SELECT * FROM messages ORDER BY created_at DESC");
     $contactMsgs = $contactStmt->fetchAll();
-    $sentStmt = $db2->query("SELECT * FROM user_messages ORDER BY created_at DESC");
-    $sentMessages = $sentStmt->fetchAll();
 } catch (Exception $e) {
     // Tables may not exist yet.
 }
-$messageSent = isset($_GET['msg_sent']);
-$messageError = $_GET['msg_error'] ?? '';
 ?>
-<div class="card p-4 mt-3">
-    <div class="d-flex align-items-center gap-3 mb-3">
-        <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-            <i class="fas fa-receipt" style="color:var(--deep-green);font-size:1.1rem;"></i>
-        </div>
-        <div>
-            <h5 class="fw-bold mb-0" style="color:var(--deep-green);">Send Receipt / Message</h5>
-            <p class="mb-0 text-muted" style="font-size:.9rem;">Send order receipts or admin notes directly to a customer profile.</p>
-        </div>
-    </div>
-    <?php if ($messageSent): ?>
-        <div class="alert-banner success">Message sent successfully.</div>
-    <?php elseif ($messageError): ?>
-        <div class="alert-banner error">
-            <?php
-            switch ($messageError) {
-                case 'invalid_email': echo 'Please enter a valid recipient email.'; break;
-                case 'missing_order': echo 'Order ID is required for receipt messages.'; break;
-                case 'missing_fields': echo 'Subject and message body are required.'; break;
-                case 'order_not_found': echo 'Order not found for this customer.'; break;
-                case 'user_not_found': echo 'User not found for this email.'; break;
-                default: echo 'Could not send message. Please try again.';
-            }
-            ?>
-        </div>
-    <?php endif; ?>
-    <form method="POST" action="admin_action.php">
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label small fw-semibold">Recipient Email</label>
-                <input type="email" name="recipient_email" class="form-control" placeholder="customer@example.com" required>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label small fw-semibold">Order ID <span style="color:#28a745;">*</span></label>
-                <input type="text" name="order_id" class="form-control" placeholder="ORD12345" required>
-            </div>
-            <div class="col-12">
-                <label class="form-label small fw-semibold">Subject</label>
-                <input type="text" name="subject" class="form-control" required>
-            </div>
-            <div class="col-12">
-                <label class="form-label small fw-semibold">Message</label>
-                <textarea name="body" class="form-control" rows="4" required></textarea>
-            </div>
-        </div>
-        <div class="mt-3 text-end">
-            <button type="submit" name="send_user_message" value="1" class="btn btn-success">Send Message</button>
-        </div>
-    </form>
-</div>
-
-<div class="card p-4 mt-3">
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-            <i class="fas fa-bell" style="color:var(--deep-green);font-size:1.1rem;"></i>
-        </div>
-        <div>
-            <h5 class="fw-bold mb-0" style="color:var(--deep-green);">Sent Receipts & Notifications</h5>
-        </div>
-    </div>
-    <?php if (empty($sentMessages)): ?>
-        <div class="text-center py-5 text-muted">
-            <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
-            <p>No receipts or notifications sent yet.</p>
-        </div>
-    <?php else: ?>
-        <div class="table-responsive">
-        <table class="table align-middle" style="font-size:.88rem;">
-            <thead>
-                <tr>
-                    <th>Recipient</th><th>Subject</th><th>Order</th><th>Message</th><th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($sentMessages as $m): ?>
-            <tr>
-                <td class="fw-semibold"><?= htmlspecialchars($m->recipient_email ?? '') ?></td>
-                <td><?= htmlspecialchars($m->subject ?? '') ?></td>
-                <td>
-                    <?php if (!empty($m->order_id)): ?>
-                        <a href="order.php?order_id=<?= urlencode($m->order_id) ?>&return=admin" style="color:var(--green);text-decoration:none;">
-                            <?= htmlspecialchars($m->order_id) ?>
-                        </a>
-                    <?php else: ?>
-                        —
-                    <?php endif; ?>
-                </td>
-                <td style="max-width:260px;white-space:pre-wrap;word-break:break-word;">
-                    <?php
-                        $body = $m->body ?? '';
-                        $body = preg_replace('/^[\s\x{00A0}]+/u', '', $body);
-                        echo htmlspecialchars($body);
-                    ?>
-                </td>
-                <td style="white-space:nowrap;color:#999;"><?= htmlspecialchars($m->created_at ?? '') ?></td>
-            </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
-        </div>
-    <?php endif; ?>
-</div>
-
 <div class="card p-4 mt-3">
     <div class="d-flex align-items-center gap-3 mb-4">
         <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">

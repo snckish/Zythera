@@ -382,66 +382,7 @@ function replyToReview(int $reviewId, string $reply): void {
 }
 
 // ── USER MESSAGE / RECEIPT TABLE ─────────────────────────────────
-function createUserMessagesTableIfNotExists(): void {
-    try {
-        $db = getDBConnection();
-        $db->exec("CREATE TABLE IF NOT EXISTS user_messages (
-            message_id INT NOT NULL AUTO_INCREMENT,
-            recipient_email VARCHAR(191) NOT NULL,
-            subject VARCHAR(191) NOT NULL,
-            body TEXT NOT NULL,
-            order_id VARCHAR(50) DEFAULT NULL,
-            sender VARCHAR(50) NOT NULL DEFAULT 'admin',
-            is_read TINYINT(1) NOT NULL DEFAULT 0,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (message_id),
-            KEY recipient_email (recipient_email),
-            KEY order_id (order_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-    } catch (PDOException $e) {
-        die("createUserMessagesTableIfNotExists ERROR: " . $e->getMessage());
-    }
-}
-
-function loadUserMessagesForEmail(string $email): array {
-    try {
-        createUserMessagesTableIfNotExists();
-        $db = getDBConnection();
-        $stmt = $db->prepare("SELECT * FROM user_messages WHERE recipient_email = ? ORDER BY created_at DESC");
-        $stmt->execute([$email]);
-        return $stmt->fetchAll();
-    } catch (PDOException $e) {
-        return [];
-    }
-}
-
-function loadAllUserMessages(): array {
-    try {
-        createUserMessagesTableIfNotExists();
-        $db = getDBConnection();
-        $stmt = $db->query("SELECT * FROM user_messages ORDER BY created_at DESC");
-        return $stmt->fetchAll();
-    } catch (PDOException $e) {
-        return [];
-    }
-}
-
-function saveAdminUserMessage(string $recipientEmail, string $subject, string $body, ?string $orderId = null): void {
-    try {
-        createUserMessagesTableIfNotExists();
-        $db = getDBConnection();
-        $stmt = $db->prepare("INSERT INTO user_messages (recipient_email, subject, body, order_id, sender)
-            VALUES (?, ?, ?, ?, 'admin')");
-        $stmt->execute([
-            $recipientEmail,
-            $subject,
-            $body,
-            $orderId !== '' ? $orderId : null,
-        ]);
-    } catch (PDOException $e) {
-        die("saveAdminUserMessage ERROR: " . $e->getMessage());
-    }
-}
+// user_messages (admin -> user receipts) feature removed
 
 // ── LOAD ORDERS ───────────────────────────────────────────────
 function loadOrders(): array {

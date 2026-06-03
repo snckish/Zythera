@@ -80,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Data for rendering ─────────────────────────────────────────
 // FIX: Load orders with their items properly joined
 $orders = [];
-$userMessages = [];
 if ($userRole !== 'admin') {
     $oStmt = $db->prepare("SELECT * FROM orders WHERE email=? ORDER BY date DESC");
     $oStmt->execute([$userEmail]);
@@ -92,8 +91,6 @@ if ($userRole !== 'admin') {
         $ord->items = $iStmt->fetchAll();
         $orders[] = $ord;
     }
-
-    $userMessages = loadUserMessagesForEmail($userEmail);
 }
 
 $pic = $dbUser->profile_pic ?? null;
@@ -625,15 +622,6 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
         <div class="ms-auto d-flex gap-2 align-items-center">
             <?php if ($userRole !== 'admin'): ?>
                 <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
-                <a href="messages.php" class="btn btn-sm btn-outline-success rounded-pill position-relative">
-                    <i class="fas fa-envelope"></i>
-                    <?php if (count($userMessages) > 0): ?>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                            style="font-size:.65rem;line-height:1;padding:.2rem .45rem;">
-                            <?= count($userMessages) ?>
-                        </span>
-                    <?php endif; ?>
-                </a>
             <?php else: ?>
                 <a href="admin.php" class="btn btn-sm btn-dark rounded-pill">Admin Panel</a>
             <?php endif; ?>
