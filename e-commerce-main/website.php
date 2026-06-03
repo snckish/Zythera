@@ -583,7 +583,7 @@ $reviews = loadReviews();
   <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="website.php">ZYTHERA</a>
+      <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
 
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
@@ -965,7 +965,7 @@ $reviews = loadReviews();
 
   <footer class="footer">
     <img src="pci/Group_15.png" class="footer-logo">
-    <div class="brand">ZYTHERA</div>
+    <div class="brand"><span style="color:var(--deep)">ZYTHERA</span></div>
   </footer>
   <!-- ── CART SLIDE-OUT PANEL — hidden for admin ── -->
   <?php if ($userRole !== 'admin'): ?>

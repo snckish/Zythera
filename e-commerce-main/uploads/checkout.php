@@ -273,7 +273,7 @@ footer .footer-brand{
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg fixed-top">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="website.php">ZYTHERA</a>
+    <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
     <div class="ms-auto d-flex gap-2 align-items-center">
       <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill px-3">
         <i class="fas fa-arrow-left me-1"></i> Keep Shopping
@@ -287,7 +287,7 @@ footer .footer-brand{
 <div class="container py-4" style="max-width:980px;">
 
   <div class="mb-4">
-    <p class="step-label">ZYTHERA FURNITURE</p>
+    <p class="step-label"><span style="color:var(--deep)">ZYTHERA</span> FURNITURE</p>
     <h2 style="font-family:'Playfair Display',serif;color:var(--deep);margin:0;">Checkout</h2>
   </div>
 
@@ -475,7 +475,7 @@ footer .footer-brand{
 
 <footer>
   <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-  <span class="footer-brand">ZYTHERA</span>
+  <span class="footer-brand"><span style="color:var(--deep)">ZYTHERA</span></span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

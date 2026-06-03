@@ -73,7 +73,7 @@ $avatarSrc = getAvatarURL($pic, $dbUser->email ?? null, $dbUser->name ?? null, 1
 </head>
 <body>
     <nav class="navbar navbar-light px-4 py-2 fixed-top">
-        <a class="navbar-brand fw-bold" href="website.php">ZYTHERA</a>
+        <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
         <div class="ms-auto d-flex gap-2 align-items-center">
             <a href="profile.php" class="btn btn-sm btn-outline-success rounded-pill">Profile</a>
             <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
@@ -139,7 +139,7 @@ $avatarSrc = getAvatarURL($pic, $dbUser->email ?? null, $dbUser->name ?? null, 1
 
     <footer style="padding:24px 0;text-align:center;">
         <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-        <span class="footer-brand" style="font-family:var(--logo-font);font-size:1rem;vertical-align:middle;margin-left:8px;">ZYTHERA</span>
+        <span class="footer-brand" style="font-family:var(--logo-font);font-size:1rem;vertical-align:middle;margin-left:8px;"><span style="color:var(--deep)">ZYTHERA</span></span>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

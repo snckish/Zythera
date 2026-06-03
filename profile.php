@@ -586,7 +586,7 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
 <body>
 
     <nav class="navbar navbar-light px-4 py-2 fixed-top">
-        <a class="navbar-brand fw-bold" href="website.php">ZYTHERA</a>
+        <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
         <div class="ms-auto d-flex gap-2 align-items-center">
             <?php if ($userRole !== 'admin'): ?>
                 <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
@@ -819,7 +819,7 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
 
         <footer>
             <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-            <span class="footer-brand">ZYTHERA</span>
+            <span class="footer-brand"><span style="color:var(--deep)">ZYTHERA</span></span>
         </footer>
 
         <!-- FIX: Bootstrap JS was missing -->

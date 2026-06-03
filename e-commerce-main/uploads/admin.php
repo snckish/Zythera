@@ -350,7 +350,7 @@ if (!in_array($loggedIn, ADMIN_EMAILS, true)) {
 <!-- ── SIDEBAR ── -->
 <div class="sidebar" id="adminSidebar">
     <div class="sidebar-brand">
-        <div class="brand-name">ZYTHERA</div>
+        <div class="brand-name"><span style="color:var(--deep)">ZYTHERA</span></div>
         <div class="brand-sub">Admin Panel</div>
     </div>
 

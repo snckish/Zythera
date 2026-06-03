@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
 
 <!-- CARD -->
 <div class="card">
-  <div class="brand">ZYTHERA</div>
+  <div class="brand"><span style="color:var(--deep)">ZYTHERA</span></div>
   <p class="tagline">Furniture crafted for lives that deserve beauty.</p>
 
   <!-- TABS -->
@@ -600,7 +600,7 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
 
 <div class="footer-brand">
   <img src="pci/Group_15.png" class="footer-logo">
-  <span class="brand-name">ZYTHERA</span>
+  <span class="brand-name"><span style="color:var(--deep)">ZYTHERA</span></span>
 </div>
 
 <script>

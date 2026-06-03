@@ -261,7 +261,7 @@ function getStepIndex(string $status): int {
 <body style="display:flex;flex-direction:column;min-height:100vh;">
 
 <nav class="navbar navbar-light px-4 py-2 fixed-top">
-  <a class="navbar-brand fw-bold" href="website.php">ZYTHERA</a>
+  <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
   <div class="ms-auto d-flex gap-2 align-items-center">
     <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
     <a href="logout.php" class="btn btn-sm btn-danger rounded-pill">Logout</a>
@@ -521,7 +521,7 @@ function getStepIndex(string $status): int {
 
 <footer>
   <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-  <span class="footer-brand">ZYTHERA</span>
+  <span class="footer-brand"><span style="color:var(--deep)">ZYTHERA</span></span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

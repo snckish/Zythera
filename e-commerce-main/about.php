@@ -39,6 +39,30 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   <link rel="stylesheet" href="dark-mode.css">
   <script src="dark-mode.js"></script>
   <style>
+
+        :root {
+      --logo-font: 'Playfair Display', serif;
+      --ui-font: 'Roboto', sans-serif;
+      --text-font: 'Lora', serif
+    }
+
+    body {
+      font-family: var(--ui-font);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    .navbar-brand,
+    .brand-name,
+    .section-title,
+    .page-header h2,
+    footer .footer-brand {
+      font-family: var(--logo-font);
+    }
+
     :root {
       --green: #2d5a2d;
       --sage:  #d4e4d4;
@@ -50,31 +74,31 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
     body { background: var(--cream); padding-top: 70px; }
 
     .navbar { background: #fff !important; box-shadow: 0 1px 12px rgba(0,0,0,.07); }
-    .navbar-brand { font-family: 'Playfair Display', serif; color: var(--green) !important; font-size: 1.55rem; letter-spacing: 2px; }
+    .navbar-brand { font-family: var(--logo-font); color: var(--green) !important; font-size: 1.55rem; letter-spacing: 2px; }
     .nav-link { font-weight: 500; color: #444 !important; font-size: .9rem; }
     .nav-link:hover { color: var(--green) !important; }
 
     .about-hero { background: var(--deep); color: #fff; padding: 5rem 0 4rem; position: relative; overflow: hidden; }
     .about-hero::after { content: ''; position: absolute; inset: 0; background: url('pci/download_(4).jpeg') center/cover no-repeat; opacity: .18; z-index: 0; }
     .about-hero .container { position: relative; z-index: 1; }
-    .about-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; line-height: 1.25; margin-bottom: 1rem; }
+    .about-hero h1 { font-family: var(--logo-font); font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; line-height: 1.25; margin-bottom: 1rem; }
     .about-hero p { font-size: 1.05rem; opacity: .8; max-width: 540px; line-height: 1.8; }
     .hero-badge { display: inline-block; background: rgba(212,228,212,.15); border: 1px solid rgba(212,228,212,.35); color: var(--sage); font-size: .72rem; letter-spacing: 3px; text-transform: uppercase; padding: .35rem .9rem; border-radius: 50px; margin-bottom: 1.25rem; }
 
     .section { padding: 64px 0; }
     .section-label { font-size: .75rem; letter-spacing: 3px; text-transform: uppercase; color: #7b8c75; margin-bottom: .5rem; }
-    .section-title { font-family: 'Playfair Display', serif; color: var(--green); font-size: 1.9rem; margin-bottom: 1.25rem; }
+    .section-title { font-family: var(--logo-font); color: var(--green); font-size: 1.9rem; margin-bottom: 1.25rem; }
 
     .feature-card { background: #fff; border-radius: 20px; padding: 1.75rem; box-shadow: 0 4px 20px rgba(0,0,0,.07); border: none; height: 100%; transition: transform .25s, box-shadow .25s; }
     .feature-card:hover { transform: translateY(-4px); box-shadow: 0 14px 38px rgba(0,0,0,.11); }
     .feature-card .icon-wrap { width: 44px; height: 44px; background: var(--sage); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
     .feature-card .icon-wrap i { color: var(--green); font-size: 1.1rem; }
-    .feature-card h5 { font-family: 'Playfair Display', serif; color: var(--deep); font-size: 1.05rem; margin-bottom: .6rem; }
+    .feature-card h5 { font-family: var(--logo-font); color: var(--deep); font-size: 1.05rem; margin-bottom: .6rem; }
     .feature-card p { color: #55605b; line-height: 1.75; font-size: .93rem; margin: 0; }
 
     .metric-strip { background: var(--green); padding: 3.5rem 0; }
     .metric-item { text-align: center; padding: 1rem; }
-    .metric-item h3 { font-family: 'Playfair Display', serif; font-size: 2.4rem; color: #fff; margin-bottom: .4rem; }
+    .metric-item h3 { font-family: var(--logo-font); font-size: 2.4rem; color: #fff; margin-bottom: .4rem; }
     .metric-item p { color: var(--sage); font-size: .88rem; margin: 0; line-height: 1.6; }
 
     .sage-divider { background: var(--sage); height: 3px; width: 48px; border-radius: 4px; margin-bottom: 1.5rem; }
@@ -94,11 +118,11 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
     .team-photo-card:hover { transform: translateY(-4px); box-shadow: 0 14px 38px rgba(0,0,0,.11); }
    .team-photo-card img { width: 100%; height: 250px; object-fit: cover; object-position: center 60%; display: block; }
    .team-photo-card .team-caption { padding: 1.25rem 1.5rem; }
-    .team-photo-card h6 { font-family: 'Playfair Display', serif; color: var(--deep); font-size: 1.05rem; margin-bottom: .3rem; }
+    .team-photo-card h6 { font-family: var(--logo-font); color: var(--deep); font-size: 1.05rem; margin-bottom: .3rem; }
     .team-photo-card small { color: #7b8c75; font-size: .82rem; }
 
     .cta-panel { background: var(--deep); border-radius: 20px; padding: 3rem; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.13); }
-    .cta-panel h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: #fff; margin-bottom: .85rem; }
+    .cta-panel h2 { font-family: var(--logo-font); font-size: 1.8rem; color: #fff; margin-bottom: .85rem; }
     .cta-panel p { color: rgba(255,255,255,.72); line-height: 1.75; margin-bottom: 1.5rem; }
 
     .btn-green { background: var(--green); color: #fff; border: none; border-radius: 50px; padding: .65rem 1.6rem; font-weight: 600; font-size: .9rem; transition: .2s; }
@@ -137,7 +161,8 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
 
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="website.php">ZYTHERA</a>
+     <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
+
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -201,7 +226,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
     <div class="container">
       <span class="hero-badge">Our Story</span>
       <h1>Furniture made for<br><em>how you actually live.</em></h1>
-      <p>ZYTHERA started with a simple frustration — furniture that looked great in showrooms but fell short at home. We set out to fix that by curating pieces built to last, designed to feel right, and priced to be honest.</p>
+      <p><span style="color:var(--deep)">ZYTHERA</span> started with a simple frustration — furniture that looked great in showrooms but fell short at home. We set out to fix that by curating pieces built to last, designed to feel right, and priced to be honest.</p>
     </div>
   </section>
 
@@ -228,7 +253,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
               <div class="value-num">02</div>
               <div>
                 <h6>Comfort first, always</h6>
-                <p>Every sofa, chair, and bed frame is tested for daily use — not just to be photographed. If it isn't comfortable, it isn't ZYTHERA.</p>
+                <p>Every sofa, chair, and bed frame is tested for daily use — not just to be photographed. If it isn't comfortable, it isn't <span style="color:var(--deep)">ZYTHERA</span>.</p>
               </div>
             </div>
             <div class="value-item">
@@ -273,7 +298,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   <section class="highlight-row">
     <div class="container">
       <div class="text-center mb-5">
-        <p class="section-label">Why ZYTHERA</p>
+        <p class="section-label">Why <span style="color:var(--deep)">ZYTHERA</span></p>
         <div class="sage-divider mx-auto"></div>
         <h2 class="section-title">A different kind of furniture store</h2>
       </div>
@@ -319,7 +344,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
           </div>
         </div>
         <div class="col-lg-7">
-          <p class="section-label mb-1">The People Behind ZYTHERA</p>
+          <p class="section-label mb-1">The People Behind <span style="color:var(--deep)">ZYTHERA</span></p>
           <div class="sage-divider"></div>
           <div class="row g-3">
             <!-- ── REAL TEAM PHOTO ── -->
@@ -327,7 +352,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
               <div class="team-photo-card">
                 <img src="../team.jpeg" alt="The ZYTHERA Team">
                 <div class="team-caption">
-                  <h6>The ZYTHERA Team</h6>
+                  <h6>The <span style="color:var(--deep)">ZYTHERA</span> Team</h6>
                   <small>Design, sourcing, and customer experience — all under one roof.</small>
                 </div>
               </div>
@@ -337,7 +362,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
               <div class="feature-card" style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem;">
                 <div class="icon-wrap mb-0" style="flex-shrink:0;"><i class="fas fa-users"></i></div>
                 <div>
-                  <h6 style="font-family:'Playfair Display',serif;color:var(--deep);margin-bottom:.2rem;">A small team with high standards</h6>
+                  <h6 style="font-family:var(--logo-font);color:var(--deep);margin-bottom:.2rem;">A small team with high standards</h6>
                   <p style="font-size:.88rem;margin:0;">Every order, inquiry, and delivery is handled by people who genuinely care about getting it right — not a call centre, not a bot.</p>
                 </div>
               </div>
