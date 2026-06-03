@@ -686,6 +686,9 @@ if ($adminRole !== 'admin') {
         <button class="sidebar-link" onclick="showSection('users')" id="nav-users">
             <i class="fas fa-users"></i> User Summary
         </button>
+        <button class="sidebar-link" onclick="showSection('reviews')" id="nav-reviews">
+            <i class="fas fa-star"></i> Reviews
+        </button>
         <button class="sidebar-link" onclick="showSection('messages')" id="nav-messages">
             <i class="fas fa-envelope"></i> Messages
         </button>
@@ -710,16 +713,7 @@ $stmt->execute([$adminEmail]);
 $adminData = $stmt->fetch();
 
 $adminName = $adminData ? $adminData->name : 'Admin';
-$adminPic  = $adminData->profile_pic ?? null;
-// Use DB profile_pic if present; otherwise apply admin fallbacks
-if (empty($adminPic)) {
-    $aEmail = strtolower($adminEmail ?? '');
-    if ($aEmail === 'zythera@gmail.com') $adminPic = 'pci/pfp/beti.jpg';
-    elseif ($aEmail === 'admin@gmail.com') $adminPic = 'pci/pfp/admin.jpg';
-    elseif ($aEmail === 'mei@gmail.com' || strpos(strtolower($adminName), 'mei') !== false) $adminPic = 'pci/pfp/mei.jpg';
-    elseif (strpos(strtolower($adminName), 'beti') !== false) $adminPic = 'pci/pfp/beti.jpg';
-    else $adminPic = 'pci/pfp/mei.jpg';
-}
+$adminPic = getAvatarURL($adminData->profile_pic ?? null, $adminEmail ?? null, $adminName ?? null, 40);
         ?>
         <div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-bottom:10px;">
             <i class="fas fa-user-shield me-2"></i><?= htmlspecialchars($adminName) ?>
@@ -1251,8 +1245,198 @@ if ($searchQuery !== '') {
 </div>
 </div><!-- /section-users -->
 
+<!-- ── SECTION: Reviews ── -->
+<div id="section-reviews" style="display:none;">
+<div class="card p-4 mt-3">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-star" style="color:var(--deep-green);font-size:1.1rem;"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold mb-0" style="color:var(--deep-green);">User Reviews</h5>
+            <p class="mb-0 text-muted" style="font-size:.9rem;">Manage reviews, delete inappropriate feedback, and reply to customers.</p>
+        </div>
+    </div>
+    <?php $adminReviews = loadReviews(0, true); ?>
+    <?php if (empty($adminReviews)): ?>
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-star fa-3x mb-3 opacity-25"></i>
+        <p>No reviews have been submitted yet.</p>
+    </div>
+    <?php else: ?>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle text-center" style="font-size:.88rem;">
+            <thead>
+                <tr>
+                    <th>Reviewer</th>
+                    <th>Email</th>
+                    <th>Order</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Admin Reply</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($adminReviews as $review): ?>
+                <tr id="review-row-<?= (int)$review->review_id ?>">
+                    <td style="white-space:nowrap;">
+                        <div class="d-flex align-items-center gap-2 justify-content-center">
+                            <img src="<?= htmlspecialchars(getAvatarURL($review->author_pic ?? null, $review->author_email ?? null, $review->author_name ?? null, 36)) ?>" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid rgba(0,0,0,.08);">
+                            <span><?= htmlspecialchars($review->author_name ?: 'Anonymous') ?></span>
+                        </div>
+                    </td>
+                    <td><?= htmlspecialchars($review->author_email ?: $review->email) ?></td>
+                    <td><?= htmlspecialchars($review->order_id) ?></td>
+                    <td><?= htmlspecialchars($review->rating) ?>/5</td>
+                    <td style="max-width:220px;white-space:pre-wrap;word-break:break-word;"><?= htmlspecialchars($review->comment) ?></td>
+                    <td style="max-width:220px;white-space:pre-wrap;word-break:break-word;">
+                        <?= htmlspecialchars($review->reply ?: '—') ?>
+                        <?php if (!empty($review->reply_created_at)): ?>
+                            <div style="font-size:.72rem;color:#888;margin-top:4px;">Replied <?= htmlspecialchars($review->reply_created_at) ?></div>
+                        <?php endif; ?>
+                    </td>
+                    <td><?= htmlspecialchars($review->created_at) ?></td>
+                    <td>
+                        <div class="d-flex gap-1 justify-content-center flex-wrap">
+                            <button class="btn btn-edit btn-sm" onclick="replyReview(<?= (int)$review->review_id ?>, <?= json_encode($review->author_name ?: $review->author_email ?: 'Reviewer') ?>)">
+                                <i class="fas fa-reply"></i> Reply
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteReview(<?= (int)$review->review_id ?>)">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+</div>
+</div><!-- /section-reviews -->
+
 <!-- ── SECTION: Messages ── -->
 <div id="section-messages" style="display:none;">
+<?php
+$contactMsgs = [];
+$sentMessages = [];
+try {
+    $db2 = getDBConnection();
+    $contactStmt = $db2->query("SELECT * FROM messages ORDER BY created_at DESC");
+    $contactMsgs = $contactStmt->fetchAll();
+    $sentStmt = $db2->query("SELECT * FROM user_messages ORDER BY created_at DESC");
+    $sentMessages = $sentStmt->fetchAll();
+} catch (Exception $e) {
+    // Tables may not exist yet.
+}
+$messageSent = isset($_GET['msg_sent']);
+$messageError = $_GET['msg_error'] ?? '';
+?>
+<div class="card p-4 mt-3">
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-receipt" style="color:var(--deep-green);font-size:1.1rem;"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold mb-0" style="color:var(--deep-green);">Send Receipt / Message</h5>
+            <p class="mb-0 text-muted" style="font-size:.9rem;">Send order receipts or admin notes directly to a customer profile.</p>
+        </div>
+    </div>
+    <?php if ($messageSent): ?>
+        <div class="alert-banner success">Message sent successfully.</div>
+    <?php elseif ($messageError): ?>
+        <div class="alert-banner error">
+            <?php
+            switch ($messageError) {
+                case 'invalid_email': echo 'Please enter a valid recipient email.'; break;
+                case 'missing_order': echo 'Order ID is required for receipt messages.'; break;
+                case 'missing_fields': echo 'Subject and message body are required.'; break;
+                case 'order_not_found': echo 'Order not found for this customer.'; break;
+                case 'user_not_found': echo 'User not found for this email.'; break;
+                default: echo 'Could not send message. Please try again.';
+            }
+            ?>
+        </div>
+    <?php endif; ?>
+    <form method="POST" action="admin_action.php">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Recipient Email</label>
+                <input type="email" name="recipient_email" class="form-control" placeholder="customer@example.com" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Order ID <span style="color:#28a745;">*</span></label>
+                <input type="text" name="order_id" class="form-control" placeholder="ORD12345" required>
+            </div>
+            <div class="col-12">
+                <label class="form-label small fw-semibold">Subject</label>
+                <input type="text" name="subject" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <label class="form-label small fw-semibold">Message</label>
+                <textarea name="body" class="form-control" rows="4" required></textarea>
+            </div>
+        </div>
+        <div class="mt-3 text-end">
+            <button type="submit" name="send_user_message" value="1" class="btn btn-success">Send Message</button>
+        </div>
+    </form>
+</div>
+
+<div class="card p-4 mt-3">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-bell" style="color:var(--deep-green);font-size:1.1rem;"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold mb-0" style="color:var(--deep-green);">Sent Receipts & Notifications</h5>
+        </div>
+    </div>
+    <?php if (empty($sentMessages)): ?>
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+            <p>No receipts or notifications sent yet.</p>
+        </div>
+    <?php else: ?>
+        <div class="table-responsive">
+        <table class="table align-middle" style="font-size:.88rem;">
+            <thead>
+                <tr>
+                    <th>Recipient</th><th>Subject</th><th>Order</th><th>Message</th><th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($sentMessages as $m): ?>
+            <tr>
+                <td class="fw-semibold"><?= htmlspecialchars($m->recipient_email ?? '') ?></td>
+                <td><?= htmlspecialchars($m->subject ?? '') ?></td>
+                <td>
+                    <?php if (!empty($m->order_id)): ?>
+                        <a href="order.php?order_id=<?= urlencode($m->order_id) ?>&return=admin" style="color:var(--green);text-decoration:none;">
+                            <?= htmlspecialchars($m->order_id) ?>
+                        </a>
+                    <?php else: ?>
+                        —
+                    <?php endif; ?>
+                </td>
+                <td style="max-width:260px;white-space:pre-wrap;word-break:break-word;">
+                    <?php
+                        $body = $m->body ?? '';
+                        $body = preg_replace('/^[\s\x{00A0}]+/u', '', $body);
+                        echo htmlspecialchars($body);
+                    ?>
+                </td>
+                <td style="white-space:nowrap;color:#999;"><?= htmlspecialchars($m->created_at ?? '') ?></td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        </div>
+    <?php endif; ?>
+</div>
+
 <div class="card p-4 mt-3">
     <div class="d-flex align-items-center gap-3 mb-4">
         <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
@@ -1262,14 +1446,7 @@ if ($searchQuery !== '') {
             <h5 class="fw-bold mb-0" style="color:var(--deep-green);">Customer Messages</h5>
         </div>
     </div>
-    <?php
-    $msgs = [];
-    try {
-        $db2 = getDBConnection();
-        $msgStmt = $db2->query("SELECT * FROM messages ORDER BY created_at DESC");
-        $msgs = $msgStmt->fetchAll();
-    } catch (Exception $e) { /* table may not exist yet */ }
-    if (empty($msgs)): ?>
+    <?php if (empty($contactMsgs)): ?>
     <div class="text-center py-5 text-muted">
         <i class="fas fa-envelope-open fa-3x mb-3 opacity-25"></i>
         <p>No messages received yet.</p>
@@ -1283,7 +1460,7 @@ if ($searchQuery !== '') {
             </tr>
         </thead>
         <tbody>
-        <?php foreach ($msgs as $m): ?>
+        <?php foreach ($contactMsgs as $m): ?>
         <tr>
             <td class="fw-semibold"><?= htmlspecialchars($m->full_name ?? '') ?></td>
             <td><?= htmlspecialchars($m->email ?? '') ?></td>
@@ -1321,11 +1498,12 @@ const sectionTitles = {
     analytics:  'Analytics Dashboard',
     orders:     'Order History',
     users:      'User Summary',
+    reviews:    'User Reviews',
     messages:   'Customer Messages',
 };
 
 function showSection(name) {
-    ['inventory','addproduct','analytics','orders','users','messages'].forEach(s => {
+    ['inventory','addproduct','analytics','orders','users','reviews','messages'].forEach(s => {
         document.getElementById('section-' + s).style.display = s === name ? '' : 'none';
     });
     document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
@@ -1458,6 +1636,43 @@ function deleteUser(email, name) {
                 setTimeout(() => window.location.reload(), 800);
             } else {
                 alert(data.message || 'Could not delete user.');
+            }
+        })
+        .catch(() => alert('Request failed.'));
+}
+
+function deleteReview(reviewId) {
+    if (!confirm('Delete this review permanently?')) return;
+    fetch('admin_action.php?delete_review=' + encodeURIComponent(reviewId))
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Review deleted.');
+                const row = document.getElementById('review-row-' + reviewId);
+                if (row) row.remove();
+            } else {
+                alert(data.message || 'Could not delete review.');
+            }
+        })
+        .catch(() => alert('Request failed.'));
+}
+
+function replyReview(reviewId, author) {
+    const reply = prompt('Reply to ' + author + ':');
+    if (reply === null) return;
+    const trimmed = reply.trim();
+    if (!trimmed) {
+        alert('Reply cannot be empty.');
+        return;
+    }
+    fetch('admin_action.php?reply_review=1&review_id=' + encodeURIComponent(reviewId) + '&reply=' + encodeURIComponent(trimmed))
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Reply saved.');
+                window.location.reload();
+            } else {
+                alert(data.message || 'Could not save reply.');
             }
         })
         .catch(() => alert('Request failed.'));

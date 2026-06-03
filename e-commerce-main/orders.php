@@ -400,7 +400,8 @@ function getStepIndex(string $status): int {
           <div class="section-label mb-2">Your Review</div>
           <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
             <div>
-              <img src="<?= !empty($o->review->author_pic) ? htmlspecialchars($o->review->author_pic) : 'https://i.pravatar.cc/80?img=12' ?>" style="width:70px;height:70px;border-radius:18px;object-fit:cover;" alt="<?= htmlspecialchars($o->review->author_name ?: 'Reviewer') ?>">
+              <?php $revAvatar = getAvatarURL($o->review->author_pic ?? null, $o->review->author_email ?? null, $o->review->author_name ?? null, 70); ?>
+              <img src="<?= htmlspecialchars($revAvatar) ?>" style="width:70px;height:70px;border-radius:18px;object-fit:cover;" alt="<?= htmlspecialchars($o->review->author_name ?: 'Reviewer') ?>">
             </div>
             <div style="flex:1;min-width:0;">
               <div style="font-weight:700;color:var(--deep);margin-bottom:4px;">Thank you for sharing your experience.</div>

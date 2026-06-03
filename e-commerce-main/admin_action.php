@@ -5,6 +5,43 @@ ini_set('display_errors', 1);
 include 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['send_user_message'])) {
+        $recipientEmail = trim($_POST['recipient_email'] ?? '');
+        $subject = trim($_POST['subject'] ?? '');
+        $body = trim($_POST['body'] ?? '');
+        $orderId = trim($_POST['order_id'] ?? '');
+
+        if ($recipientEmail === '' || !filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
+            header('Location: admin.php?msg_error=invalid_email');
+            exit;
+        }
+        if ($orderId === '') {
+            header('Location: admin.php?msg_error=missing_order');
+            exit;
+        }
+        if ($subject === '' || $body === '') {
+            header('Location: admin.php?msg_error=missing_fields');
+            exit;
+        }
+
+        try {
+            $db = getDBConnection();
+            $check = $db->prepare("SELECT 1 FROM orders WHERE order_id = ? AND email = ? LIMIT 1");
+            $check->execute([$orderId, $recipientEmail]);
+            if (!$check->fetch()) {
+                header('Location: admin.php?msg_error=order_not_found');
+                exit;
+            }
+
+            saveAdminUserMessage($recipientEmail, $subject, $body, $orderId !== '' ? $orderId : null);
+            header('Location: admin.php?msg_sent=1');
+            exit;
+        } catch (PDOException $e) {
+            header('Location: admin.php?msg_error=server');
+            exit;
+        }
+    }
+
     $inv_id = $_POST['inv_id'] ?? ($_POST['id'] ?? '');
 
     $rawPrice = $_POST['price'] ?? '0';
@@ -116,6 +153,35 @@ if (isset($_GET['delete_user'])) {
         $stmt->execute([$email]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if (isset($_GET['delete_review'])) {
+    header('Content-Type: application/json');
+    $reviewId = (int)$_GET['delete_review'];
+    try {
+        deleteReview($reviewId);
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if (isset($_GET['reply_review'])) {
+    header('Content-Type: application/json');
+    $reviewId = (int)($_GET['review_id'] ?? 0);
+    $reply = trim($_GET['reply'] ?? '');
+    if ($reviewId <= 0 || $reply === '') {
+        echo json_encode(['success' => false, 'message' => 'Review ID and reply text are required.']);
+        exit;
+    }
+    try {
+        replyToReview($reviewId, $reply);
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
     exit;

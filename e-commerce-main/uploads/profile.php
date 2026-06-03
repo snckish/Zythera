@@ -369,11 +369,8 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
     <div class="profile-card">
         <div class="profile-header">
             <div class="avatar-ring" onclick="document.getElementById('picInput').click();" title="Click to change photo">
-                <?php if (!empty($user['profile_pic'])): ?>
-                    <img src="<?= htmlspecialchars($user['profile_pic']) ?>" alt="Profile Photo">
-                <?php else: ?>
-                   <?= strtoupper(substr($user['name'],0,1)) ?>
-                <?php endif; ?>
+                <?php $avatarSrc = getAvatarURL($user['profile_pic'] ?? null, $user['email'] ?? null, $user['name'] ?? null, 100); ?>
+                <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="Profile Photo">
                 <div class="avatar-overlay"><i class="fas fa-camera" style="color:#fff;font-size:1.3rem;"></i></div>
             </div>
 

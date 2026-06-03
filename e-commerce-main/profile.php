@@ -80,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Data for rendering ─────────────────────────────────────────
 // FIX: Load orders with their items properly joined
 $orders = [];
+$userMessages = [];
 if ($userRole !== 'admin') {
     $oStmt = $db->prepare("SELECT * FROM orders WHERE email=? ORDER BY date DESC");
     $oStmt->execute([$userEmail]);
@@ -91,6 +92,8 @@ if ($userRole !== 'admin') {
         $ord->items = $iStmt->fetchAll();
         $orders[] = $ord;
     }
+
+    $userMessages = loadUserMessagesForEmail($userEmail);
 }
 
 $pic = $dbUser->profile_pic ?? null;
@@ -622,6 +625,15 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
         <div class="ms-auto d-flex gap-2 align-items-center">
             <?php if ($userRole !== 'admin'): ?>
                 <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
+                <a href="messages.php" class="btn btn-sm btn-outline-success rounded-pill position-relative">
+                    <i class="fas fa-envelope"></i>
+                    <?php if (count($userMessages) > 0): ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                            style="font-size:.65rem;line-height:1;padding:.2rem .45rem;">
+                            <?= count($userMessages) ?>
+                        </span>
+                    <?php endif; ?>
+                </a>
             <?php else: ?>
                 <a href="admin.php" class="btn btn-sm btn-dark rounded-pill">Admin Panel</a>
             <?php endif; ?>
@@ -643,24 +655,8 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             <div class="profile-card">
                 <div class="profile-header">
                     <div class="avatar-ring" onclick="document.getElementById('picInput').click();" title="Click to change photo">
-                        <?php if (!empty($user['profile_pic'])): ?>
-                            <img src="<?= htmlspecialchars($user['profile_pic']) ?>" alt="Profile Photo">
-                        <?php else: ?>
-                            <?php if (($user['role'] ?? '') === 'admin'): 
-                                $lname = strtolower($user['name'] ?? '');
-                                if (strpos($lname, 'mei') !== false) {
-                                    $fallbackPic = 'pci/pfp/mei.jpg';
-                                } elseif (strpos($lname, 'beti') !== false) {
-                                    $fallbackPic = 'pci/pfp/beti.jpg';
-                                } else {
-                                    $fallbackPic = 'pci/pfp/mei.jpg';
-                                }
-                            ?>
-                                <img src="<?= htmlspecialchars($fallbackPic) ?>" alt="Profile Photo">
-                            <?php else: ?>
-                                <?= strtoupper(substr($user['name'], 0, 1)) ?>
-                            <?php endif; ?>
-                        <?php endif; ?>
+                        <?php $avatarSrc = getAvatarURL($user['profile_pic'] ?? null, $user['email'] ?? null, $user['name'] ?? null, 100); ?>
+                        <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="Profile Photo">
                         <div class="avatar-overlay"><i class="fas fa-camera" style="color:#fff;font-size:1.3rem;"></i></div>
                     </div>
 
@@ -772,6 +768,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                         </div>
                     <?php endif; ?>
                 </div>
+
                 <?php endif; ?>
         </div>
 

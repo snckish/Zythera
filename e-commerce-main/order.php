@@ -105,6 +105,21 @@ if ($selectedOrder) {
     $oReview = loadReviewForOrder($orderId);
 }
 
+$selectedRating = 5;
+$selectedComment = '';
+$showReviewEditForm = false;
+if ($oReview) {
+    $selectedRating = (int)($oReview->rating ?? 5);
+    $selectedComment = trim((string)($oReview->comment ?? ''));
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_order_id'])) {
+    $selectedRating = is_numeric($_POST['rating'] ?? null) ? (int)$_POST['rating'] : $selectedRating;
+    $selectedComment = trim((string)($_POST['comment'] ?? $selectedComment));
+    $showReviewEditForm = true;
+} elseif (!empty($_GET['edit_review']) && $oReview) {
+    $showReviewEditForm = true;
+}
+
 $cartItems = loadCartForUser($userEmail);
 $cartCount = 0;
 foreach ($cartItems as $ci) $cartCount += (int)($ci['qty'] ?? 1);
@@ -488,7 +503,7 @@ function getStepIndex(string $status): int {
           <div class="review-star-group" id="starGroup">
             <?php for ($star = 5; $star >= 1; $star--): ?>
               <input type="radio" name="rating" id="star<?= $star ?>" value="<?= $star ?>"
-                     <?= (isset($_POST['rating']) && (int)$_POST['rating'] === $star) ? 'checked' : ($star === 5 && !isset($_POST['rating']) ? 'checked' : '') ?>>
+                     <?= ($selectedRating === $star) ? 'checked' : '' ?>>
               <label for="star<?= $star ?>" title="<?= $star ?> star<?= $star > 1 ? 's' : '' ?>">&#9733;</label>
             <?php endfor; ?>
           </div>
@@ -498,7 +513,7 @@ function getStepIndex(string $status): int {
           <label class="form-label fw-semibold" style="font-size:.85rem;">Write Your Review</label>
           <textarea name="comment" rows="4" class="form-control" style="border-radius:12px;border:2px solid var(--sage);font-size:.88rem;resize:vertical;"
             placeholder="What did you love about your purchase? How was delivery? Any feedback for us?"
-            required><?= htmlspecialchars($_POST['comment'] ?? '') ?></textarea>
+            required><?= htmlspecialchars($selectedComment) ?></textarea>
         </div>
 
         <button type="submit" class="btn btn-success px-4 rounded-pill" style="background:var(--green);border-color:var(--green);">
@@ -512,28 +527,7 @@ function getStepIndex(string $status): int {
       <div style="background:var(--cream);border-radius:16px;padding:20px;">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
           <?php
-            $authorPic = $oReview->author_pic ?? null;
-            $aEmail = strtolower($oReview->author_email ?? '');
-            $an = strtolower($oReview->author_name ?? '');
-            // Only apply fallbacks when no author_pic is provided
-            if (empty($authorPic)) {
-              if ($aEmail === 'zythera@gmail.com') {
-                $authorPic = 'pci/pfp/beti.jpg';
-              } elseif ($aEmail === 'admin@gmail.com') {
-                $authorPic = 'pci/pfp/admin.jpg';
-              } elseif ($aEmail === 'mei@gmail.com') {
-                $authorPic = 'pci/pfp/mei.jpg';
-              } elseif (strpos($an, 'mei') !== false) {
-                $authorPic = 'pci/pfp/mei.jpg';
-              } elseif (strpos($an, 'beti') !== false) {
-                $authorPic = 'pci/pfp/beti.jpg';
-              } else {
-                $authorPic = 'https://i.pravatar.cc/80?img=12';
-              }
-            } elseif (!(strpos($authorPic, 'http') === 0 || file_exists(__DIR__ . '/' . $authorPic))) {
-              // Provided author_pic exists but is invalid on disk; fall back
-              $authorPic = 'https://i.pravatar.cc/80?img=12';
-            }
+            $authorPic = getAvatarURL($oReview->author_pic ?? null, $oReview->author_email ?? null, $oReview->author_name ?? null, 60);
           ?>
           <img src="<?= htmlspecialchars($authorPic) ?>"
                alt="Reviewer" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--sage);">
@@ -543,7 +537,56 @@ function getStepIndex(string $status): int {
           </div>
         </div>
         <p style="line-height:1.75;color:#555;margin:0;font-size:.88rem;"><?= nl2br(htmlspecialchars($oReview->comment)) ?></p>
-        <div style="margin-top:10px;color:#aaa;font-size:.78rem;"><i class="fas fa-calendar-alt me-1"></i>Submitted on <?= htmlspecialchars(date('F d, Y', strtotime($oReview->created_at))) ?></div>
+        <?php if (!empty($oReview->reply)): ?>
+        <div style="margin-top:16px;padding:14px;border-radius:14px;background:var(--sage-light);color:#2d5a2d;font-size:.86rem;line-height:1.7;">
+          <strong style="display:block;margin-bottom:8px;color:var(--deep-green);">Admin Reply</strong>
+          <?= nl2br(htmlspecialchars($oReview->reply)) ?>
+          <?php if (!empty($oReview->reply_created_at)): ?>
+          <div style="margin-top:10px;color:#666;font-size:.78rem;"><i class="fas fa-clock me-1"></i>Replied on <?= htmlspecialchars(date('F d, Y', strtotime($oReview->reply_created_at))) ?></div>
+          <?php endif; ?>
+        </div>
+        <?php endif; ?>
+        <div class="d-flex align-items-center justify-content-between gap-3" style="margin-top:16px;flex-wrap:wrap;">
+          <div style="color:#aaa;font-size:.78rem;"><i class="fas fa-calendar-alt me-1"></i>Submitted on <?= htmlspecialchars(date('F d, Y', strtotime($oReview->created_at))) ?></div>
+          <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleReviewEditForm(true)">
+            <i class="fas fa-edit me-1"></i>Edit Review
+          </button>
+        </div>
+      </div>
+
+      <div id="review-edit-form" style="display:<?= $showReviewEditForm ? '' : 'none' ?>;margin-top:20px;padding:20px;background:var(--cream);border-radius:16px;">
+        <div class="section-label mb-2"><?= $oReview ? 'Edit Your Review' : 'Leave a Review' ?></div>
+        <p style="font-size:.83rem;color:#888;margin-bottom:16px;">Update your rating or comment and save the changes.</p>
+        <form method="POST">
+          <input type="hidden" name="review_order_id" value="<?= htmlspecialchars($orderId) ?>">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.85rem;">Your Rating</label>
+            <div class="review-star-group" id="starEditGroup">
+              <?php for ($star = 5; $star >= 1; $star--): ?>
+                <input type="radio" name="rating" id="editStar<?= $star ?>" value="<?= $star ?>"
+                       <?= ($selectedRating === $star) ? 'checked' : '' ?>>
+                <label for="editStar<?= $star ?>" title="<?= $star ?> star<?= $star > 1 ? 's' : '' ?>">&#9733;</label>
+              <?php endfor; ?>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.85rem;">Your Review</label>
+            <textarea name="comment" rows="4" class="form-control" style="border-radius:12px;border:2px solid var(--sage);font-size:.88rem;resize:vertical;"
+              placeholder="What did you love about your purchase? How was delivery? Any feedback for us?"
+              required><?= htmlspecialchars($selectedComment) ?></textarea>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-success px-4 rounded-pill" style="background:var(--green);border-color:var(--green);">
+              Save Changes
+            </button>
+            <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" onclick="toggleReviewEditForm(false)">
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     <?php endif; ?>
 
@@ -614,6 +657,16 @@ function statusMsg(s) {
   };
   return m[s] || 'Your order is being processed.';
 }
+
+function toggleReviewEditForm(show) {
+  const form = document.getElementById('review-edit-form');
+  if (!form) return;
+  form.style.display = show ? '' : 'none';
+  if (show) {
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 setInterval(pollOrderStatus, 30000);
 </script>
 </body>

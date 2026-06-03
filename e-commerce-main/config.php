@@ -270,12 +270,24 @@ function createReviewsTableIfNotExists(): void {
             email VARCHAR(191) NOT NULL,
             rating TINYINT NOT NULL DEFAULT 5,
             comment TEXT NOT NULL,
+            reply TEXT DEFAULT NULL,
+            reply_created_at DATETIME DEFAULT NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (review_id),
             UNIQUE KEY unique_order_review (order_id),
             KEY email (email),
             CONSTRAINT reviews_ibfk_1 FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $replyColumn = $db->query("SHOW COLUMNS FROM reviews LIKE 'reply'")->fetch();
+        $replyCreatedColumn = $db->query("SHOW COLUMNS FROM reviews LIKE 'reply_created_at'")->fetch();
+
+        if (!$replyColumn) {
+            $db->exec("ALTER TABLE reviews ADD COLUMN reply TEXT DEFAULT NULL");
+        }
+        if (!$replyCreatedColumn) {
+            $db->exec("ALTER TABLE reviews ADD COLUMN reply_created_at DATETIME DEFAULT NULL");
+        }
     } catch (PDOException $e) {
         die("createReviewsTableIfNotExists ERROR: " . $e->getMessage());
     }
@@ -310,7 +322,7 @@ function saveReviewForOrder(string $email, string $orderId, int $rating, string 
 
         $insert = $db->prepare("INSERT INTO reviews (ord_no, order_id, email, rating, comment)
             VALUES (?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment), created_at = NOW()");
+            ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment)");
         $insert->execute([
             (int)$order->ord_no,
             $orderId,
@@ -323,20 +335,111 @@ function saveReviewForOrder(string $email, string $orderId, int $rating, string 
     }
 }
 
-function loadReviews(int $limit = 8): array {
+function loadReviews(int $limit = 8, bool $all = false): array {
     try {
         createReviewsTableIfNotExists();
         $db = getDBConnection();
+        if ($all) {
+            $stmt = $db->prepare("SELECT r.*, u.name AS author_name, u.profile_pic AS author_pic, u.email AS author_email
+            FROM reviews r
+            LEFT JOIN users u ON u.email = r.email
+            ORDER BY r.created_at DESC");
+        } else {
             $stmt = $db->prepare("SELECT r.*, u.name AS author_name, u.profile_pic AS author_pic, u.email AS author_email
             FROM reviews r
             LEFT JOIN users u ON u.email = r.email
             ORDER BY r.created_at DESC
             LIMIT ?");
-        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+            $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        }
         $stmt->execute();
         return $stmt->fetchAll();
     } catch (PDOException $e) {
         die("loadReviews ERROR: " . $e->getMessage());
+    }
+}
+
+function deleteReview(int $reviewId): void {
+    try {
+        createReviewsTableIfNotExists();
+        $db = getDBConnection();
+        $stmt = $db->prepare("DELETE FROM reviews WHERE review_id = ?");
+        $stmt->execute([$reviewId]);
+    } catch (PDOException $e) {
+        die("deleteReview ERROR: " . $e->getMessage());
+    }
+}
+
+function replyToReview(int $reviewId, string $reply): void {
+    try {
+        createReviewsTableIfNotExists();
+        $db = getDBConnection();
+        $stmt = $db->prepare("UPDATE reviews SET reply = ?, reply_created_at = NOW() WHERE review_id = ?");
+        $stmt->execute([$reply, $reviewId]);
+    } catch (PDOException $e) {
+        die("replyToReview ERROR: " . $e->getMessage());
+    }
+}
+
+// ── USER MESSAGE / RECEIPT TABLE ─────────────────────────────────
+function createUserMessagesTableIfNotExists(): void {
+    try {
+        $db = getDBConnection();
+        $db->exec("CREATE TABLE IF NOT EXISTS user_messages (
+            message_id INT NOT NULL AUTO_INCREMENT,
+            recipient_email VARCHAR(191) NOT NULL,
+            subject VARCHAR(191) NOT NULL,
+            body TEXT NOT NULL,
+            order_id VARCHAR(50) DEFAULT NULL,
+            sender VARCHAR(50) NOT NULL DEFAULT 'admin',
+            is_read TINYINT(1) NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (message_id),
+            KEY recipient_email (recipient_email),
+            KEY order_id (order_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (PDOException $e) {
+        die("createUserMessagesTableIfNotExists ERROR: " . $e->getMessage());
+    }
+}
+
+function loadUserMessagesForEmail(string $email): array {
+    try {
+        createUserMessagesTableIfNotExists();
+        $db = getDBConnection();
+        $stmt = $db->prepare("SELECT * FROM user_messages WHERE recipient_email = ? ORDER BY created_at DESC");
+        $stmt->execute([$email]);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function loadAllUserMessages(): array {
+    try {
+        createUserMessagesTableIfNotExists();
+        $db = getDBConnection();
+        $stmt = $db->query("SELECT * FROM user_messages ORDER BY created_at DESC");
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function saveAdminUserMessage(string $recipientEmail, string $subject, string $body, ?string $orderId = null): void {
+    try {
+        createUserMessagesTableIfNotExists();
+        $db = getDBConnection();
+        $stmt = $db->prepare("INSERT INTO user_messages (recipient_email, subject, body, order_id, sender)
+            VALUES (?, ?, ?, ?, 'admin')");
+        $stmt->execute([
+            $recipientEmail,
+            $subject,
+            $body,
+            $orderId !== '' ? $orderId : null,
+        ]);
+    } catch (PDOException $e) {
+        die("saveAdminUserMessage ERROR: " . $e->getMessage());
     }
 }
 
@@ -526,4 +629,26 @@ class Product {
     public function isAvailable(): bool {
         return $this->stock > 0;
     }
+}
+
+// ── AVATAR HELPERS ───────────────────────────────────────────
+/**
+ * Resolve the best avatar URL for a user.
+ * Priority: provided `profile_pic` (absolute URL or existing local file) -> known-email fallbacks -> ui-avatars
+ */
+function getAvatarURL($profilePic, $email = null, $name = null, $size = 80): string {
+    $pic = trim((string)($profilePic ?? ''));
+    if ($pic !== '') {
+        if (stripos($pic, 'http') === 0) return $pic;
+        $candidate = __DIR__ . '/' . ltrim($pic, '/');
+        if (file_exists($candidate)) return $pic;
+    }
+
+    $e = strtolower(trim((string)($email ?? '')));
+    if ($e === 'zythera@gmail.com') return 'pci/pfp/beti.jpg';
+    if ($e === 'admin@gmail.com')   return 'pci/pfp/admin.jpg';
+    if ($e === 'mei@gmail.com')     return 'pci/pfp/mei.jpg';
+
+    $display = trim((string)($name ?? $email ?? '')) ?: 'User';
+    return 'https://ui-avatars.com/api/?name=' . urlencode($display) . '&background=2d5a2d&color=fff&size=' . intval($size);
 }

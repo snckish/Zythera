@@ -607,25 +607,8 @@ $reviews = loadReviews();
               <div class="dropdown">
                 <?php
                     // Determine nav avatar: prefer uploaded profile_pic if it exists on disk, else use email/name-based admin fallbacks, else ui-avatars
-                    $navPic = null;
-                    $profilePath = trim($uObj->profile_pic ?? '');
-                    if ($profilePath !== '' && (strpos($profilePath, 'http') === 0 || file_exists(__DIR__ . '/' . $profilePath))) {
-                      $navPic = $profilePath;
-                    } else {
-                      $uEmail = strtolower($uObj->email ?? '');
-                      $tmpn = strtolower($uObj->name ?? '');
-                      if ($uEmail === 'zythera@gmail.com') {
-                        $navPic = 'pci/pfp/beti.jpg';
-                      } elseif ($uEmail === 'admin@gmail.com') {
-                        $navPic = 'pci/pfp/admin.jpg';
-                      } elseif ($uEmail === 'mei@gmail.com' || strpos($tmpn, 'mei') !== false) {
-                        $navPic = 'pci/pfp/mei.jpg';
-                      } elseif ($uEmail === 'beti@gmail.com' || strpos($tmpn, 'beti') !== false) {
-                        $navPic = 'pci/pfp/beti.jpg';
-                      } else {
-                        $navPic = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=2d5a2d&color=fff';
-                      }
-                    }
+                    // Prefer DB/uploaded profile_pic, fall back to known-email or ui-avatars
+                    $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34);
                 ?>
                 <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="34" style="cursor:pointer;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
@@ -767,18 +750,7 @@ $reviews = loadReviews();
               <?php $stars = str_repeat('★', max(1, min(5, (int)($review->rating ?? 5)))); ?>
               <div class="review-item">
                 <div class="review-header">
-                  <?php
-                    $authorPic = $review->author_pic ?? null;
-                    if (empty($authorPic)) {
-                      $aEmail = strtolower($review->author_email ?? '');
-                      $an = strtolower($review->author_name ?? '');
-                      if ($aEmail === 'zythera@gmail.com') $authorPic = 'pci/pfp/beti.jpg';
-                      elseif ($aEmail === 'admin@gmail.com') $authorPic = 'pci/pfp/admin.jpg';
-                      elseif ($aEmail === 'mei@gmail.com' || strpos($an, 'mei') !== false) $authorPic = 'pci/pfp/mei.jpg';
-                      elseif (strpos($an, 'beti') !== false) $authorPic = 'pci/pfp/beti.jpg';
-                      else $authorPic = 'https://i.pravatar.cc/80?img=' . rand(1, 70);
-                    }
-                  ?>
+                  <?php $authorPic = getAvatarURL($review->author_pic ?? null, $review->author_email ?? null, $review->author_name ?? null, 80); ?>
                   <img src="<?= htmlspecialchars($authorPic) ?>" class="avatar" alt="<?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>">
                   <div>
                     <div style="font-weight:700;color:#fff;font-size:.9rem;">
@@ -791,6 +763,12 @@ $reviews = loadReviews();
                 <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
                   <?= nl2br(htmlspecialchars($review->comment)) ?>
                 </p>
+                <?php if (!empty($review->reply)): ?>
+                <div style="margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-size:.82rem;line-height:1.6;">
+                  <strong style="display:block;margin-bottom:6px;color:#d4e4d4;">Admin reply:</strong>
+                  <?= nl2br(htmlspecialchars($review->reply)) ?>
+                </div>
+                <?php endif; ?>
               </div>
             <?php endforeach; ?>
           <?php else: ?>
