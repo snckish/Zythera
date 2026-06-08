@@ -58,6 +58,55 @@ $provinces = [
   'Quezon','Nueva Ecija','Cebu','Davao del Sur','Iloilo','Bohol','Pangasinan'
 ];
 
+$provinceCities = [
+  'Metro Manila' => ['Manila','Quezon City','Makati','Pasig','Taguig','Parañaque','Caloocan','Las Piñas'],
+  'Cavite'      => ['Cavite City','Bacoor','Imus'],
+  'Laguna'      => ['Calamba','Biñan','San Pedro','Santa Rosa'],
+  'Batangas'    => ['Batangas City'],
+  'Bulacan'     => ['Malolos'],
+  'Pampanga'    => ['San Fernando','Angeles'],
+  'Rizal'       => ['Antipolo'],
+  'Quezon'      => ['Lucena'],
+  'Nueva Ecija' => [],
+  'Cebu'        => ['Cebu City','Mandaue'],
+  'Davao del Sur'=> ['Davao City'],
+  'Iloilo'      => ['Iloilo City'],
+  'Bohol'       => ['Tagbilaran'],
+  'Pangasinan'  => ['Dagupan'],
+];
+
+$cityZipCodes = [
+  'Manila' => '1000',
+  'Quezon City' => '1100',
+  'Makati' => '1200',
+  'Pasig' => '1600',
+  'Taguig' => '1630',
+  'Parañaque' => '1700',
+  'Caloocan' => '1400',
+  'Las Piñas' => '1740',
+  'Cavite City' => '4100',
+  'Bacoor' => '4102',
+  'Imus' => '4103',
+  'Santa Rosa' => '4026',
+  'San Pedro' => '4023',
+  'Biñan' => '4024',
+  'Calamba' => '4027',
+  'Batangas City' => '4200',
+  'Malolos' => '3000',
+  'San Fernando' => '2000',
+  'Angeles' => '2009',
+  'Antipolo' => '1870',
+  'Lucena' => '4301',
+  'Tuguegarao' => '3500',
+  'Cebu City' => '6000',
+  'Mandaue' => '6014',
+  'Davao City' => '8000',
+  'Iloilo City' => '5000',
+  'Bacolod' => '6100',
+  'Tagbilaran' => '6300',
+  'Dagupan' => '2400',
+];
+
 $cities = [
   'Manila','Quezon City','Makati','Pasig','Taguig','Parañaque','Caloocan','Las Piñas',
   'Cavite City','Bacoor','Imus','Santa Rosa','San Pedro','Biñan','Calamba','Batangas City',
@@ -88,6 +137,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $errors[] = 'Please select a valid province from the list.';
     if ($city && !in_array($city, $cities, true))
       $errors[] = 'Please select a valid city from the list.';
+    if ($province && $city && isset($provinceCities[$province]) && !empty($provinceCities[$province])
+        && !in_array($city, $provinceCities[$province], true)) {
+      $errors[] = 'Please select a city that belongs to the selected province.';
+    }
+    if ($city && isset($cityZipCodes[$city]) && $zip !== $cityZipCodes[$city]) {
+      $errors[] = 'ZIP Code does not match the selected city.';
+    }
     if ($phone && !preg_match('/^[0-9]{10,11}$/', $phone))
       $errors[] = 'Phone number must be 10 or 11 digits (numbers only).';
     if ($zip && !preg_match('/^[0-9]{4}$/', $zip))
@@ -490,7 +546,7 @@ footer .footer-brand{
 
         <!-- 7. ZIP Code -->
         <div class="field">
-          <input type="text" id="zip" name="zip" placeholder=" " required maxlength="4"
+          <input type="text" id="zip" name="zip" placeholder=" " required maxlength="4" readonly
             value="<?= htmlspecialchars($_POST['zip'] ?? '') ?>">
           <label>ZIP Code *</label>
           <div id="zipError" class="live-error">&nbsp;</div>
@@ -826,6 +882,9 @@ document.getElementById('checkoutForm')?.addEventListener('submit', function(e) 
   if (!/^[0-9]{10,11}$/.test(phoneVal)) errs.push('Phone must be 10–11 digits.');
   if (!/^[0-9]{4}$/.test(zipVal)) errs.push('ZIP Code must be 4 digits.');
 
+  if (!document.getElementById('province')?.value) errs.push('Please select a province.');
+  if (!document.getElementById('city')?.value) errs.push('Please select a city.');
+
   if (payVal === 'Bank Transfer') {
     const cardName = (document.getElementById('card_name')?.value||'').trim();
     const cardNum  = (document.getElementById('card_number')?.value||'').replace(/\s/g,'');
@@ -865,6 +924,46 @@ document.getElementById('checkoutForm')?.addEventListener('submit', function(e) 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Placing Order...';
   }
+});
+
+function filterCities() {
+  const province = document.getElementById('province')?.value || '';
+  const citySelect = document.getElementById('city');
+  if (!citySelect) return;
+
+  const provinceCities = <?php echo json_encode($provinceCities, JSON_UNESCAPED_UNICODE); ?>;
+  const allCities = <?php echo json_encode($cities, JSON_UNESCAPED_UNICODE); ?>;
+  const selectedCity = citySelect.value;
+  const cities = provinceCities[province] && provinceCities[province].length > 0 ? provinceCities[province] : allCities;
+
+  citySelect.innerHTML = '<option value=""> Select City </option>';
+  cities.forEach((city) => {
+    const opt = document.createElement('option');
+    opt.value = city;
+    opt.textContent = city;
+    if (city === selectedCity) opt.selected = true;
+    citySelect.appendChild(opt);
+  });
+
+  if (selectedCity && !cities.includes(selectedCity)) {
+    citySelect.value = '';
+  }
+
+  updateZipCode();
+}
+
+function updateZipCode() {
+  const city = document.getElementById('city')?.value || '';
+  const zipInput = document.getElementById('zip');
+  if (!zipInput) return;
+
+  const cityZipCodes = <?php echo json_encode($cityZipCodes, JSON_UNESCAPED_UNICODE); ?>;
+  zipInput.value = cityZipCodes[city] || '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  filterCities();
+  document.getElementById('city')?.addEventListener('change', updateZipCode);
 });
 </script>
 </body>

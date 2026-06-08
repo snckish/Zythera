@@ -306,25 +306,18 @@ function getStepIndex(string $status): int {
         <h2><?php if ($orderId !== ''): ?>Order #<?= htmlspecialchars($orderId) ?><?php else: ?>Latest Order<?php endif; ?></h2>
         <p class="text-muted mt-1" style="font-size:.85rem;">Track the current status of your order and see delivery information.</p>
       </div>
-      <a href="<?= htmlspecialchars($backUrl) ?>" class="btn btn-sm btn-outline-secondary rounded-pill">
-        <i class="fas fa-arrow-left me-1"></i> <?= htmlspecialchars($backLabel) ?>
-      </a>
+      <div class="d-flex gap-2 align-items-center">
+        <a href="<?= htmlspecialchars($backUrl) ?>" class="btn btn-sm btn-outline-secondary rounded-pill">
+          <i class="fas fa-arrow-left me-1"></i> <?= htmlspecialchars($backLabel) ?>
+        </a>
+        <button type="button" class="btn btn-sm btn-success rounded-pill" onclick="downloadReceipt()" id="downloadReceiptBtn">
+          <i class="fas fa-download me-1"></i> Download Receipt
+        </button>
+      </div>
     </div>
   </div>
 
-  <?php if ($orderPlacedFlash): ?>
-  <div id="orderFlash" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:2px solid #86efac;border-radius:18px;padding:18px 24px;margin-bottom:24px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(21,128,61,.12);">
-    <div style="width:48px;height:48px;background:#15803d;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <i class="fas fa-check" style="color:#fff;font-size:1.2rem;"></i>
-    </div>
-    <div style="flex:1;">
-      <div style="font-weight:700;color:#14532d;font-size:1rem;">Order Placed!</div>
-      <div style="color:#15803d;font-size:.85rem;margin-top:2px;"><?= $orderPlacedFlash ?><?= $orderPlacedId ? ' — Order <strong>#' . $orderPlacedId . '</strong>' : '' ?></div>
-      <div style="color:#16a34a;font-size:.78rem;margin-top:4px;">You can track your delivery status below. We'll update it as your order progresses.</div>
-    </div>
-    <button onclick="document.getElementById('orderFlash').style.display='none'" style="background:none;border:none;color:#15803d;font-size:1.2rem;cursor:pointer;padding:4px;">✕</button>
-  </div>
-  <?php endif; ?>
+  
 
   <?php if (!$selectedOrder): ?>
   <div class="empty-state">
@@ -354,6 +347,7 @@ function getStepIndex(string $status): int {
     $zip         = $o->zip       ?? '';
     $notes       = $o->notes     ?? '';
     $isDelivered = in_array(strtolower($oStatus), ['delivered', 'completed'], true);
+    $totalLabel  = ($payMethod === 'Cash on Delivery (COD)' && !$isDelivered) ? 'Total Due' : 'Total Paid';
 
     $stClass = match(strtolower($oStatus)) {
       'processing'             => 'st-processing',
@@ -386,6 +380,9 @@ function getStepIndex(string $status): int {
         <div class="col-6 col-md-3">
           <small class="text-muted d-block" style="font-size:.7rem;">Payment Method</small>
           <div class="fw-bold" style="color:var(--deep);font-size:.88rem;"><?= htmlspecialchars($payMethod ?: 'N/A') ?></div>
+          <?php if ($payMethod === 'Cash on Delivery (COD)' && !$isDelivered): ?>
+          <div style="font-size:.78rem;color:#b45309;margin-top:6px;">Cash on Delivery — payment due on delivery.</div>
+          <?php endif; ?>
         </div>
         <div class="col-6 col-md-3 text-md-end">
           <small class="text-muted d-block" style="font-size:.7rem;">Status</small>
@@ -458,7 +455,7 @@ function getStepIndex(string $status): int {
       <div class="totals-box mb-3">
         <div class="totals-row"><span>Subtotal</span><span>₱<?= number_format($subtotal, 2) ?></span></div>
         <div class="totals-row"><span><i class="fas fa-truck me-1"></i>Shipping</span><span>₱<?= number_format($shipping, 2) ?></span></div>
-        <div class="totals-row grand"><span>Total Paid</span><span>₱<?= number_format($total, 2) ?></span></div>
+        <div class="totals-row grand"><span><?= htmlspecialchars($totalLabel) ?></span><span>₱<?= number_format($total, 2) ?></span></div>
       </div>
 
       <!-- Customer Details -->
@@ -608,6 +605,9 @@ function getStepIndex(string $status): int {
 <?php endif; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- jsPDF + html2canvas for client-side PDF receipt generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNa5m3fW6VYqk1+g6z3Kx1Yb3bA8gQXk3YJm1XJZ0q5Qk6YFzE6YjH0j1xK9Qm2L5h2w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-+qXK2mWzV4p2J5s9sV6jQ1x1v9y8g3r0lR5t8V6s2r7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 /* ── Star rating hover effect ── */
 (function () {
@@ -657,6 +657,120 @@ function statusMsg(s) {
   };
   return m[s] || 'Your order is being processed.';
 }
+
+function downloadReceipt() {
+  const data = window.orderReceiptData || {};
+  const receiptHTML = `
+  <div style="font-family: Arial, Helvetica, sans-serif; color:#163a2d; padding:12px; max-width:540px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="pci/Group_15.png" style="width:48px;height:auto;object-fit:contain;" alt="Zythera">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:#0f5132;letter-spacing:0.6px;">ZYTHERA</div>
+        <div style="font-size:11px;color:#4b5563;margin-top:2px;">Official Receipt</div>
+      </div>
+    </div>
+    <div style="height:8px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div style="font-size:12px;color:#274c3b;line-height:1.35;">
+        <div><strong style="font-weight:600;color:#0f5132;">Order:</strong> ${data.orderId || ''}</div>
+        <div><strong style="font-weight:600;color:#0f5132;">Date:</strong> ${data.date || ''}</div>
+        <div><strong style="font-weight:600;color:#0f5132;">Payment:</strong> ${data.payMethod || ''}</div>
+      </div>
+      <div style="text-align:right;font-size:13px;color:#0f5132;font-weight:700;">₱${Number(data.total || 0).toFixed(2)}</div>
+    </div>
+
+    <div style="height:10px"></div>
+    <div style="font-size:12px;color:#334e3d;">
+      <div style="font-weight:600;color:#0f5132;margin-bottom:6px;">Bill To</div>
+      <div style="line-height:1.4;">${data.fullName || ''}</div>
+      <div style="line-height:1.4;">${data.phone || ''}</div>
+      <div style="line-height:1.4;">${data.address || ''}${data.city ? ', ' + data.city : ''}${data.province ? ', ' + data.province : ''}${data.zip ? ' ' + data.zip : ''}</div>
+    </div>
+
+    <div style="height:12px"></div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;color:#142a22;">
+      ${(data.items || []).map(function(item){ return `
+        <tr>
+          <td style="padding:6px 0;border-bottom:1px solid #f3f7f3;vertical-align:top;">${item.name}<div style=\"font-size:11px;color:#566b5f;margin-top:4px;\">Qty: ${item.qty} × ₱${Number(item.price).toFixed(2)}</div></td>
+          <td style="padding:6px 0;text-align:right;border-bottom:1px solid #f3f7f3;vertical-align:top;">₱${Number(item.subtotal).toFixed(2)}</td>
+        </tr>`; }).join('')}
+    </table>
+
+    <div style="margin-top:8px;font-size:12px;display:flex;justify-content:space-between;color:#2f3f35;">
+      <div>Subtotal</div>
+      <div>₱${Number(data.subtotal || 0).toFixed(2)}</div>
+    </div>
+    <div style="font-size:12px;display:flex;justify-content:space-between;color:#2f3f35;">
+      <div>Shipping</div>
+      <div>₱${Number(data.shipping || 0).toFixed(2)}</div>
+    </div>
+
+    <div style="margin-top:8px;padding:10px;background:#f0f9f4;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;color:#0f5132;">
+      <div>Total Due</div>
+      <div>₱${Number(data.total || 0).toFixed(2)}</div>
+    </div>
+
+    ${ (data.payMethod === 'Cash on Delivery (COD)' && !data.isDelivered) ? `<div style="margin-top:10px;color:#b45309;font-size:12px;">NOTE: Cash on Delivery — payment due on delivery.</div>` : '' }
+
+    <div style="height:10px"></div>
+    <div style="font-size:11px;color:#476157;">Thank you for shopping with Zythera. For support, visit our website or contact us.</div>
+  </div>
+  `;
+
+  // create a temporary container to render HTML
+  const container = document.createElement('div');
+  container.style.width = '750px';
+  container.style.background = '#fff';
+  container.style.padding = '6px';
+  container.innerHTML = receiptHTML;
+  document.body.appendChild(container);
+
+  // if jspdf + html2canvas loaded, use them
+  if (window.jspdf && window.html2canvas) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    doc.html(container, {
+      callback: function (doc) {
+        doc.save('ZYTHERA_receipt_' + (data.orderId || 'order') + '.pdf');
+        if (container.parentNode) container.parentNode.removeChild(container);
+      },
+      x: 20,
+      y: 20,
+      html2canvas: { scale: 1.2 }
+    });
+  } else {
+    // fallback: open printable window (user can Save as PDF)
+    const w = window.open('', '_blank');
+    w.document.write('<html><head><title>Receipt</title></head><body>' + receiptHTML + '</body></html>');
+    w.document.close();
+    w.focus();
+    w.print();
+    if (container.parentNode) container.parentNode.removeChild(container);
+  }
+}
+
+window.orderReceiptData = {
+  orderId: <?= json_encode($orderId) ?>,
+  date: <?= json_encode($oDate) ?>,
+  status: <?= json_encode($oStatus) ?>,
+  payMethod: <?= json_encode($payMethod) ?>,
+  fullName: <?= json_encode($fullName) ?>,
+  phone: <?= json_encode($phone) ?>,
+  address: <?= json_encode($address) ?>,
+  city: <?= json_encode($city) ?>,
+  province: <?= json_encode($province) ?>,
+  zip: <?= json_encode($zip) ?>,
+  subtotal: <?= json_encode($subtotal) ?>,
+  shipping: <?= json_encode($shipping) ?>,
+  total: <?= json_encode($total) ?>,
+  isDelivered: <?= json_encode($isDelivered) ?>,
+  items: <?= json_encode(array_map(function($oi){ return [
+      'name' => $oi->product_name ?? '',
+      'qty' => (int)($oi->qty ?? 1),
+      'price' => (float)($oi->price ?? 0),
+      'subtotal' => (float)($oi->price ?? 0) * (int)($oi->qty ?? 1),
+    ];}, $oItems)) ?>
+};
 
 function toggleReviewEditForm(show) {
   const form = document.getElementById('review-edit-form');

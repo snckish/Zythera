@@ -1406,6 +1406,8 @@ $reviews = loadReviews();
         }
       });
     });
+
+
   </script>
 </body>
 

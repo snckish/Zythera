@@ -1067,17 +1067,17 @@ if ($searchQuery !== '') {
             $oiLine  = $oiPrice * $oiQty;
             $orderSubtotal2 += $oiLine;
         ?>
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;padding:6px 0;border-bottom:1px dashed #f0f0eb;">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;padding:6px 0;border-bottom:1px dashed #f0f0eb;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
                 <?php if ($oiImage): ?>
-                <img src="<?= htmlspecialchars($oiImage) ?>" alt="<?= htmlspecialchars($oiName) ?>" style="width:48px;height:48px;object-fit:cover;border-radius:12px;border:1px solid #e5e5e5;background:#fff;">
+                <img src="<?= htmlspecialchars($oiImage) ?>" alt="<?= htmlspecialchars($oiName) ?>" style="width:48px;height:48px;object-fit:cover;border-radius:12px;border:1px solid #e5e5e5;background:#fff;flex-shrink:0;">
                 <?php endif; ?>
                 <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                     <?= htmlspecialchars($oiName) ?> <b style="color:#7aab7a;">×<?= $oiQty ?></b>
                 </span>
             </div>
             <?php if ($oiPrice > 0): ?>
-            <span style="color:#2d5a2d;font-weight:600;">₱<?= number_format($oiLine) ?></span>
+            <span style="color:#2d5a2d;font-weight:600;flex-shrink:0;">₱<?= number_format($oiLine) ?></span>
             <?php endif; ?>
         </div>
         <?php endforeach; ?>
@@ -1190,6 +1190,7 @@ if ($searchQuery !== '') {
     foreach ($allUsers2 as $uObj):
         $uEmail = $uObj->email ?? '';
         $uData  = ['name' => $uObj->name ?? '', 'role' => $uObj->role ?? 'user'];
+        $userAvatar = getAvatarURL($uObj->profile_pic ?? null, $uEmail, $uData['name'] ?? null, 46);
 
         $uOrders2    = count($ordersByUser[$uEmail] ?? []);
         $uCartItems  = $cartByUser[$uEmail] ?? [];
@@ -1202,9 +1203,8 @@ if ($searchQuery !== '') {
     <div class="col-md-6">
         <div class="order-card h-100">
             <div class="d-flex align-items-center gap-3 mb-3">
-                <div style="width:46px;height:46px;border-radius:50%;background:<?= $isAdmin?'#1a2e1a':'#2d5a2d' ?>;color:#fff;
-                    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;">
-                    <?= strtoupper(substr($uData['name'] ?? '?', 0, 1)) ?>
+                <div style="width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid #e5e5e5;">
+                    <img src="<?= htmlspecialchars($userAvatar) ?>" alt="<?= htmlspecialchars($uData['name'] ?? 'User') ?>" style="width:100%;height:100%;object-fit:cover;display:block;">
                 </div>
                 <div style="flex:1;min-width:0;">
                     <div class="fw-bold text-truncate" style="color:#1a2e1a;"><?= htmlspecialchars($uData['name'] ?? '') ?></div>
