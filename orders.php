@@ -27,6 +27,41 @@ if (!$dbUser) {
 header('Location: profile.php');
 exit;
 
+$reviewErrors = [];
+$reviewSuccess = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_order_id'])) {
+    $reviewOrderId = trim($_POST['review_order_id'] ?? '');
+    $ratingValue   = $_POST['rating'] ?? null;
+    $rating        = is_numeric($ratingValue) ? (int)$ratingValue : 0;
+    $comment       = trim($_POST['comment'] ?? '');
+
+    if ($reviewOrderId === '') {
+        $reviewErrors[] = 'Invalid order reference.';
+    }
+    if ($rating < 1 || $rating > 5) {
+        $reviewErrors[] = 'Please select a rating from 1 to 5 stars.';
+    }
+    if ($comment === '') {
+        $reviewErrors[] = 'Please write your review so we can share it with other customers.';
+    }
+
+    if (empty($reviewErrors)) {
+        $checkStmt = $db->prepare("SELECT status FROM orders WHERE order_id = ? AND email = ? LIMIT 1");
+        $checkStmt->execute([$reviewOrderId, $userEmail]);
+        $orderCheck = $checkStmt->fetch();
+
+        if (!$orderCheck) {
+            $reviewErrors[] = 'Order not found.';
+        } elseif (!in_array(strtolower($orderCheck->status), ['delivered', 'completed'], true)) {
+            $reviewErrors[] = 'Reviews are only accepted after your order has been delivered.';
+        } else {
+            saveReviewForOrder($userEmail, $reviewOrderId, $rating, $comment);
+            $reviewSuccess = 'Thanks! Your review has been submitted successfully.';
+        }
+    }
+}
+
 // FIX: Load orders then attach items from order_items table
 $orders = [];
 $oStmt  = $db->prepare("SELECT * FROM orders WHERE email = ? ORDER BY date DESC");
@@ -66,12 +101,14 @@ function getStepIndex(string $status): int {
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
-  *{font-family:var(--ui-font);box-sizing:border-box}
-  h1,h2,h3,h4,h5,.navbar-brand{font-family:var(--logo-font)}
-  p,small{font-family:var(--text-font)}
+  body{font-family:var(--ui-font);}
+  h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
+  p,small,.caption,.text-muted{font-family:var(--text-font);}
 </style>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="dark-mode.css">
+<script src="dark-mode.js" defer></script>
 <style>
     :root {
         --green: #2d5a2d;
@@ -193,6 +230,24 @@ function getStepIndex(string $status): int {
       <div style="color:#16a34a;font-size:.78rem;margin-top:4px;">You can track your delivery status below. We'll update it as your order progresses.</div>
     </div>
     <button onclick="document.getElementById('orderFlash').style.display='none'" style="background:none;border:none;color:#15803d;font-size:1.2rem;cursor:pointer;padding:4px;">✕</button>
+  </div>
+  <?php endif; ?>
+
+  <?php if (!empty($reviewSuccess)): ?>
+  <div class="alert-success-order" style="
+    background:linear-gradient(135deg,#dcfce7,#bbf7d0);
+    border:2px solid #86efac;border-radius:18px;
+    padding:18px 24px;margin-bottom:24px;
+    color:#14532d;">
+    <?= htmlspecialchars($reviewSuccess) ?>
+  </div>
+  <?php endif; ?>
+
+  <?php if (!empty($reviewErrors)): ?>
+  <div class="alert-errors" style="margin-bottom:24px;">
+    <?php foreach ($reviewErrors as $error): ?>
+      <?= htmlspecialchars($error) ?><br>
+    <?php endforeach; ?>
   </div>
   <?php endif; ?>
 
@@ -320,6 +375,44 @@ function getStepIndex(string $status): int {
         <div class="totals-row"><span><i class="fas fa-truck me-1"></i>Shipping</span><span>₱<?= number_format($shipping, 2) ?></span></div>
         <div class="totals-row grand"><span>Total Paid</span><span>₱<?= number_format($total, 2) ?></span></div>
       </div>
+
+      <?php if (in_array(strtolower($oStatus), ['delivered', 'completed'], true)): ?>
+        <?php if (empty($o->review)): ?>
+        <div class="checkout-card" style="margin-top:22px;padding:18px;">
+          <div class="section-label mb-2">Leave a Review</div>
+          <p style="color:#555;font-size:.9rem;margin-bottom:14px;">Tell other buyers about your experience with this order.</p>
+          <form method="POST" style="display:grid;gap:12px;">
+            <input type="hidden" name="review_order_id" value="<?= htmlspecialchars($orderId) ?>">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <?php for ($star = 1; $star <= 5; $star++): ?>
+                <label style="cursor:pointer;font-size:1.25rem;color:#f5c842;">
+                  <input type="radio" name="rating" value="<?= $star ?>" style="display:none;">
+                  <?= $star <= 5 ? '★' : '☆' ?>
+                </label>
+              <?php endfor; ?>
+            </div>
+            <textarea name="comment" rows="4" style="width:100%;border:2px solid #d4e4d4;border-radius:14px;padding:14px;font-family: var(--ui-font);resize:none;" placeholder="Share your thoughts about the furniture delivery and quality..."></textarea>
+            <button type="submit" class="btn-place" style="width:auto;padding:12px 18px;">Submit Review</button>
+          </form>
+        </div>
+        <?php else: ?>
+        <div class="checkout-card" style="margin-top:22px;padding:18px;">
+          <div class="section-label mb-2">Your Review</div>
+          <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+            <div>
+              <?php $revAvatar = getAvatarURL($o->review->author_pic ?? null, $o->review->author_email ?? null, $o->review->author_name ?? null, 70); ?>
+              <img src="<?= htmlspecialchars($revAvatar) ?>" style="width:70px;height:70px;border-radius:18px;object-fit:cover;" alt="<?= htmlspecialchars($o->review->author_name ?: 'Reviewer') ?>">
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;color:var(--deep);margin-bottom:4px;">Thank you for sharing your experience.</div>
+              <div style="font-size:1.25rem;color:#f5c842;margin-bottom:10px;"><?= str_repeat('★', max(1, min(5, (int)$o->review->rating))) ?></div>
+              <p style="margin:0;color:#555;line-height:1.6;"><?= nl2br(htmlspecialchars($o->review->comment)) ?></p>
+              <div style="margin-top:10px;font-size:.82rem;color:#777;">Submitted on <?= htmlspecialchars(date('F d, Y', strtotime($o->review->created_at))) ?></div>
+            </div>
+          </div>
+        </div>
+        <?php endif; ?>
+      <?php endif; ?>
 
       <!-- Customer Details — same layout as profile.php and order.php -->
       <div class="p-3" style="background:var(--cream);border-radius:10px;">

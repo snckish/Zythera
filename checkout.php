@@ -55,15 +55,92 @@ $placedOrderInfo = [];
 // ── Allowed locations (used for validation and datalists) ──────
 $provinces = [
   'Metro Manila','Cavite','Laguna','Batangas','Bulacan','Pampanga','Rizal',
-  'Quezon','Nueva Ecija','Cebu','Davao del Sur','Iloilo','Bohol','Pangasinan'
+  'Quezon','Nueva Ecija','Cebu','Davao del Sur','Iloilo','Bohol','Pangasinan',
+  'Bicol Region','Negros Occidental','Negros Oriental','Leyte','Samar','Zamboanga del Sur',
+  'Misamis Oriental','Bukidnon','Cagayan','Isabela','Benguet','Mountain Province',
+  'Tarlac','Zambales','Bataan','Aurora','Quezon City (Standalone)'
 ];
 
-$cities = [
-  'Manila','Quezon City','Makati','Pasig','Taguig','Parañaque','Caloocan','Las Piñas',
-  'Cavite City','Bacoor','Imus','Santa Rosa','San Pedro','Biñan','Calamba','Batangas City',
-  'Malolos','San Fernando','Angeles','Antipolo','Lucena','Tuguegarao','Cebu City','Mandaue',
-  'Davao City','Iloilo City','Bacolod','Tagbilaran','Dagupan'
+$provinceCities = [
+  'Metro Manila' => ['Manila','Quezon City','Makati','Pasig','Taguig','Parañaque','Caloocan','Las Piñas','Mandaluyong','Marikina','Muntinlupa','Navotas','Pasay','Pateros','San Juan','Valenzuela'],
+  'Cavite'      => ['Cavite City','Bacoor','Imus','Dasmariñas','General Trias','Tagaytay','Trece Martires','Silang'],
+  'Laguna'      => ['Calamba','Biñan','San Pedro','Santa Rosa','Cabuyao','Bay','Los Baños','Pagsanjan'],
+  'Batangas'    => ['Batangas City','Lipa','Tanauan','Nasugbu','Rosario'],
+  'Bulacan'     => ['Malolos','Meycauayan','San Jose del Monte','Marilao','Bocaue'],
+  'Pampanga'    => ['San Fernando','Angeles','Mabalacat','Guagua'],
+  'Rizal'       => ['Antipolo','Cainta','Taytay','Binangonan','Angono'],
+  'Quezon'      => ['Lucena','Tayabas','Candelaria','Sariaya'],
+  'Nueva Ecija' => ['Cabanatuan','San Jose','Gapan','Muñoz','Palayan'],
+  'Cebu'        => ['Cebu City','Mandaue','Lapu-Lapu','Talisay','Danao','Carcar'],
+  'Davao del Sur'=> ['Davao City','Digos'],
+  'Iloilo'      => ['Iloilo City','Passi','Pototan'],
+  'Bohol'       => ['Tagbilaran'],
+  'Pangasinan'  => ['Dagupan','Urdaneta','San Carlos','Lingayen','Alaminos'],
+  'Bicol Region' => ['Daet','Vinzons','Labo','Talisay','Jose Panganiban','Mercedes','Capalonga','Naga','Iriga','Libmanan','Pili','Goa','Sipocot','Legazpi','Ligao','Tabaco','Polangui','Daraga','Sorsogon City','Bulan','Irosin','Masbate City','Cataingan','Virac'],
+  'Negros Occidental'=> ['Bacolod','Bago','Cadiz','La Carlota','Sagay','Sipalay','Talisay','Victorias'],
+  'Negros Oriental' => ['Dumaguete','Bais','Canlaon','Guihulngan','Tanjay'],
+  'Leyte'           => ['Tacloban','Ormoc','Baybay','Palo'],
+  'Samar'           => ['Catbalogan','Calbayog'],
+  'Zamboanga del Sur'=> ['Zamboanga City','Pagadian','Dipolog'],
+  'Misamis Oriental'=> ['Cagayan de Oro','Gingoog','El Salvador'],
+  'Bukidnon'        => ['Malaybalay','Valencia'],
+  'Cagayan'         => ['Tuguegarao','Aparri','Cauayan'],
+  'Isabela'         => ['Ilagan','Cauayan','Santiago'],
+  'Benguet'         => ['Baguio','La Trinidad','Itogon'],
+  'Mountain Province'=> ['Bontoc'],
+  'Tarlac'          => ['Tarlac City','Capas','Paniqui'],
+  'Zambales'        => ['Olongapo','Iba','San Antonio'],
+  'Bataan'          => ['Balanga','Mariveles','Orani'],
+  'Aurora'          => ['Baler'],
 ];
+
+$cityZipCodes = [
+  'Manila' => '1000', 'Quezon City' => '1100', 'Makati' => '1200', 'Pasig' => '1600',
+  'Taguig' => '1630', 'Parañaque' => '1700', 'Caloocan' => '1400', 'Las Piñas' => '1740',
+  'Mandaluyong' => '1550', 'Marikina' => '1800', 'Muntinlupa' => '1770', 'Navotas' => '1485',
+  'Pasay' => '1300', 'Pateros' => '1620', 'San Juan' => '1500', 'Valenzuela' => '1440',
+  'Cavite City' => '4100', 'Bacoor' => '4102', 'Imus' => '4103',
+  'Dasmariñas' => '4114', 'General Trias' => '4107', 'Tagaytay' => '4120', 'Trece Martires' => '4109', 'Silang' => '4118',
+  'Santa Rosa' => '4026', 'San Pedro' => '4023', 'Biñan' => '4024', 'Calamba' => '4027',
+  'Cabuyao' => '4025', 'Bay' => '4033', 'Los Baños' => '4030', 'Pagsanjan' => '4008',
+  'Batangas City' => '4200', 'Lipa' => '4217', 'Tanauan' => '4232', 'Nasugbu' => '4211', 'Rosario' => '4225',
+  'Malolos' => '3000', 'Meycauayan' => '3020', 'San Jose del Monte' => '3023', 'Marilao' => '3019', 'Bocaue' => '3018',
+  'San Fernando' => '2000', 'Angeles' => '2009', 'Mabalacat' => '2010', 'Guagua' => '2003',
+  'Antipolo' => '1870', 'Cainta' => '1900', 'Taytay' => '1920', 'Binangonan' => '1940', 'Angono' => '1930',
+  'Lucena' => '4301', 'Tayabas' => '4327', 'Candelaria' => '4323', 'Sariaya' => '4322',
+  'Cabanatuan' => '3100', 'San Jose' => '3121', 'Gapan' => '3105', 'Muñoz' => '3119', 'Palayan' => '3132',
+  'Tuguegarao' => '3500', 'Aparri' => '3515', 'Cauayan' => '3305',
+  'Cebu City' => '6000', 'Mandaue' => '6014', 'Lapu-Lapu' => '6015', 'Talisay' => '6045', 'Danao' => '6004', 'Carcar' => '6019',
+  'Davao City' => '8000', 'Digos' => '8002',
+  'Iloilo City' => '5000', 'Passi' => '5037', 'Pototan' => '5012',
+  'Bacolod' => '6100', 'Bago' => '6101', 'Cadiz' => '6121', 'La Carlota' => '6130', 'Sagay' => '6122', 'Sipalay' => '6113',
+  'Tagbilaran' => '6300',
+  'Dagupan' => '2400', 'Urdaneta' => '2428', 'San Carlos' => '2420', 'Lingayen' => '2401', 'Alaminos' => '2404',
+  // Bicol Region
+  'Daet' => '4600', 'Vinzons' => '4601', 'Labo' => '4603', 'Talisay' => '4602',
+  'Jose Panganiban' => '4606', 'Mercedes' => '4604', 'Capalonga' => '4607',
+  'Naga' => '4400', 'Iriga' => '4431', 'Libmanan' => '4407', 'Pili' => '4418', 'Goa' => '4422', 'Sipocot' => '4408',
+  'Legazpi' => '4500', 'Ligao' => '4504', 'Tabaco' => '4511', 'Polangui' => '4506', 'Daraga' => '4501',
+  'Sorsogon City' => '4700', 'Bulan' => '4706', 'Irosin' => '4707',
+  'Masbate City' => '5400', 'Cataingan' => '5405',
+  'Virac' => '4800',
+  // Others
+  'Tacloban' => '6500', 'Ormoc' => '6541', 'Baybay' => '6521', 'Palo' => '6501',
+  'Catbalogan' => '6700', 'Calbayog' => '6710',
+  'Zamboanga City' => '7000', 'Pagadian' => '7016', 'Dipolog' => '7100',
+  'Cagayan de Oro' => '9000', 'Gingoog' => '9014', 'El Salvador' => '9017',
+  'Malaybalay' => '8700', 'Valencia' => '8709',
+  'Ilagan' => '3300', 'Santiago' => '3311',
+  'Baguio' => '2600', 'La Trinidad' => '2601', 'Itogon' => '2604',
+  'Bontoc' => '2616',
+  'Tarlac City' => '2300', 'Capas' => '2315', 'Paniqui' => '2307',
+  'Olongapo' => '2200', 'Iba' => '2201', 'San Antonio' => '2212',
+  'Balanga' => '2100', 'Mariveles' => '2105', 'Orani' => '2112',
+  'Baler' => '3200',
+  'Dumaguete' => '6200', 'Bais' => '6206', 'Canlaon' => '6208', 'Guihulngan' => '6214', 'Tanjay' => '6204',
+];
+
+$cities = array_values(array_unique(array_merge(...array_values($provinceCities))));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName    = trim($_POST['full_name']    ?? '');
@@ -88,6 +165,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $errors[] = 'Please select a valid province from the list.';
     if ($city && !in_array($city, $cities, true))
       $errors[] = 'Please select a valid city from the list.';
+    if ($province && $city && isset($provinceCities[$province]) && !empty($provinceCities[$province])
+        && !in_array($city, $provinceCities[$province], true)) {
+      $errors[] = 'Please select a city that belongs to the selected province.';
+    }
+    if ($city && isset($cityZipCodes[$city]) && $zip !== $cityZipCodes[$city]) {
+      $errors[] = 'ZIP Code does not match the selected city.';
+    }
     if ($phone && !preg_match('/^[0-9]{10,11}$/', $phone))
       $errors[] = 'Phone number must be 10 or 11 digits (numbers only).';
     if ($zip && !preg_match('/^[0-9]{4}$/', $zip))
@@ -213,6 +297,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="dark-mode.css">
+<script src="dark-mode.js"></script>
 <style>
 :root{--green:#2d5a2d;--sage:#d4e4d4;--cream:#f5f2ec;--deep:#1a2e1a;--terra:#bc8a7b;}
 *{font-family: var(--ui-font);box-sizing:border-box;}
@@ -370,6 +456,18 @@ footer .footer-brand{
 .cod-info i{color:var(--green);font-size:1.2rem;margin-top:2px;flex-shrink:0;}
 .cod-info p{margin:0;font-size:.85rem;color:#444;line-height:1.5;}
 </style>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  if(localStorage.getItem('zythera_dark')==='1'){
+    document.documentElement.style.background='#111e11';
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background='';
+    });
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -476,7 +574,7 @@ footer .footer-brand{
 
         <!-- 7. ZIP Code -->
         <div class="field">
-          <input type="text" id="zip" name="zip" placeholder=" " required maxlength="4"
+          <input type="text" id="zip" name="zip" placeholder=" " required maxlength="4" readonly
             value="<?= htmlspecialchars($_POST['zip'] ?? '') ?>">
           <label>ZIP Code *</label>
           <div id="zipError" class="live-error">&nbsp;</div>
@@ -522,16 +620,16 @@ footer .footer-brand{
         </label>
         <div class="pay-panel" id="panel-gcash">
           <div class="qr-block">
-            <img src="pci/gcash_qr.png"
+            <img src="pci/GCash.png"
                  onerror="this.outerHTML='<div style=\'width:160px;height:160px;border-radius:12px;border:2px dashed #d4e4d4;display:flex;align-items:center;justify-content:center;margin:0 auto;background:#f8fdf8;\'><span style=\'font-size:.75rem;color:#aaa;text-align:center;\'>GCash QR<br>Code Here</span></div>'"
                  alt="GCash QR Code">
             <div class="qr-label">Scan with your GCash app</div>
-            <div class="qr-number"><i class="fas fa-mobile-alt me-1"></i>09XX-XXX-XXXX</div>
+            <div class="qr-number"><i class="fas fa-mobile-alt me-1"></i>0917-123-4567</div>
             <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong><span style="color:var(--deep)">ZYTHERA</span> FURNITURE</strong></div>
           </div>
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:10px;">
             <i class="fas fa-info-circle me-1"></i>
-            Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify before shipping.
+            Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify the payment before shipping.
           </div>
         </div>
 
@@ -547,16 +645,16 @@ footer .footer-brand{
         </label>
         <div class="pay-panel" id="panel-maya">
           <div class="qr-block">
-            <img src="pci/maya_qr.png"
+            <img src="pci/Maya.png"
                  onerror="this.outerHTML='<div style=\'width:160px;height:160px;border-radius:12px;border:2px dashed #d4e4d4;display:flex;align-items:center;justify-content:center;margin:0 auto;background:#f8fdf8;\'><span style=\'font-size:.75rem;color:#aaa;text-align:center;\'>Maya QR<br>Code Here</span></div>'"
                  alt="Maya QR Code">
             <div class="qr-label">Scan with your Maya app</div>
-            <div class="qr-number"><i class="fas fa-wallet me-1"></i>09XX-XXX-XXXX</div>
+            <div class="qr-number"><i class="fas fa-wallet me-1"></i>0917-765-4321</div>
             <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong><span style="color:var(--deep)">ZYTHERA</span> FURNITURE</strong></div>
           </div>
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:10px;">
             <i class="fas fa-info-circle me-1"></i>
-            Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify before shipping.
+            Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify the payment before shipping.
           </div>
         </div>
 
@@ -579,12 +677,14 @@ footer .footer-brand{
               value="<?= htmlspecialchars($_POST['card_name'] ?? '') ?>"
               autocomplete="cc-name">
             <label>Name on Card</label>
+            <div id="cardNameError" class="live-error">&nbsp;</div>
           </div>
           <div class="card-field">
             <input type="text" id="card_number" name="card_number" placeholder=" "
               value="<?= htmlspecialchars($_POST['card_number'] ?? '') ?>"
               maxlength="19" autocomplete="cc-number" oninput="fmtCard(this)">
             <label>Card Number</label>
+            <div id="cardNumberError" class="live-error">&nbsp;</div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div class="card-field">
@@ -592,11 +692,13 @@ footer .footer-brand{
                 value="<?= htmlspecialchars($_POST['card_expiry'] ?? '') ?>"
                 maxlength="5" autocomplete="cc-exp" oninput="fmtExpiry(this)">
               <label>MM / YY</label>
+              <div id="cardExpiryError" class="live-error">&nbsp;</div>
             </div>
             <div class="card-field">
               <input type="password" id="card_cvv" name="card_cvv" placeholder=" "
                 value="" maxlength="4" autocomplete="cc-csc">
               <label>CVV</label>
+              <div id="cardCvvError" class="live-error">&nbsp;</div>
             </div>
           </div>
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:4px;">
@@ -678,17 +780,13 @@ footer .footer-brand{
 // ── Payment panel toggle ──────────────────────────────────────
 const PAY_GROUPS = ['cod','gcash','maya','bank'];
 
-function togglePay(group) {
-  // Check the radio
-  const radio = document.getElementById('radio-' + group);
-  if (radio) radio.checked = true;
-
+function showPay(group) {
   PAY_GROUPS.forEach(g => {
     const lbl   = document.getElementById('lbl-' + g);
     const panel = document.getElementById('panel-' + g);
     if (g === group) {
-      lbl?.classList.toggle('selected');
-      panel?.classList.toggle('show');
+      lbl?.classList.add('selected');
+      panel?.classList.add('show');
     } else {
       lbl?.classList.remove('selected');
       panel?.classList.remove('show');
@@ -696,14 +794,33 @@ function togglePay(group) {
   });
 }
 
+function togglePay(group) {
+  const radio = document.getElementById('radio-' + group);
+  if (radio) {
+    radio.checked = true;
+    showPay(group);
+  }
+}
+
 // Restore on page reload (e.g. after server-side error)
 (function(){
   PAY_GROUPS.forEach(g => {
     const radio = document.getElementById('radio-' + g);
     if (radio?.checked) {
-      document.getElementById('lbl-' + g)?.classList.add('selected');
-      document.getElementById('panel-' + g)?.classList.add('show');
+      showPay(g);
     }
+  });
+
+  const payValueToGroup = value => {
+    if (value === 'Bank Transfer') return 'bank';
+    if (value === 'Cash on Delivery (COD)') return 'cod';
+    return value.toLowerCase();
+  };
+
+  document.querySelectorAll('input[name="pay_method"]').forEach(input => {
+    input.addEventListener('change', function(){
+      if (this.checked) showPay(payValueToGroup(this.value));
+    });
   });
 })();
 
@@ -718,6 +835,21 @@ function fmtExpiry(el) {
   let v = el.value.replace(/\D/g,'').slice(0,4);
   if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
   el.value = v;
+}
+
+function setError(input, errorEl, message) {
+  if (input) input.classList.toggle('is-invalid', !!message);
+  if (errorEl) {
+    errorEl.textContent = message || '\u00A0';
+    errorEl.style.display = message ? 'block' : 'none';
+  }
+}
+
+function resetCardErrors() {
+  setError(document.getElementById('card_name'), document.getElementById('cardNameError'), '');
+  setError(document.getElementById('card_number'), document.getElementById('cardNumberError'), '');
+  setError(document.getElementById('card_expiry'), document.getElementById('cardExpiryError'), '');
+  setError(document.getElementById('card_cvv'), document.getElementById('cardCvvError'), '');
 }
 
 // ── Live validation ───────────────────────────────────────────
@@ -778,13 +910,35 @@ document.getElementById('checkoutForm')?.addEventListener('submit', function(e) 
   if (!/^[0-9]{10,11}$/.test(phoneVal)) errs.push('Phone must be 10–11 digits.');
   if (!/^[0-9]{4}$/.test(zipVal)) errs.push('ZIP Code must be 4 digits.');
 
+  if (!document.getElementById('province')?.value) errs.push('Please select a province.');
+  if (!document.getElementById('city')?.value) errs.push('Please select a city.');
+
   if (payVal === 'Bank Transfer') {
-    const cardNum = (document.getElementById('card_number')?.value||'').replace(/\s/g,'');
-    const expiry  = (document.getElementById('card_expiry')?.value||'').trim();
-    const cvv     = (document.getElementById('card_cvv')?.value||'').trim();
-    if (cardNum.length < 13) errs.push('Please enter a valid card number.');
-    if (!/^\d{2}\/\d{2}$/.test(expiry)) errs.push('Please enter a valid expiry (MM/YY).');
-    if (cvv.length < 3) errs.push('Please enter a valid CVV.');
+    const cardName = (document.getElementById('card_name')?.value||'').trim();
+    const cardNum  = (document.getElementById('card_number')?.value||'').replace(/\s/g,'');
+    const expiry   = (document.getElementById('card_expiry')?.value||'').trim();
+    const cvv      = (document.getElementById('card_cvv')?.value||'').trim();
+
+    resetCardErrors();
+
+    if (!cardName) {
+      setError(document.getElementById('card_name'), document.getElementById('cardNameError'), 'Please enter the name on card.');
+      errs.push('Please enter the name on card.');
+    }
+    if (!/^\d{13,16}$/.test(cardNum)) {
+      setError(document.getElementById('card_number'), document.getElementById('cardNumberError'), 'Please enter a valid card number.');
+      errs.push('Please enter a valid card number.');
+    }
+    if (!/^\d{2}\/\d{2}$/.test(expiry) || Number(expiry.slice(0,2)) < 1 || Number(expiry.slice(0,2)) > 12) {
+      setError(document.getElementById('card_expiry'), document.getElementById('cardExpiryError'), 'Please enter a valid expiry (MM/YY).');
+      errs.push('Please enter a valid expiry (MM/YY).');
+    }
+    if (!/^\d{3,4}$/.test(cvv)) {
+      setError(document.getElementById('card_cvv'), document.getElementById('cardCvvError'), 'Please enter a valid CVV.');
+      errs.push('Please enter a valid CVV.');
+    }
+  } else {
+    resetCardErrors();
   }
 
   if (errs.length) {
@@ -798,6 +952,46 @@ document.getElementById('checkoutForm')?.addEventListener('submit', function(e) 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Placing Order...';
   }
+});
+
+function filterCities() {
+  const province = document.getElementById('province')?.value || '';
+  const citySelect = document.getElementById('city');
+  if (!citySelect) return;
+
+  const provinceCities = <?php echo json_encode($provinceCities, JSON_UNESCAPED_UNICODE); ?>;
+  const allCities = <?php echo json_encode($cities, JSON_UNESCAPED_UNICODE); ?>;
+  const selectedCity = citySelect.value;
+  const cities = provinceCities[province] && provinceCities[province].length > 0 ? provinceCities[province] : allCities;
+
+  citySelect.innerHTML = '<option value=""> Select City </option>';
+  cities.forEach((city) => {
+    const opt = document.createElement('option');
+    opt.value = city;
+    opt.textContent = city;
+    if (city === selectedCity) opt.selected = true;
+    citySelect.appendChild(opt);
+  });
+
+  if (selectedCity && !cities.includes(selectedCity)) {
+    citySelect.value = '';
+  }
+
+  updateZipCode();
+}
+
+function updateZipCode() {
+  const city = document.getElementById('city')?.value || '';
+  const zipInput = document.getElementById('zip');
+  if (!zipInput) return;
+
+  const cityZipCodes = <?php echo json_encode($cityZipCodes, JSON_UNESCAPED_UNICODE); ?>;
+  zipInput.value = cityZipCodes[city] || '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  filterCities();
+  document.getElementById('city')?.addEventListener('change', updateZipCode);
 });
 </script>
 </body>

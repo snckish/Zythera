@@ -5,6 +5,8 @@ ini_set('display_errors', 1);
 include 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // message-sending feature removed
+
     $inv_id = $_POST['inv_id'] ?? ($_POST['id'] ?? '');
 
     $rawPrice = $_POST['price'] ?? '0';
@@ -116,6 +118,61 @@ if (isset($_GET['delete_user'])) {
         $stmt->execute([$email]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if (isset($_GET['delete_review'])) {
+    header('Content-Type: application/json');
+    $reviewId = (int)$_GET['delete_review'];
+    $currentUser = $_SESSION['logged_in_user'] ?? null;
+    $currentRole = $_SESSION['role'] ?? 'user';
+
+    if (!$currentUser) {
+        echo json_encode(['success' => false, 'message' => 'Not logged in.']);
+        exit;
+    }
+
+    try {
+        $db = getDBConnection();
+        // Only allow if admin OR the review belongs to the current user
+        $chk = $db->prepare("SELECT email FROM reviews WHERE review_id = ?");
+        $chk->execute([$reviewId]);
+        $row = $chk->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            echo json_encode(['success' => false, 'message' => 'Review not found.']);
+            exit;
+        }
+        if ($currentRole !== 'admin' && strtolower($row['email']) !== strtolower($currentUser)) {
+            echo json_encode(['success' => false, 'message' => 'You can only delete your own reviews.']);
+            exit;
+        }
+        deleteReview($reviewId);
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+if (isset($_GET['reply_review'])) {
+    header('Content-Type: application/json');
+    $currentRole = $_SESSION['role'] ?? 'user';
+    if ($currentRole !== 'admin') {
+        echo json_encode(['success' => false, 'message' => 'Admin access required.']);
+        exit;
+    }
+    $reviewId = (int)($_GET['review_id'] ?? 0);
+    $reply = trim($_GET['reply'] ?? '');
+    if ($reviewId <= 0 || $reply === '') {
+        echo json_encode(['success' => false, 'message' => 'Review ID and reply text are required.']);
+        exit;
+    }
+    try {
+        replyToReview($reviewId, $reply);
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
     exit;

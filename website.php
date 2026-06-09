@@ -4,16 +4,16 @@ $userEmail  = $_SESSION['logged_in_user'] ?? null;
 $userName = null;
 if ($userEmail) {
 
-    $db = getDBConnection();
+  $db = getDBConnection();
 
-    $stmt = $db->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$userEmail]);
+  $stmt = $db->prepare("SELECT * FROM users WHERE email = ?");
+  $stmt->execute([$userEmail]);
 
-    $uObj = $stmt->fetch();
+  $uObj = $stmt->fetch();
 
-    if ($uObj) {
-        $userName = $uObj->name;
-    }
+  if ($uObj) {
+    $userName = $uObj->name;
+  }
 }
 $userRole   = $_SESSION['role'] ?? 'user';
 $loginTime  = $_SESSION['login_time'] ?? null;
@@ -22,19 +22,19 @@ $loginTime  = $_SESSION['login_time'] ?? null;
 $contactSuccess = false;
 $contactError   = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
-    $cName    = trim($_POST['c_name']    ?? '');
-    $cEmail   = trim($_POST['c_email']   ?? '');
-    $cSubject = trim($_POST['c_subject'] ?? '');
-    $cMsg     = trim($_POST['c_message'] ?? '');
+  $cName    = trim($_POST['c_name']    ?? '');
+  $cEmail   = trim($_POST['c_email']   ?? '');
+  $cSubject = trim($_POST['c_subject'] ?? '');
+  $cMsg     = trim($_POST['c_message'] ?? '');
 
-    if ($cName && $cEmail && $cMsg) {
-        try {
-            $db2 = getDBConnection();
-            $ins = $db2->prepare("
+  if ($cName && $cEmail && $cMsg) {
+    try {
+      $db2 = getDBConnection();
+      $ins = $db2->prepare("
                 INSERT INTO messages (full_name, email, subject, message)
                 VALUES (?, ?, ?, ?)
             ");
-            $ins->execute([$cName, $cEmail, $cSubject, $cMsg]);
+      $ins->execute([$cName, $cEmail, $cSubject, $cMsg]);
       // If request is AJAX, return JSON so client can clear only the message field
       $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
       if ($isAjax) {
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
       // Non-AJAX fallback: PRG so the form clears and the message isn't re-submitted
       header('Location: website.php?contact_sent=1#contact');
       exit;
-        } catch (PDOException $e) {
+    } catch (PDOException $e) {
       $contactError = 'Could not send message. Please try again.';
       $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
       if ($isAjax) {
@@ -53,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
         echo json_encode(['success' => false, 'error' => $contactError]);
         exit;
       }
-        }
-    } else {
+    }
+  } else {
     $contactError = 'Please fill in your name, email, and message.';
     $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     if ($isAjax) {
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
       echo json_encode(['success' => false, 'error' => $contactError]);
       exit;
     }
-    }
+  }
 }
 
 // If redirected after successful send, show success message
@@ -80,7 +80,7 @@ $rawInventory = loadInventory();
 $inventory = [];
 
 foreach ($rawInventory as $item) {
-    $inventory[] = $item;
+  $inventory[] = $item;
 }
 
 // Sort inventory by ID accurately
@@ -102,10 +102,35 @@ $reviews = loadReviews();
   <title>ZYTHERA | FURNITURE</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
-    body{font-family:var(--ui-font);}
-    h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
-    p,small,.caption,.text-muted{font-family:var(--text-font);}
+    :root {
+      --logo-font: 'Playfair Display', serif;
+      --ui-font: 'Roboto', sans-serif;
+      --text-font: 'Lora', serif
+    }
+
+    body {
+      font-family: var(--ui-font);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    .navbar-brand,
+    .brand-name,
+    .section-title,
+    .page-header h2,
+    footer .footer-brand {
+      font-family: var(--logo-font);
+    }
+
+    p,
+    small,
+    .caption,
+    .text-muted {
+      font-family: var(--text-font);
+    }
   </style>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -183,7 +208,7 @@ $reviews = loadReviews();
       color: #fff;
       font-family: var(--logo-font);
       font-size: clamp(1.3rem, 3vw, 2rem);
-      font-style: italic;
+      font-style: bold;
       line-height: 1.7;
       padding: 40px;
       border: 1px solid rgba(147, 174, 153, 0.2);
@@ -337,6 +362,13 @@ $reviews = loadReviews();
       box-shadow: 0 10px 32px rgba(0, 0, 0, .12);
     }
 
+    .review-item.own-review {
+      outline: 2px solid rgba(245, 200, 66, 0.4);
+    }
+    .review-item.own-review:hover {
+      outline: 2px solid rgba(245, 200, 66, 0.75);
+    }
+
     .review-header {
       display: flex;
       align-items: center;
@@ -377,7 +409,7 @@ $reviews = loadReviews();
       border: none;
       background: #fff;
       color: var(--green);
-      box-shadow: 0 3px 14px rgba(0,0,0,.14);
+      box-shadow: 0 3px 14px rgba(0, 0, 0, .14);
       cursor: pointer;
       font-size: .95rem;
       display: flex;
@@ -392,12 +424,23 @@ $reviews = loadReviews();
       color: #fff;
     }
 
-    .scroll-btn.left  { left: -16px; }
-    .scroll-btn.right { right: -16px; }
+    .scroll-btn.left {
+      left: -16px;
+    }
+
+    .scroll-btn.right {
+      right: -16px;
+    }
 
     @media (max-width: 576px) {
-      .scroll-btn { display: none; }
-      .review-item { min-width: 220px; max-width: 220px; }
+      .scroll-btn {
+        display: none;
+      }
+
+      .review-item {
+        min-width: 220px;
+        max-width: 220px;
+      }
     }
 
     /* CONTACT */
@@ -528,18 +571,18 @@ $reviews = loadReviews();
       background: #dc2626;
     }
   </style>
-<script>
-/* ZYTHERA dark mode — apply before paint to prevent flash */
-(function(){
-  if(localStorage.getItem('zythera_dark')==='1'){
-    document.documentElement.style.background='#111e11';
-    document.addEventListener('DOMContentLoaded',function(){
-      document.body.classList.add('dark');
-      document.documentElement.style.background='';
-    });
-  }
-})();
-</script>
+  <script>
+    /* ZYTHERA dark mode — apply before paint to prevent flash */
+    (function() {
+      if (localStorage.getItem('zythera_dark') === '1') {
+        document.documentElement.style.background = '#111e11';
+        document.addEventListener('DOMContentLoaded', function() {
+          document.body.classList.add('dark');
+          document.documentElement.style.background = '';
+        });
+      }
+    })();
+  </script>
 </head>
 
 <body>
@@ -547,7 +590,7 @@ $reviews = loadReviews();
   <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="website.php">ZYTHERA</a>
+      <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
 
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
@@ -569,9 +612,12 @@ $reviews = loadReviews();
                 <?php endif; ?>
               </div>
               <div class="dropdown">
-                <img src="https://ui-avatars.com/api/?name=<?= urlencode($userName) ?>&background=2d5a2d&color=fff"
-                  class="rounded-circle" width="34" style="cursor:pointer;" data-bs-toggle="dropdown"
-                  alt="<?= htmlspecialchars($userName) ?>">
+                <?php
+                    // Determine nav avatar: prefer uploaded profile_pic if it exists on disk, else use email/name-based admin fallbacks, else ui-avatars
+                    // Prefer DB/uploaded profile_pic, fall back to known-email or ui-avatars
+                    $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34);
+                ?>
+                <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="34" style="cursor:pointer;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
                   <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2"></i>My Profile</a></li>
                   <?php if ($userRole === 'admin'): ?>
@@ -587,17 +633,17 @@ $reviews = loadReviews();
 
             <!-- Cart icon — hidden for admin -->
             <?php if ($userRole !== 'admin'): ?>
-            <a href="javascript:void(0)" onclick="openCart()" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-              </svg>
-              <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                style="font-size:.55rem;background:var(--green);color:#fff;<?= $cartCount == 0 ? 'display:none;' : '' ?>">
-                <?= $cartCount ?>
-              </span>
-            </a>
+              <a href="javascript:void(0)" onclick="openCart()" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+                <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                  style="font-size:.55rem;background:var(--green);color:#fff;<?= $cartCount == 0 ? 'display:none;' : '' ?>">
+                  <?= $cartCount ?>
+                </span>
+              </a>
             <?php endif; ?>
 
           <?php else: ?>
@@ -692,157 +738,206 @@ $reviews = loadReviews();
     </div>
   </section>
 
-  
-<!-- REVIEW SECTION -->
-<section class="reviews-section" id="reviews">
-  <div class="container">
-    <h2 class="section-title text-center">Customer Reviews</h2>
-    <p class="text-center text-muted mb-4" style="font-size:.9rem;margin-top:-20px;">What our customers say about our furniture</p>
 
-    <div class="review-scroll-wrapper px-2">
-      <!-- Left arrow -->
-      <button class="scroll-btn left" onclick="document.getElementById('reviewTrack').scrollBy({left:-290,behavior:'smooth'})">
-        <i class="fas fa-chevron-left"></i>
-      </button>
+  <!-- REVIEW SECTION -->
+  <section class="reviews-section" id="reviews">
+    <div class="container">
+      <h2 class="section-title text-center">Customer Reviews</h2>
+      <p class="text-center text-muted mb-4" style="font-size:.9rem;margin-top:-20px;">What our customers say about our furniture</p>
 
-      <div class="review-scroll-track" id="reviewTrack">
-        <?php if (!empty($reviews)): ?>
-          <?php foreach ($reviews as $review): ?>
-            <?php $stars = str_repeat('★', max(1, min(5, (int)($review->rating ?? 5)))); ?>
+      <div class="review-scroll-wrapper px-2">
+        <!-- Left arrow -->
+        <button class="scroll-btn left" onclick="document.getElementById('reviewTrack').scrollBy({left:-290,behavior:'smooth'})">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="review-scroll-track" id="reviewTrack">
+          <?php if (!empty($reviews)): ?>
+            <?php foreach ($reviews as $review): ?>
+              <?php
+                $stars = str_repeat('★', max(1, min(5, (int)($review->rating ?? 5))));
+                $isOwn = ($userEmail && strtolower($userEmail) === strtolower($review->author_email ?? ''));
+                $reviewOrderId = htmlspecialchars($review->order_id ?? '');
+              ?>
+              <div class="review-item<?= $isOwn ? ' own-review' : '' ?>"
+                   <?php if ($isOwn && $reviewOrderId): ?>
+                     style="cursor:pointer;position:relative;"
+                     onclick="window.location.href='order.php?order_id=<?= $reviewOrderId ?>'"
+                     title="Click to view your order"
+                   <?php endif; ?>>
+                <?php if ($isOwn): ?>
+                <div style="position:absolute;top:10px;right:10px;z-index:10;">
+                  <button onclick="event.stopPropagation();deleteMyReview(<?= (int)($review->review_id ?? 0) ?>)"
+                          title="Delete your review"
+                          style="background:rgba(220,38,38,.75);border:none;border-radius:50%;width:26px;height:26px;
+                                 color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+                                 line-height:1;transition:.2s;"
+                          onmouseover="this.style.background='rgba(220,38,38,1)'"
+                          onmouseout="this.style.background='rgba(220,38,38,.75)'">
+                    <i class="fas fa-trash" style="font-size:.65rem;"></i>
+                  </button>
+                </div>
+                <?php endif; ?>
+                <div class="review-header">
+                  <?php $authorPic = getAvatarURL($review->author_pic ?? null, $review->author_email ?? null, $review->author_name ?? null, 80); ?>
+                  <img src="<?= htmlspecialchars($authorPic) ?>" class="avatar" alt="<?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>">
+                  <div>
+                    <div style="font-weight:700;color:#fff;font-size:.9rem;">
+                      <?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>
+                      <?php if ($isOwn): ?><span style="font-size:.65rem;background:rgba(255,255,255,.15);border-radius:50px;padding:1px 7px;margin-left:5px;font-weight:500;">You</span><?php endif; ?>
+                    </div>
+                    <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+                  </div>
+                </div>
+                <div class="stars mb-2" style="color:#f5c842;"><?= $stars ?></div>
+                <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
+                  <?= nl2br(htmlspecialchars($review->comment)) ?>
+                </p>
+                <?php if (!empty($review->reply)): ?>
+                <div style="margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-size:.82rem;line-height:1.6;">
+                  <strong style="display:block;margin-bottom:6px;color:#d4e4d4;">Admin reply:</strong>
+                  <?= nl2br(htmlspecialchars($review->reply)) ?>
+                </div>
+                <?php endif; ?>
+              </div>
+            <?php endforeach; ?>
+          <?php else: ?>
             <div class="review-item">
               <div class="review-header">
-                <img src="<?= !empty($review->author_pic) ? htmlspecialchars($review->author_pic) : 'https://i.pravatar.cc/80?img=' . rand(1, 70) ?>" class="avatar" alt="<?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>">
+                <img src="https://i.pravatar.cc/80?img=13" class="avatar" alt="Verified Buyer">
                 <div>
-                  <div style="font-weight:700;color:#fff;font-size:.9rem;">
-                    <?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>
-                  </div>
+                  <div style="font-weight:700;color:#fff;font-size:.9rem;">Verified Buyer</div>
                   <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
                 </div>
               </div>
-              <div class="stars mb-2" style="color:#f5c842;"><?= $stars ?></div>
+              <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
               <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-                <?= nl2br(htmlspecialchars($review->comment)) ?>
+                The sofa exceeded my expectations. Very comfortable, elegant, and perfect for our living room.
               </p>
             </div>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <div class="review-item">
-            <div class="review-header">
-              <img src="https://i.pravatar.cc/80?img=13" class="avatar" alt="Verified Buyer">
-              <div>
-                <div style="font-weight:700;color:#fff;font-size:.9rem;">Verified Buyer</div>
-                <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+            <div class="review-item">
+              <div class="review-header">
+                <img src="https://i.pravatar.cc/80?img=25" class="avatar" alt="Verified Buyer">
+                <div>
+                  <div style="font-weight:700;color:#fff;font-size:.9rem;">Verified Buyer</div>
+                  <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+                </div>
               </div>
+              <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
+              <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
+                Excellent quality and very fast delivery. The furniture looks premium and modern.
+              </p>
             </div>
-            <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
-            <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-              The sofa exceeded my expectations. Very comfortable, elegant, and perfect for our living room.
-            </p>
-          </div>
-          <div class="review-item">
-            <div class="review-header">
-              <img src="https://i.pravatar.cc/80?img=25" class="avatar" alt="Verified Buyer">
-              <div>
-                <div style="font-weight:700;color:#fff;font-size:.9rem;">Verified Buyer</div>
-                <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
-              </div>
-            </div>
-            <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
-            <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-              Excellent quality and very fast delivery. The furniture looks premium and modern.
-            </p>
-          </div>
-        <?php endif; ?>
+          <?php endif; ?>
+        </div>
+
+        <!-- Right arrow -->
+        <button class="scroll-btn right" onclick="document.getElementById('reviewTrack').scrollBy({left:290,behavior:'smooth'})">
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
-
-      <!-- Right arrow -->
-      <button class="scroll-btn right" onclick="document.getElementById('reviewTrack').scrollBy({left:290,behavior:'smooth'})">
-        <i class="fas fa-chevron-right"></i>
-      </button>
     </div>
-  </div>
-</section>
+  </section>
 
-<script>
-  // Drag-to-scroll for review track
-  (function () {
-    const track = document.getElementById('reviewTrack');
-    if (!track) return;
-    let isDown = false, startX, scrollLeft;
-    track.addEventListener('mousedown', e => {
-      isDown = true; track.classList.add('dragging');
-      startX = e.pageX - track.offsetLeft; scrollLeft = track.scrollLeft;
-    });
-    track.addEventListener('mouseleave', () => { isDown = false; track.classList.remove('dragging'); });
-    track.addEventListener('mouseup',    () => { isDown = false; track.classList.remove('dragging'); });
-    track.addEventListener('mousemove',  e => {
-      if (!isDown) return; e.preventDefault();
-      const x = e.pageX - track.offsetLeft;
-      track.scrollLeft = scrollLeft - (x - startX) * 1.4;
-    });
-  })();
-</script>
-
-<script>
-  // Contact form functionality that needs the DOM to be ready first
-  window.addEventListener('DOMContentLoaded', function() {
-    // If server-rendered success alert exists (PRG path), fade and remove it after a short delay
-    (function(){
-      const alert = document.getElementById('contactSuccessAlert');
-      if (!alert) return;
-      // start fading after 1 second, then remove after the transition
-      setTimeout(() => {
-        alert.style.opacity = '0';
-        setTimeout(() => { if (alert.parentNode) alert.parentNode.removeChild(alert); }, 400);
-      }, 1000);
-    })();
-
-    // AJAX submit for contact form: clears only the message textarea and shows a toast
-    (function(){
-      const form = document.getElementById('contactForm');
-      const toast = document.getElementById('contactToast');
-      if (!form || !toast) return;
-
-      function showToast(msg, isError) {
-        toast.textContent = msg;
-        toast.classList.toggle('error', !!isError);
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3500);
-      }
-
-      form.addEventListener('submit', async function(e){
+  <script>
+    // Drag-to-scroll for review track
+    (function() {
+      const track = document.getElementById('reviewTrack');
+      if (!track) return;
+      let isDown = false,
+        startX, scrollLeft;
+      track.addEventListener('mousedown', e => {
+        isDown = true;
+        track.classList.add('dragging');
+        startX = e.pageX - track.offsetLeft;
+        scrollLeft = track.scrollLeft;
+      });
+      track.addEventListener('mouseleave', () => {
+        isDown = false;
+        track.classList.remove('dragging');
+      });
+      track.addEventListener('mouseup', () => {
+        isDown = false;
+        track.classList.remove('dragging');
+      });
+      track.addEventListener('mousemove', e => {
+        if (!isDown) return;
         e.preventDefault();
-        const btn = this.querySelector('button[type=submit]');
-        if (btn) { btn.disabled = true; }
-
-        const data = new FormData(this);
-        if (!data.has('send_message')) data.append('send_message', '1');
-
-        try {
-          const res = await fetch('website.php', {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-            body: data
-          });
-          const json = await res.json();
-          if (json && json.success) {
-            const ta = form.querySelector('textarea[name=c_message]');
-            const subject = form.querySelector('input[name=c_subject]');
-            if (ta) ta.value = '';
-            if (subject) subject.value = '';
-            showToast("Message sent! We'll get back to you soon.", false);
-          } else {
-            showToast(json.error || 'Could not send message. Please try again.', true);
-          }
-        } catch (err) {
-          showToast('Network error. Please try again later.', true);
-        } finally {
-          if (btn) { btn.disabled = false; }
-        }
+        const x = e.pageX - track.offsetLeft;
+        track.scrollLeft = scrollLeft - (x - startX) * 1.4;
       });
     })();
-  });
-</script>
+  </script>
+
+  <script>
+    // Contact form functionality that needs the DOM to be ready first
+    window.addEventListener('DOMContentLoaded', function() {
+      // If server-rendered success alert exists (PRG path), fade and remove it after a short delay
+      (function() {
+        const alert = document.getElementById('contactSuccessAlert');
+        if (!alert) return;
+        // start fading after 1 second, then remove after the transition
+        setTimeout(() => {
+          alert.style.opacity = '0';
+          setTimeout(() => {
+            if (alert.parentNode) alert.parentNode.removeChild(alert);
+          }, 400);
+        }, 1000);
+      })();
+
+      // AJAX submit for contact form: clears only the message textarea and shows a toast
+      (function() {
+        const form = document.getElementById('contactForm');
+        const toast = document.getElementById('contactToast');
+        if (!form || !toast) return;
+
+        function showToast(msg, isError) {
+          toast.textContent = msg;
+          toast.classList.toggle('error', !!isError);
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const btn = this.querySelector('button[type=submit]');
+          if (btn) {
+            btn.disabled = true;
+          }
+
+          const data = new FormData(this);
+          if (!data.has('send_message')) data.append('send_message', '1');
+
+          try {
+            const res = await fetch('website.php', {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+              },
+              body: data
+            });
+            const json = await res.json();
+            if (json && json.success) {
+              const ta = form.querySelector('textarea[name=c_message]');
+              const subject = form.querySelector('input[name=c_subject]');
+              if (ta) ta.value = '';
+              if (subject) subject.value = '';
+              showToast("Message sent! We'll get back to you soon.", false);
+            } else {
+              showToast(json.error || 'Could not send message. Please try again.', true);
+            }
+          } catch (err) {
+            showToast('Network error. Please try again later.', true);
+          } finally {
+            if (btn) {
+              btn.disabled = false;
+            }
+          }
+        });
+      })();
+    });
+  </script>
 
 
   <!-- CONTACT -->
@@ -855,9 +950,9 @@ $reviews = loadReviews();
             <h5 class="fw-bold mb-4" style="font-family:'Playfair Display',serif;color:var(--green);">Message Us</h5>
             <?php if ($contactSuccess): ?>
             <?php elseif ($contactError): ?>
-            <div style="background:#fee2e2;color:#b91c1c;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
-              <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($contactError) ?>
-            </div>
+              <div style="background:#fee2e2;color:#b91c1c;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
+                <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($contactError) ?>
+              </div>
             <?php endif; ?>
             <form id="contactForm" method="POST" action="website.php#contact">
               <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
@@ -886,11 +981,11 @@ $reviews = loadReviews();
             </div>
 
             <p class="text-uppercase small text-muted mb-2" style="letter-spacing:2px;font-size:.72rem;">Follow Us</p>
-              <div class="d-flex gap-2">
-                <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
-                <div class="social-icon"><i class="fab fa-instagram"></i></div>
-                <div class="social-icon"><i class="fab fa-tiktok"></i></div> 
-                
+            <div class="d-flex gap-2">
+              <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
+              <div class="social-icon"><i class="fab fa-instagram"></i></div>
+              <div class="social-icon"><i class="fab fa-tiktok"></i></div>
+
             </div>
           </div>
         </div>
@@ -900,159 +995,165 @@ $reviews = loadReviews();
 
   <footer class="footer">
     <img src="pci/Group_15.png" class="footer-logo">
-    <div class="brand">ZYTHERA</div>
+    <div class="brand"><span style="color:var(--deep)">ZYTHERA</span></div>
   </footer>
   <!-- ── CART SLIDE-OUT PANEL — hidden for admin ── -->
   <?php if ($userRole !== 'admin'): ?>
-  <div id="cartPanel" style="
+    <div id="cartPanel" style="
   position:fixed;top:0;right:-110vw;width:min(400px,100vw);height:100vh;
   background:#fff;z-index:10000;box-shadow:-8px 0 40px rgba(0,0,0,.18);
   display:flex;flex-direction:column;transition:right .35s cubic-bezier(.4,0,.2,1);
   border-radius:20px 0 0 20px;overflow:hidden;">
 
-    <!-- Header -->
-    <div style="background:linear-gradient(135deg,#1a2e1a,#2d5a2d);color:#fff;padding:20px 22px 16px;flex-shrink:0;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <h5 style="margin:0;font-family:'Playfair Display',serif;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:8px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#1a2e1a,#2d5a2d);color:#fff;padding:20px 22px 16px;flex-shrink:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h5 style="margin:0;font-family:'Playfair Display',serif;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:8px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
+              My Cart
+            </h5>
+            <small id="cartItemCount" style="opacity:.75;font-size:.75rem;">
+              <?php
+              $initCount = 0;
+              if ($userEmail && !empty($_SESSION['cart'][$userEmail]))
+                foreach ($_SESSION['cart'][$userEmail] as $ci) $initCount += (int)($ci['qty'] ?? 1);
+              echo $initCount === 0 ? 'Your cart is empty' : $initCount . ' item' . ($initCount === 1 ? '' : 's') . ' in cart';
+              ?>
+            </small>
+          </div>
+          <button onclick="closeCart()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Items list -->
+      <div id="cartItems" style="flex:1;overflow-y:auto;padding:16px;background:#f9f9f6;">
+        <?php
+        $initSubtotal = 0;
+        // Build a stock lookup from session inventory
+        $invStock = [];
+        foreach ($_SESSION['inventory'] ?? [] as $invId => $inv) {
+          $invStock[(int)$invId] = (int)$inv->stock;
+        }
+        if ($userEmail && !empty($_SESSION['cart'][$userEmail])):
+          foreach ($_SESSION['cart'][$userEmail] as $ci):
+            $ciPrice  = (float)($ci['price'] ?? 0);
+            $ciQty    = (int)($ci['qty'] ?? 1);
+            $ciId     = (int)($ci['inv_id'] ?? 0);
+            $ciTotal  = $ciPrice * $ciQty;
+            $ciStock  = $invStock[$ciId] ?? 99;
+            $initSubtotal += $ciTotal;
+            $stockLabel = $ciStock === 0 ? 'Out of Stock' : ($ciStock <= 5 ? 'Low stock: ' . $ciStock . ' left' : 'In stock: ' . $ciStock);
+            $stockColor = $ciStock === 0 ? '#dc2626' : ($ciStock <= 5 ? '#f59e0b' : '#16a34a');
+        ?>
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;
+            box-shadow:0 2px 10px rgba(0,0,0,.06);">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                <img src="<?= htmlspecialchars($ci['image'] ?? '') ?>" alt=""
+                  style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;"
+                  onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-weight:600;color:#1a2e1a;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    <?= htmlspecialchars($ci['name'] ?? '') ?>
+                  </div>
+                  <div style="color:#7aab7a;font-size:.76rem;margin-top:1px;">₱<?= number_format($ciPrice, 2) ?> each</div>
+                  <div style="font-size:.68rem;color:<?= $stockColor ?>;font-weight:600;margin-top:2px;">
+                    <?= $stockLabel ?>
+                  </div>
+                </div>
+                <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;">
+                  ₱<?= number_format($ciTotal, 2) ?>
+                </div>
+              </div>
+              <!-- Qty stepper + remove row -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+                <div style="display:flex;align-items:center;gap:0;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
+                  <button onclick="cartQty(<?= $ciId ?>, 'minus')"
+                    style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
+                  <span id="panel-qty-<?= $ciId ?>" style="width:34px;text-align:center;font-weight:700;font-size:.88rem;color:#1a2e1a;"><?= $ciQty ?></span>
+                  <button onclick="cartQty(<?= $ciId ?>, 'plus')"
+                    style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">+</button>
+                </div>
+                <button onclick="cartQty(<?= $ciId ?>, 'remove')"
+                  style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;"
+                  onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
+                  <i class="fas fa-trash-alt" style="margin-right:4px;"></i>Remove
+                </button>
+              </div>
+            </div>
+          <?php
+          endforeach;
+        else: ?>
+          <div style="text-align:center;padding:60px 20px;color:#bbb;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d4e4d4" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:14px;display:block;margin-left:auto;margin-right:auto;">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
-            My Cart
-          </h5>
-          <small id="cartItemCount" style="opacity:.75;font-size:.75rem;">
-            <?php
-            $initCount = 0;
-            if ($userEmail && !empty($_SESSION['cart'][$userEmail]))
-              foreach ($_SESSION['cart'][$userEmail] as $ci) $initCount += (int)($ci['qty'] ?? 1);
-            echo $initCount === 0 ? 'Your cart is empty' : $initCount . ' item' . ($initCount === 1 ? '' : 's') . ' in cart';
-            ?>
-          </small>
-        </div>
-        <button onclick="closeCart()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Items list -->
-    <div id="cartItems" style="flex:1;overflow-y:auto;padding:16px;background:#f9f9f6;">
-      <?php
-      $initSubtotal = 0;
-      // Build a stock lookup from session inventory
-      $invStock = [];
-      foreach ($_SESSION['inventory'] ?? [] as $invId => $inv) {
-        $invStock[(int)$invId] = (int)$inv->stock;
-      }
-      if ($userEmail && !empty($_SESSION['cart'][$userEmail])):
-        foreach ($_SESSION['cart'][$userEmail] as $ci):
-          $ciPrice  = (float)($ci['price'] ?? 0);
-          $ciQty    = (int)($ci['qty'] ?? 1);
-          $ciId     = (int)($ci['inv_id'] ?? 0);
-          $ciTotal  = $ciPrice * $ciQty;
-          $ciStock  = $invStock[$ciId] ?? 99;
-          $initSubtotal += $ciTotal;
-          $stockLabel = $ciStock === 0 ? 'Out of Stock' : ($ciStock <= 5 ? 'Low stock: ' . $ciStock . ' left' : 'In stock: ' . $ciStock);
-          $stockColor = $ciStock === 0 ? '#dc2626' : ($ciStock <= 5 ? '#f59e0b' : '#16a34a');
-      ?>
-          <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;
-            box-shadow:0 2px 10px rgba(0,0,0,.06);">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-              <img src="<?= htmlspecialchars($ci['image'] ?? '') ?>" alt=""
-                style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;"
-                onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
-              <div style="flex:1;min-width:0;">
-                <div style="font-weight:600;color:#1a2e1a;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                  <?= htmlspecialchars($ci['name'] ?? '') ?>
-                </div>
-                <div style="color:#7aab7a;font-size:.76rem;margin-top:1px;">₱<?= number_format($ciPrice, 2) ?> each</div>
-                <div style="font-size:.68rem;color:<?= $stockColor ?>;font-weight:600;margin-top:2px;">
-                  <?= $stockLabel ?>
-                </div>
-              </div>
-              <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;">
-                ₱<?= number_format($ciTotal, 2) ?>
-              </div>
-            </div>
-            <!-- Qty stepper + remove row -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
-              <div style="display:flex;align-items:center;gap:0;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
-                <button onclick="cartQty(<?= $ciId ?>, 'minus')"
-                  style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
-                <span id="panel-qty-<?= $ciId ?>" style="width:34px;text-align:center;font-weight:700;font-size:.88rem;color:#1a2e1a;"><?= $ciQty ?></span>
-                <button onclick="cartQty(<?= $ciId ?>, 'plus')"
-                  style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">+</button>
-              </div>
-              <button onclick="cartQty(<?= $ciId ?>, 'remove')"
-                style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;"
-                onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
-                <i class="fas fa-trash-alt" style="margin-right:4px;"></i>Remove
-              </button>
-            </div>
+            <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
           </div>
-        <?php
-        endforeach;
-      else: ?>
-        <div style="text-align:center;padding:60px 20px;color:#bbb;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d4e4d4" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:14px;display:block;margin-left:auto;margin-right:auto;">
-            <circle cx="9" cy="21" r="1" />
-            <circle cx="20" cy="21" r="1" />
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-          </svg>
-          <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
-        </div>
-      <?php endif; ?>
-    </div>
-
-    <!-- Footer with subtotal + checkout -->
-    <div id="cartFooter" style="padding:16px 20px;background:#fff;border-top:2px solid #f0f0eb;flex-shrink:0;<?= ($initSubtotal > 0) ? '' : 'display:none;' ?>">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <span style="font-weight:600;color:#666;font-size:.85rem;">SUBTOTAL</span>
-        <span id="cartSubtotal" style="font-weight:800;color:#2d5a2d;font-size:1.15rem;">₱<?= number_format($initSubtotal) ?></span>
+        <?php endif; ?>
       </div>
-      <a href="checkout.php" style="display:block;background:var(--green);color:#fff;text-align:center;padding:14px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;transition:.2s;">
-        Checkout Now
-      </a>
+
+      <!-- Footer with subtotal + checkout -->
+      <div id="cartFooter" style="padding:16px 20px;background:#fff;border-top:2px solid #f0f0eb;flex-shrink:0;<?= ($initSubtotal > 0) ? '' : 'display:none;' ?>">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <span style="font-weight:600;color:#666;font-size:.85rem;">SUBTOTAL</span>
+          <span id="cartSubtotal" style="font-weight:800;color:#2d5a2d;font-size:1.15rem;">₱<?= number_format($initSubtotal) ?></span>
+        </div>
+        <a href="checkout.php" style="display:block;background:var(--green);color:#fff;text-align:center;padding:14px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;transition:.2s;">
+          Checkout Now
+        </a>
+      </div>
     </div>
-  </div>
-  <div id="cartBackdrop" onclick="closeCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;backdrop-filter:blur(2px);"></div>
+    <div id="cartBackdrop" onclick="closeCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;backdrop-filter:blur(2px);"></div>
   <?php endif; /* end admin cart hide */ ?>
 
   <div id="toast-msg" class="toast-fixed"></div>
+  <?php if (!empty($contactSuccess)): $toastMessage = "Message sent! We'll get back to you soon.";
+    $toastType = 'success';
+    include __DIR__ . '/includes/_toast.php';
+  endif; ?>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // ── Cart state seeded from PHP session + live DB via fetch ──
-    let cartItemsJS = <?= json_encode(array_values(array_map(function($i) {
-      return ['inv_id' => (int)($i['inv_id'] ?? 0), 'name' => $i['name'] ?? '', 'price' => (float)($i['price'] ?? 0), 'qty' => (int)($i['qty'] ?? 1), 'image' => $i['image'] ?? ''];
-    }, $_SESSION['cart'][$userEmail] ?? []))) ?>;
+    let cartItemsJS = <?= json_encode(array_values(array_map(function ($i) {
+                        return ['inv_id' => (int)($i['inv_id'] ?? 0), 'name' => $i['name'] ?? '', 'price' => (float)($i['price'] ?? 0), 'qty' => (int)($i['qty'] ?? 1), 'image' => $i['image'] ?? ''];
+                      }, $_SESSION['cart'][$userEmail] ?? []))) ?>;
     // Stock map from PHP inventory (inv_id => stock)
     const stockMap = <?= json_encode(array_combine(
-      array_keys($_SESSION['inventory'] ?? []),
-      array_map(fn($i) => (int)$i->stock, $_SESSION['inventory'] ?? [])
-    )) ?>;
+                        array_keys($_SESSION['inventory'] ?? []),
+                        array_map(fn($i) => (int)$i->stock, $_SESSION['inventory'] ?? [])
+                      )) ?>;
 
     // On page load, always sync cart from DB so badge is accurate
     (function syncCartOnLoad() {
       <?php if ($userEmail && $userRole !== 'admin'): ?>
-      fetch('getcart.php', { credentials: 'same-origin' })
-        .then(r => r.json())
-        .then(data => {
-          if (data.cart) {
-            cartItemsJS = data.cart;
-            const badge = document.getElementById('cart-badge');
-            if (badge) {
-              badge.textContent = data.total_items;
-              badge.style.display = data.total_items > 0 ? '' : 'none';
+        fetch('getcart.php', {
+            credentials: 'same-origin'
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.cart) {
+              cartItemsJS = data.cart;
+              const badge = document.getElementById('cart-badge');
+              if (badge) {
+                badge.textContent = data.total_items;
+                badge.style.display = data.total_items > 0 ? '' : 'none';
+              }
+              renderCart();
             }
-            renderCart();
-          }
-        }).catch(() => {});
+          }).catch(() => {});
       <?php endif; ?>
     })();
 
@@ -1072,11 +1173,13 @@ $reviews = loadReviews();
     // ── Re-render cart panel items + subtotal + header count ──────
     function renderCart() {
       const container = document.getElementById('cartItems');
-      const footer    = document.getElementById('cartFooter');
-      const subEl     = document.getElementById('cartSubtotal');
-      const countEl   = document.getElementById('cartItemCount');
+      const footer = document.getElementById('cartFooter');
+      const subEl = document.getElementById('cartSubtotal');
+      const countEl = document.getElementById('cartItemCount');
 
-      let subtotal = 0, totalQty = 0, distinctCount = cartItemsJS.length;
+      let subtotal = 0,
+        totalQty = 0,
+        distinctCount = cartItemsJS.length;
 
       if (cartItemsJS.length === 0) {
         container.innerHTML = `
@@ -1089,26 +1192,29 @@ $reviews = loadReviews();
             </svg>
             <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
           </div>`;
-        if (footer)  footer.style.display  = 'none';
-        if (countEl) countEl.textContent   = 'Your cart is empty';
-      const badge = document.getElementById('cart-badge');
-      if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+        if (footer) footer.style.display = 'none';
+        if (countEl) countEl.textContent = 'Your cart is empty';
+        const badge = document.getElementById('cart-badge');
+        if (badge) {
+          badge.textContent = '0';
+          badge.style.display = 'none';
+        }
         return;
       }
 
       let html = '';
       cartItemsJS.forEach(item => {
-        const price     = Number(item.price) || 0;
-        const qty       = Number(item.qty)   || 1;
+        const price = Number(item.price) || 0;
+        const qty = Number(item.qty) || 1;
         const lineTotal = price * qty;
-        const stock     = stockMap[item.inv_id] ?? 99;
-        subtotal  += lineTotal;
-        totalQty  += qty;
+        const stock = stockMap[item.inv_id] ?? 99;
+        subtotal += lineTotal;
+        totalQty += qty;
         const imgSrc = item.image || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop';
 
-        const stockLabel = stock === 0 ? 'Out of Stock'
-          : stock <= 5   ? 'Low stock: ' + stock + ' left'
-          :                'In stock: '  + stock;
+        const stockLabel = stock === 0 ? 'Out of Stock' :
+          stock <= 5 ? 'Low stock: ' + stock + ' left' :
+          'In stock: ' + stock;
         const stockColor = stock === 0 ? '#dc2626' : stock <= 5 ? '#f59e0b' : '#16a34a';
 
         html += `
@@ -1148,13 +1254,16 @@ $reviews = loadReviews();
       });
 
       container.innerHTML = html;
-      if (subEl)  subEl.textContent = '₱' + subtotal.toLocaleString('en-PH');
+      if (subEl) subEl.textContent = '₱' + subtotal.toLocaleString('en-PH');
       if (footer) footer.style.display = 'block';
       if (countEl) {
         countEl.textContent = distinctCount === 1 ? '1 item in cart' : distinctCount + ' items in cart';
       }
       const badge = document.getElementById('cart-badge');
-      if (badge) { badge.textContent = distinctCount; badge.style.display = distinctCount > 0 ? '' : 'none'; }
+      if (badge) {
+        badge.textContent = distinctCount;
+        badge.style.display = distinctCount > 0 ? '' : 'none';
+      }
     }
 
     // ── Qty stepper in cart sidebar (calls profile.php POST via fetch) ──
@@ -1162,7 +1271,7 @@ $reviews = loadReviews();
       // Client-side stock cap before even hitting server
       if (action === 'plus') {
         const item = cartItemsJS.find(i => Number(i.inv_id) === Number(itemId));
-        const max  = stockMap[itemId] ?? 9999;
+        const max = stockMap[itemId] ?? 9999;
         if (item && Number(item.qty) >= max) {
           showToast('Maximum stock (' + max + ') already in cart.', 'error');
           return;
@@ -1172,7 +1281,9 @@ $reviews = loadReviews();
       fetch('profile.php', {
         method: 'POST',
         credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
         body: 'update_qty=1&item_id=' + itemId + '&qty_action=' + action
       }).then(r => {
         if (!r.ok) return;
@@ -1182,8 +1293,8 @@ $reviews = loadReviews();
           const item = cartItemsJS.find(i => Number(i.inv_id) === Number(itemId));
           if (item) {
             const max = stockMap[itemId] ?? 9999;
-            if (action === 'plus')  item.qty = Math.min(max, Number(item.qty) + 1);
-            if (action === 'minus') item.qty = Math.max(1,   Number(item.qty) - 1);
+            if (action === 'plus') item.qty = Math.min(max, Number(item.qty) + 1);
+            if (action === 'minus') item.qty = Math.max(1, Number(item.qty) - 1);
           }
         }
         renderCart();
@@ -1199,10 +1310,10 @@ $reviews = loadReviews();
       } else {
         cartItemsJS.push({
           inv_id: newItem.inv_id,
-          name:   newItem.name,
-          price:  Number(newItem.price),
-          qty:    Number(newItem.qty),
-          image:  newItem.image || ''
+          name: newItem.name,
+          price: Number(newItem.price),
+          qty: Number(newItem.qty),
+          image: newItem.image || ''
         });
       }
       renderCart();
@@ -1325,6 +1436,23 @@ $reviews = loadReviews();
         }
       });
     });
+
+  // ── Delete own review ──
+  function deleteMyReview(reviewId) {
+    if (!reviewId) return;
+    if (!confirm('Delete your review? This cannot be undone.')) return;
+    fetch('admin_action.php?delete_review=' + encodeURIComponent(reviewId))
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          showToast('Review deleted.');
+          setTimeout(() => location.reload(), 900);
+        } else {
+          alert(data.message || 'Could not delete review.');
+        }
+      }).catch(() => alert('Network error. Please try again.'));
+  }
+
   </script>
 </body>
 

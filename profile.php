@@ -29,7 +29,6 @@ $user = [
 $userRole = $_SESSION['role'] ?? $user['role'];
 
 if ($userRole !== 'admin') {
-    if (!isset($_SESSION['cart'][$userEmail]))   $_SESSION['cart'][$userEmail]   = [];
     if (!isset($_SESSION['orders'][$userEmail])) $_SESSION['orders'][$userEmail] = [];
 }
 
@@ -47,41 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare("UPDATE users SET name=? WHERE email=?")->execute([$newName, $userEmail]);
         }
         header('Location: profile.php?updated=1');
-        exit;
-    }
-
-    if (isset($_POST['update_qty']) && $userRole !== 'admin') {
-        $itemId = (int)($_POST['item_id'] ?? 0);
-        $action = $_POST['qty_action'] ?? '';
-        $cart   = loadCartForUser($userEmail);
-
-        $invStock = [];
-        foreach ($_SESSION['inventory'] ?? [] as $inv) {
-            $invStock[(int)$inv->inv_id] = (int)$inv->stock;
-        }
-
-        foreach ($cart as $k => &$ci) {
-            if ((int)($ci['inv_id'] ?? 0) === $itemId) {
-                $maxStock = $invStock[$itemId] ?? 9999;
-                if ($action === 'plus')   $ci['qty'] = min($maxStock, (int)$ci['qty'] + 1);
-                if ($action === 'minus')  $ci['qty'] = max(1, (int)$ci['qty'] - 1);
-                if ($action === 'remove') unset($cart[$k]);
-                break;
-            }
-        }
-        unset($ci);
-        $cart = array_values($cart);
-        saveCart($userEmail, $cart);
-        $_SESSION['cart'][$userEmail] = $cart;
-
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-            header('Content-Type: application/json');
-            $totalQty = 0;
-            foreach ($cart as $c) $totalQty += (int)($c['qty'] ?? 1);
-            echo json_encode(['success' => true, 'cart' => array_values($cart), 'total_items' => $totalQty]);
-            exit;
-        }
-        header('Location: profile.php');
         exit;
     }
 
@@ -114,9 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ── Data for rendering ─────────────────────────────────────────
-$cart = ($userRole !== 'admin') ? loadCartForUser($userEmail) : [];
-$_SESSION['cart'][$userEmail] = $cart;
-
 // FIX: Load orders with their items properly joined
 $orders = [];
 if ($userRole !== 'admin') {
@@ -133,7 +94,7 @@ if ($userRole !== 'admin') {
 }
 
 $pic = $dbUser->profile_pic ?? null;
-// If the user is an admin and has no uploaded profile picture, map specific admin emails to official avatars
+// Use DB-stored picture when present; otherwise fall back for admin users only
 if (empty($pic) && (($dbUser->role ?? '') === 'admin')) {
     $email_l = strtolower($dbUser->email ?? '');
     if ($email_l === 'zythera@gmail.com') {
@@ -151,16 +112,11 @@ if (empty($pic) && (($dbUser->role ?? '') === 'admin')) {
     }
 }
 $_SESSION['profile_pic'][$userEmail] = $pic;
-// Ensure the page-level user array reflects the resolved picture
-$user['profile_pic'] = $pic;
 
 $stockMap = [];
 foreach ($_SESSION['inventory'] ?? [] as $inv) {
     $stockMap[(int)$inv->inv_id] = (int)$inv->stock;
 }
-
-$cartTotalQty = 0;
-foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -173,13 +129,13 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
     <style>
         :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
         body{font-family:var(--ui-font);}
-        h1,h2,h3,h4,h5,.navbar-brand,.brand-name{font-family:var(--logo-font);}
-        p,small,.caption{font-family:var(--text-font);}
+        h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
+        p,small,.caption,.text-muted{font-family:var(--text-font);}
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="e-commerce-main/dark-mode.css">
-    <script src="e-commerce-main/dark-mode.js" defer></script>
+    <link rel="stylesheet" href="dark-mode.css">
+    <script src="dark-mode.js"></script>
     <style>
         :root {
             --green: #2d5a2d;
@@ -466,10 +422,72 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
             border-radius: 14px;
             padding: 16px;
             margin-bottom: 14px;
-            transition: .2s;
+            transition: .2s ease, transform .2s ease;
         }
 
         .order-box:hover {
+            border-color: var(--mid);
+        }
+
+        .order-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .order-link:hover .order-box {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, .08);
+        }
+
+        .order-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .order-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .order-summary-left {
+            min-width: 0;
+        }
+
+        .order-summary-title {
+            font-size: .95rem;
+            font-weight: 700;
+            color: var(--deep);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .order-summary-meta {
+            font-size: .82rem;
+            color: #777;
+            margin-top: 6px;
+        }
+
+        .order-summary-right {
+            text-align: right;
+            min-width: 120px;
+        }
+
+        .order-total {
+            font-size: .95rem;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .order-link .order-box {
+            border-color: rgba(212, 212, 212, .7);
+        }
+
+        .order-link:hover .order-box {
             border-color: var(--mid);
         }
 
@@ -581,6 +599,20 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
             letter-spacing: 4px;
         }
     </style>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  if(localStorage.getItem('zythera_dark')==='1'){
+    document.documentElement.classList.add('zd');
+    if (document.body) document.body.classList.add('dark');
+    document.documentElement.style.background='#111e11';
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background='';
+    });
+  }
+})();
+</script>
 </head>
 
 <body>
@@ -605,19 +637,14 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
         <div style="height:56px;"></div>
     <?php endif; ?>
 
-    <div class="p-toast" id="pToast"></div>
-
     <div class="page-wrapper">
         <div class="container py-4" style="max-width:780px;">
 
             <div class="profile-card">
                 <div class="profile-header">
                     <div class="avatar-ring" onclick="document.getElementById('picInput').click();" title="Click to change photo">
-                        <?php if (!empty($user['profile_pic'])): ?>
-                            <img src="<?= htmlspecialchars($user['profile_pic']) ?>" alt="Profile Photo">
-                        <?php else: ?>
-                            <?= strtoupper(substr($user['name'], 0, 1)) ?>
-                        <?php endif; ?>
+                        <?php $avatarSrc = getAvatarURL($user['profile_pic'] ?? null, $user['email'] ?? null, $user['name'] ?? null, 100); ?>
+                        <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="Profile Photo">
                         <div class="avatar-overlay"><i class="fas fa-camera" style="color:#fff;font-size:1.3rem;"></i></div>
                     </div>
 
@@ -670,30 +697,7 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
                 </div>
             </div>
 
-            <?php if ($userRole !== 'admin'): ?>
-
-                <!-- ── CART ── -->
-                <div class="section-card">
-                    <div class="section-title">
-                        <i class="fas fa-cart-shopping" style="color:var(--green);"></i>
-                        My Cart
-                        <span id="cartBadge" class="badge rounded-pill ms-1"
-                            style="background:var(--green);color:#fff;font-size:.7rem;padding:4px 9px;">
-                            <?= $cartTotalQty ?>
-                        </span>
-                    </div>
-                    <div id="cartBody"></div>
-                    <div id="cartTotals" class="totals-box" style="<?= empty($cart) ? 'display:none;' : '' ?>"></div>
-                    <div id="cartActions" class="d-flex gap-2 mt-3 flex-wrap" style="<?= empty($cart) ? 'display:none!important;' : '' ?>">
-                        <a href="checkout.php" class="btn-green btn flex-fill" style="text-align:center;padding:.75rem;">
-                            Proceed to Checkout
-                        </a>
-                        <a href="website.php" class="btn btn-outline-secondary rounded-pill" style="padding:.75rem 1.4rem;font-weight:600;">
-                            <i class="fas fa-plus me-1"></i>Add More
-                        </a>
-                    </div>
-                </div>
-
+                <?php if ($userRole !== 'admin'): ?>
                 <!-- ── ORDER HISTORY ── -->
                 <div class="section-card">
                     <div class="section-title">
@@ -712,109 +716,48 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
                             <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill mt-2">Browse Products</a>
                         </div>
                     <?php else: ?>
-                        <?php foreach ($orders as $o): ?>
-                            <?php
-                            $oStatus  = $o->status ?? 'Pending';
-                            $stCls    = match (strtolower($oStatus)) {
-                                'delivered', 'completed' => 'st-delivered',
-                                'cancelled'             => 'st-cancelled',
-                                'shipped'               => 'st-shipped',
-                                'processing'            => 'st-processing',
-                                default                 => 'st-pending'
-                            };
-                            $oSub      = (float)($o->subtotal ?? 0);
-                            $oShip     = is_numeric($o->shipping ?? null) ? (float)$o->shipping : 150;
-                            $oTotal    = (float)($o->total ?? ($oSub + $oShip));
-                            // FIX: shipping info is stored as flat columns, not JSON
-                            $oShipAddr = implode(', ', array_filter([
-                                $o->address  ?? '',
-                                $o->city     ?? '',
-                                $o->province ?? '',
-                            ]));
-                            $oOrderId   = $o->order_id  ?? '—';
-                            $oDate      = $o->date      ?? '';   // FIX: column is 'date' not 'created_at'
-                            $oPayMethod = $o->pay_method ?? '';
-                            $oItems     = $o->items ?? [];       // FIX: loaded from order_items join above
-                            ?>
-                            <div class="order-box">
-
-                                <!-- Order Meta Grid -->
-                                <div class="row g-2 align-items-center mb-3">
-                                    <div class="col-6 col-md-3">
-                                        <small class="text-muted d-block" style="font-size:.7rem;">Order #</small>
-                                        <div class="fw-bold" style="font-size:.85rem;color:var(--deep);"><?= htmlspecialchars($oOrderId) ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <small class="text-muted d-block" style="font-size:.7rem;">Date &amp; Time</small>
-                                        <div class="fw-bold" style="font-size:.85rem;color:var(--deep);"><?= $oDate ? date('M d, Y h:i A', strtotime($oDate)) : 'N/A' ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <small class="text-muted d-block" style="font-size:.7rem;">Payment Method</small>
-                                        <div class="fw-bold" style="font-size:.85rem;color:var(--deep);"><?= htmlspecialchars($oPayMethod ?: 'N/A') ?></div>
-                                    </div>
-                                    <div class="col-6 col-md-3 text-md-end">
-                                        <small class="text-muted d-block" style="font-size:.7rem;">Status</small>
-                                        <span class="order-status <?= $stCls ?>"><?= htmlspecialchars($oStatus) ?></span>
-                                    </div>
-                                </div>
-
-                                <!-- Customer Details -->
-                                <div class="mb-3 p-3" style="background:var(--cream);border-radius:10px;">
-                                    <small class="d-block mb-1" style="font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">Customer Details</small>
-                                    <div class="fw-bold" style="color:var(--deep);"><?= htmlspecialchars($o->full_name ?? $user['name']) ?></div>
-                                    <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars($oShipAddr ?: 'No Address Provided') ?></div>
-                                    <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars($o->phone ?? $o->contact_number ?? 'No Contact Number') ?></div>
-                                </div>
-
-                                <!-- Products Ordered -->
-                                <h6 class="fw-bold mb-2" style="color:var(--green);font-size:.8rem;letter-spacing:1px;text-transform:uppercase;">
-                                    Products Ordered
-                                </h6>
-                                <div style="border:2px solid var(--sage);border-radius:12px;overflow:hidden;margin-bottom:12px;">
-                                    <?php foreach ($oItems as $oi):
-                                        $oiName  = $oi->product_name ?? '?';
-                                        $oiQty   = (int)($oi->qty   ?? 1);
-                                        $oiPrice = (float)($oi->price ?? 0);
-                                        $oiLine  = $oiPrice * $oiQty;
-                                    ?>
-                                    <div class="d-flex align-items-center gap-2 px-3 py-2" style="border-bottom:1px solid var(--sage);">
-                                        <div style="flex:1;min-width:0;">
-                                            <div style="font-size:.88rem;font-weight:700;color:var(--deep);"><?= htmlspecialchars($oiName) ?></div>
-                                            <div style="font-size:.76rem;color:#999;">₱<?= number_format($oiPrice, 2) ?> × <?= $oiQty ?></div>
+                        <div class="order-list">
+                            <?php foreach ($orders as $o): ?>
+                                <?php
+                                $oStatus  = $o->status ?? 'Pending';
+                                $stCls    = match (strtolower($oStatus)) {
+                                    'delivered', 'completed' => 'st-delivered',
+                                    'cancelled'              => 'st-cancelled',
+                                    'shipped'                => 'st-shipped',
+                                    'processing'             => 'st-processing',
+                                    default                  => 'st-pending'
+                                };
+                                $oSub      = (float)($o->subtotal ?? 0);
+                                $oShip     = is_numeric($o->shipping ?? null) ? (float)$o->shipping : 150;
+                                $oTotal    = (float)($o->total ?? ($oSub + $oShip));
+                                $oOrderId  = $o->order_id  ?? '—';
+                                $oDate     = $o->date      ?? '';
+                                $itemCount = count($o->items ?? []);
+                                ?>
+                                <a href="order.php?order_id=<?= urlencode($oOrderId) ?>&return=profile" class="order-link" aria-label="View order <?= htmlspecialchars($oOrderId) ?>">
+                                    <div class="order-box">
+                                        <div class="order-summary">
+                                            <div class="order-summary-left">
+                                                <div class="order-summary-title">Order #<?= htmlspecialchars($oOrderId) ?></div>
+                                                <div class="order-summary-meta">
+                                                    <?= $oDate ? date('M d, Y · h:i A', strtotime($oDate)) : 'No date' ?> · <?= $itemCount ?> item<?= $itemCount === 1 ? '' : 's' ?>
+                                                </div>
+                                            </div>
+                                            <div class="order-summary-right">
+                                                <div class="order-total">₱<?= number_format($oTotal, 2) ?></div>
+                                                <span class="order-status <?= $stCls ?>" style="margin-top:6px;display:inline-block;">
+                                                    <?= htmlspecialchars($oStatus) ?>
+                                                </span>
+                                            </div>
                                         </div>
-                                        <span style="font-weight:700;color:var(--green);font-size:.88rem;white-space:nowrap;">₱<?= number_format($oiLine, 2) ?></span>
                                     </div>
-                                    <?php endforeach; ?>
-                                </div>
-
-                                <!-- Totals -->
-                                <div style="background:var(--cream);border-radius:12px;padding:12px 16px;margin-bottom:12px;">
-                                    <div class="d-flex justify-content-between" style="font-size:.8rem;color:#888;padding:2px 0;">
-                                        <span>Subtotal</span><span>₱<?= number_format($oSub, 2) ?></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between" style="font-size:.8rem;color:#888;padding:2px 0;">
-                                        <span><i class="fas fa-truck me-1"></i>Shipping</span><span>₱<?= number_format($oShip, 2) ?></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between fw-bold" style="font-size:.9rem;color:var(--green);border-top:2px solid var(--sage);padding-top:8px;margin-top:6px;">
-                                        <span>Total Paid</span><span>₱<?= number_format($oTotal, 2) ?></span>
-                                    </div>
-                                </div>
-
-                                <!-- View Order Link -->
-                                <div class="text-end">
-                                    <a href="order.php?order_id=<?= urlencode($oOrderId) ?>" class="btn btn-sm btn-outline-success rounded-pill" style="font-size:.76rem;">
-                                        <i class="fas fa-eye me-1"></i>View Order Details
-                                    </a>
-                                </div>
-
-                            </div>
+                                </a>
                             <?php endforeach; ?>
-                        <?php endif; ?>
-                            </div>
-
-                        <?php endif; ?>
-
+                        </div>
+                    <?php endif; ?>
                 </div>
+
+                <?php endif; ?>
         </div>
 
         <footer>
@@ -824,151 +767,6 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
 
         <!-- FIX: Bootstrap JS was missing -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            // FIX: use inv_id (not id) to match PHP cart structure
-            let cartItems = <?= json_encode(array_values($cart), JSON_HEX_APOS | JSON_HEX_TAG) ?>;
-            const stockMap = <?= json_encode($stockMap) ?>;
-
-            function esc(s) {
-                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-            }
-
-            function stockChip(id) {
-                if (stockMap[id] === undefined) return '';
-                const s = stockMap[id];
-                if (s === 0) return '<span class="stock-chip sc-out">Out of Stock</span>';
-                if (s <= 5) return '<span class="stock-chip sc-low">Low: ' + s + ' left</span>';
-                return '<span class="stock-chip sc-ok">In Stock</span>';
-            }
-
-            function renderCart() {
-                const body = document.getElementById('cartBody');
-                const totals = document.getElementById('cartTotals');
-                const actions = document.getElementById('cartActions');
-                const badge = document.getElementById('cartBadge');
-                if (!body) return;
-
-                if (cartItems.length === 0) {
-                    body.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-couch"></i>
-                <p>Your cart is empty.</p>
-                <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill mt-2">Browse Products</a>
-            </div>`;
-                    if (totals) totals.style.display = 'none';
-                    if (actions) actions.style.display = 'none';
-                    if (badge) badge.textContent = '0';
-                    return;
-                }
-
-                let html = '';
-                let subtotal = 0;
-                let totalQty = 0;
-
-                cartItems.forEach(item => {
-                    const price = parseFloat(item.price) || 0;
-                    const qty = parseInt(item.qty) || 1;
-                    // FIX: cart uses inv_id, not id
-                    const id = parseInt(item.inv_id);
-                    const line = price * qty;
-                    const max = stockMap[id] !== undefined ? stockMap[id] : 9999;
-                    const oos = max === 0;
-                    subtotal += line;
-                    totalQty += qty;
-
-                    html += `
-        <div class="cart-item" data-id="${id}">
-            <img src="${esc(item.image || '')}" class="cart-thumb"
-                 onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'" alt="">
-            <div style="flex:1;min-width:0;">
-                <div style="font-weight:600;font-size:.88rem;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    ${esc(item.name)}
-                </div>
-                <div style="font-size:.76rem;color:#888;">₱${price.toLocaleString('en-PH',{minimumFractionDigits:2})} each</div>
-                <div style="margin-top:3px;">${stockChip(id)}</div>
-            </div>
-            <div class="qty-stepper ms-2">
-                <button onclick="doQty(${id},'minus')" ${qty <= 1 ? 'disabled' : ''}>−</button>
-                <span class="qty-val">${qty}</span>
-                <button onclick="doQty(${id},'plus')" ${oos || qty >= max ? 'disabled' : ''}>+</button>
-            </div>
-            <div style="font-weight:700;color:var(--green);white-space:nowrap;font-size:.9rem;min-width:76px;text-align:right;">
-                ₱${line.toLocaleString('en-PH',{minimumFractionDigits:2})}
-            </div>
-            <button onclick="doQty(${id},'remove')" title="Remove"
-                style="background:none;border:none;color:#dc2626;cursor:pointer;padding:4px 6px;margin-left:4px;font-size:.9rem;">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        </div>`;
-                });
-
-                body.innerHTML = html;
-
-                const ship = subtotal > 0 ? 150 : 0;
-                const total = subtotal + ship;
-
-                if (totals) {
-                    totals.style.display = '';
-                    totals.innerHTML = `
-            <div class="totals-row"><span>Subtotal</span><span>₱${subtotal.toLocaleString('en-PH',{minimumFractionDigits:2})}</span></div>
-            <div class="totals-row"><span><i class="fas fa-truck me-1"></i>Shipping</span><span>₱${ship.toLocaleString('en-PH',{minimumFractionDigits:2})}</span></div>
-            <div class="totals-row grand"><span>Total</span><span>₱${total.toLocaleString('en-PH',{minimumFractionDigits:2})}</span></div>`;
-                }
-                if (actions) actions.style.display = '';
-                if (badge) badge.textContent = totalQty;
-            }
-
-            function doQty(itemId, action) {
-                if (action === 'plus') {
-                    // FIX: match on inv_id
-                    const item = cartItems.find(i => parseInt(i.inv_id) === itemId);
-                    const max = stockMap[itemId] !== undefined ? stockMap[itemId] : 9999;
-                    if (item && parseInt(item.qty) >= max) {
-                        showToast('Maximum stock (' + max + ') already in cart.', true);
-                        return;
-                    }
-                }
-
-                if (action === 'remove') {
-                    cartItems = cartItems.filter(i => parseInt(i.inv_id) !== itemId);
-                } else {
-                    const item = cartItems.find(i => parseInt(i.inv_id) === itemId);
-                    if (item) {
-                        const max = stockMap[itemId] !== undefined ? stockMap[itemId] : 9999;
-                        if (action === 'plus') item.qty = Math.min(max, parseInt(item.qty) + 1);
-                        if (action === 'minus') item.qty = Math.max(1, parseInt(item.qty) - 1);
-                    }
-                }
-                renderCart();
-
-                fetch('profile.php', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: 'update_qty=1&item_id=' + itemId + '&qty_action=' + action
-                }).catch(() => showToast('Could not sync. Try refreshing.', true));
-            }
-
-            function showToast(msg, isErr) {
-                const t = document.getElementById('pToast');
-                t.textContent = msg;
-                t.className = 'p-toast show' + (isErr ? ' err' : '');
-                setTimeout(() => t.classList.remove('show'), 3200);
-            }
-
-            function togglePw() {
-                const f = document.getElementById('pwField');
-                const e = document.getElementById('pwEye');
-                const hidden = f.type === 'password';
-                f.type = hidden ? 'text' : 'password';
-                e.className = hidden ? 'fas fa-eye-slash' : 'fas fa-eye';
-            }
-
-            renderCart();
-        </script>
 
         <?php
         $flash = null;
@@ -1100,6 +898,15 @@ foreach ($cart as $ci) $cartTotalQty += (int)($ci['qty'] ?? 1);
                         behavior: 'smooth',
                         block: 'start'
                     }), 300);
+                }
+
+                function togglePw() {
+                    const input = document.getElementById('pwField');
+                    if (!input) return;
+                    const show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    const icon = document.querySelector('.fa-eye, .fa-eye-slash');
+                    if (icon) icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
                 }
             </script>
         <?php endif; ?>

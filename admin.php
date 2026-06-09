@@ -56,7 +56,7 @@ if ($adminRole !== 'admin') {
 
         body { 
             background-color: var(--cream); 
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
             color: var(--deep-green);
         }
 
@@ -88,7 +88,7 @@ if ($adminRole !== 'admin') {
             border-radius: 12px;
             padding: 0.75rem 1rem;
             color: var(--deep-green);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Lora', sans-serif;
             transition: all 0.3s ease;
         }
 
@@ -111,7 +111,7 @@ if ($adminRole !== 'admin') {
 
         .form-label {
             color: var(--deep-green);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Lora', sans-serif;
         }
 
         .btn-zythera {
@@ -171,9 +171,13 @@ if ($adminRole !== 'admin') {
             background-color: var(--deep-green);
             color: var(--white);
             width: 40px; height: 40px;
+            min-width: 40px; min-height: 40px;
+            max-width: 40px; max-height: 40px;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-weight: bold; font-size: 0.85rem; letter-spacing: 0.5px;
+            overflow: hidden;
+            flex-shrink: 0;
         }
 
         /* ── Search Bar ── */
@@ -190,7 +194,7 @@ if ($adminRole !== 'admin') {
             color: var(--deep-green);
             outline: none;
             transition: .2s;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
         }
 
         .search-wrap input:focus {
@@ -331,6 +335,21 @@ if ($adminRole !== 'admin') {
             top: 0;
             z-index: 100;
         }
+        body.dark .sidebar-link,
+        body.dark .sidebar-link.active,
+        body.dark .sidebar-label,
+        body.dark .sidebar-footer,
+        body.dark .sidebar-footer a {
+            color: #f5fbf5 !important;
+        }
+        body.dark .sidebar-link {
+            background: rgba(255,255,255,.02) !important;
+            border-color: rgba(255,255,255,.08) !important;
+        }
+        body.dark .sidebar-link.active {
+            background: rgba(90,158,90,.22) !important;
+            border-left-color: rgba(255,255,255,.14) !important;
+        }
 
         .order-card {
             background: #fff;
@@ -349,6 +368,276 @@ if ($adminRole !== 'admin') {
             font-weight: 600;
             padding: 2px 10px;
             margin-bottom: 6px;
+        }
+
+        /* ══════════════════════════════════════════
+           DARK MODE — full admin panel overrides
+           ══════════════════════════════════════════ */
+        body.dark {
+            --cream: #0f1a0f;
+            --sage-light: #1e3a1e;
+            --sage-dark: #5a9e5a;
+            --deep-green: #a8d5a8;
+            --white: #1a2a1a;
+            background-color: #0f1a0f !important;
+            color: #d4e8d4 !important;
+        }
+
+        /* Navbar / top bar */
+        body.dark .top-navbar {
+            background: #1a2a1a !important;
+            border-bottom-color: rgba(255,255,255,.08) !important;
+        }
+        body.dark #sectionTitle { color: #a8d5a8 !important; }
+
+        /* User capsule */
+        body.dark .user-capsule {
+            background: #1e3a1e !important;
+            border-color: rgba(255,255,255,.1) !important;
+        }
+        body.dark .user-name { color: #c8e8c8 !important; }
+        body.dark #datetime  { color: #a8d5a8 !important; }
+
+        /* Cards */
+        body.dark .card {
+            background-color: #1a2a1a !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,.4) !important;
+        }
+
+        /* Form controls */
+        body.dark .form-control,
+        body.dark .form-select {
+            background-color: #1e3a1e !important;
+            color: #d4e8d4 !important;
+            border-color: #2e4a2e !important;
+        }
+        body.dark .form-control:focus,
+        body.dark .form-select:focus {
+            background-color: #243c24 !important;
+            border-color: #5a9e5a !important;
+            color: #e8f5e8 !important;
+        }
+        body.dark .form-control::placeholder { color: rgba(168,213,168,.45) !important; }
+        body.dark .form-label { color: #a8d5a8 !important; }
+
+        /* Tables — Bootstrap 5 uses CSS vars, must override all of them */
+        body.dark .table {
+            color: #e8f5e8 !important;
+            --bs-table-bg: #1a2a1a;
+            --bs-table-striped-bg: #1e3a1e;
+            --bs-table-hover-bg: #243c24;
+            --bs-table-color: #e8f5e8;
+            --bs-table-border-color: #2e4a2e;
+        }
+        body.dark .table thead,
+        body.dark .table-success {
+            background-color: #1e3a1e !important;
+            color: #c8e8c8 !important;
+            --bs-table-bg: #1e3a1e;
+            --bs-table-color: #c8e8c8;
+        }
+        body.dark .table th {
+            color: #c8e8c8 !important;
+            background-color: #1e3a1e !important;
+            border-color: #2e4a2e !important;
+        }
+        body.dark .table td {
+            color: #e8f5e8 !important;
+            background-color: #1a2a1a !important;
+            border-color: #2e4a2e !important;
+        }
+        body.dark .table tbody tr { background-color: #1a2a1a !important; }
+        body.dark .table-hover tbody tr:hover td { background-color: #243c24 !important; }
+        body.dark .table-bordered { border-color: #2e4a2e !important; }
+        body.dark .table-bordered td,
+        body.dark .table-bordered th { border-color: #2e4a2e !important; }
+        /* Messages table */
+        body.dark #section-messages .table td,
+        body.dark #section-messages .table th { color: #e8f5e8 !important; background-color: #1a2a1a !important; }
+        body.dark #section-messages .table thead tr th { background-color: #1e3a1e !important; color: #c8e8c8 !important; }
+        body.dark #section-messages .table td.fw-semibold { color: #ffffff !important; }
+        body.dark #section-messages .table td[style*="color:#999"] { color: #8ab88a !important; }
+
+        /* Search bar */
+        body.dark .search-wrap input {
+            background: #1e3a1e !important;
+            border-color: #2e4a2e !important;
+            color: #d4e8d4 !important;
+        }
+        body.dark .search-wrap input:focus {
+            background: #243c24 !important;
+            border-color: #5a9e5a !important;
+        }
+        body.dark .search-icon { color: #5a9e5a !important; }
+        body.dark .clear-btn   { color: #a8d5a8 !important; }
+
+        /* Buttons */
+        body.dark .btn-edit {
+            background-color: #1e3a1e !important;
+            color: #a8d5a8 !important;
+            border: 1px solid #2e4a2e !important;
+        }
+        body.dark .btn-outline-success {
+            color: #5a9e5a !important;
+            border-color: #5a9e5a !important;
+        }
+        body.dark .btn-outline-success:hover {
+            background-color: #5a9e5a !important;
+            color: #fff !important;
+        }
+        body.dark .btn-outline-secondary {
+            color: #a8d5a8 !important;
+            border-color: #2e4a2e !important;
+        }
+
+        /* Result count */
+        body.dark #result-count { color: #7aab7a !important; }
+
+        /* Highlight mark */
+        body.dark mark {
+            background: #2d5a2d !important;
+            color: #c8f0c8 !important;
+        }
+
+        /* No-results row */
+        body.dark #noResults td { color: #7aab7a !important; }
+
+        /* Order cards */
+        body.dark .order-card {
+            background: #1a2a1a !important;
+            border-left-color: #5a9e5a !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,.3) !important;
+        }
+        body.dark .order-user-tag {
+            background: #1e3a1e !important;
+            color: #a8d5a8 !important;
+        }
+
+        /* Order inline styles — hardcoded bg overrides */
+        body.dark [style*="background:#f9f9f6"],
+        body.dark [style*="background: #f9f9f6"] {
+            background: #1e3a1e !important;
+        }
+        body.dark [style*="background:#f0f7f0"],
+        body.dark [style*="background: #f0f7f0"] {
+            background: #1e3a1e !important;
+        }
+        body.dark [style*="background:#f5f2f0"],
+        body.dark [style*="background: #f5f2f0"] {
+            background: #242424 !important;
+        }
+
+        /* Order detail panel boxes */
+        body.dark div[style*="border-radius:10px"][style*="padding:10px"] {
+            background: #1e3a1e !important;
+        }
+        body.dark div[style*="border-top:2px dashed"] {
+            border-top-color: #2e4a2e !important;
+        }
+        body.dark [style*="border-bottom:1px dashed"] {
+            border-bottom-color: #2e4a2e !important;
+        }
+
+        /* Hardcoded text colors — all bumped to readable whites/light greens */
+        body.dark [style*="color:#1a2e1a"],
+        body.dark [style*="color: #1a2e1a"] {
+            color: #e8f5e8 !important;
+        }
+        body.dark [style*="color:#2d5a2d"],
+        body.dark [style*="color: #2d5a2d"] {
+            color: #c8e8c8 !important;
+        }
+        body.dark [style*="color:#888"],
+        body.dark [style*="color: #888"] {
+            color: #9ab89a !important;
+        }
+        body.dark [style*="color:#666"],
+        body.dark [style*="color: #666"] {
+            color: #a8c8a8 !important;
+        }
+        body.dark [style*="color:#444"],
+        body.dark [style*="color: #444"] {
+            color: #c8e8c8 !important;
+        }
+        body.dark [style*="color:#999"],
+        body.dark [style*="color: #999"] {
+            color: #8ab88a !important;
+        }
+        body.dark [style*="color:#7aab7a"] {
+            color: #7acc7a !important;
+        }
+
+        /* Payment method tag — #f5f2f0 bg with #666 text → both need overrides */
+        body.dark span[style*="background:#f5f2f0"],
+        body.dark span[style*="background: #f5f2f0"] {
+            background: #2a3a2a !important;
+            color: #c8e8c8 !important;
+        }
+
+        /* Status select dropdowns inside orders */
+        body.dark select[id^="status-sel-"] {
+            background: #1e3a1e !important;
+            color: #d4e8d4 !important;
+            border-color: #2e4a2e !important;
+        }
+
+        /* Detail toggle button */
+        body.dark button[style*="background:#f0f7f0"] {
+            background: #1e3a1e !important;
+            color: #a8d5a8 !important;
+            border-color: #2e4a2e !important;
+        }
+
+        /* Order ID badge */
+        body.dark span[style*="background:#f0f7f0"] {
+            background: #1e3a1e !important;
+            color: #a8d5a8 !important;
+        }
+
+        /* User summary stat boxes */
+        body.dark div[style*="flex:1"][style*="background:#f9f9f6"] {
+            background: #1e3a1e !important;
+        }
+        body.dark div[style*="background:#f9f9f6"] {
+            background: #1e3a1e !important;
+        }
+
+        /* Analytics icon bg tints */
+        body.dark div[style*="background:#2d5a2d18"] {
+            background: rgba(90,158,90,.15) !important;
+        }
+
+        /* Status badges — pastel backgrounds become invisible in dark mode */
+        body.dark span[id^="status-badge-"] {
+            filter: brightness(0.6) saturate(1.8) !important;
+            color: #fff !important;
+        }
+
+        /* Order item product name text */
+        body.dark .order-card span[style*="min-width:0"] { color: #e8f5e8 !important; }
+
+        /* Shipping fee / date text */
+        body.dark .order-card [style*="color:#888"] { color: #9ab89a !important; }
+
+        /* Order total text */
+        body.dark .order-card .text-end.fw-bold { color: #7acc7a !important; }
+
+        /* Text-muted utility */
+        body.dark .text-muted { color: #8ab88a !important; }
+
+        /* Small / caption text */
+        body.dark small.text-muted { color: #8ab88a !important; }
+
+        /* Product image border */
+        body.dark img[style*="border:1px solid #e5e5e5"] {
+            border-color: #2e4a2e !important;
+            background: #1a2a1a !important;
+        }
+
+        /* Section icon boxes (sage-light bg) */
+        body.dark div[style*="background:var(--sage-light)"],
+        body.dark div[style*="background: var(--sage-light)"] {
+            background: #1e3a1e !important;
         }
     </style>
 <script>
@@ -369,7 +658,7 @@ if ($adminRole !== 'admin') {
 <!-- ── SIDEBAR ── -->
 <div class="sidebar" id="adminSidebar">
     <div class="sidebar-brand">
-        <div class="brand-name">ZYTHERA</div>
+        <div class="brand-name"><span style="color:var(--deep)">ZYTHERA</span></div>
         <div class="brand-sub">Admin Panel</div>
     </div>
 
@@ -401,6 +690,9 @@ if ($adminRole !== 'admin') {
         <button class="sidebar-link" onclick="showSection('users')" id="nav-users">
             <i class="fas fa-users"></i> User Summary
         </button>
+        <button class="sidebar-link" onclick="showSection('reviews')" id="nav-reviews">
+            <i class="fas fa-star"></i> Reviews
+        </button>
         <button class="sidebar-link" onclick="showSection('messages')" id="nav-messages">
             <i class="fas fa-envelope"></i> Messages
         </button>
@@ -419,12 +711,13 @@ if ($adminRole !== 'admin') {
         $adminEmail = $_SESSION['logged_in_user'] ?? 'Admin';
         $db = getDBConnection();
 
-$stmt = $db->prepare("SELECT name FROM users WHERE email = ?");
+$stmt = $db->prepare("SELECT name, profile_pic FROM users WHERE email = ?");
 $stmt->execute([$adminEmail]);
 
 $adminData = $stmt->fetch();
 
 $adminName = $adminData ? $adminData->name : 'Admin';
+$adminPic = getAvatarURL($adminData->profile_pic ?? null, $adminEmail ?? null, $adminName ?? null, 40);
         ?>
         <div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-bottom:10px;">
             <i class="fas fa-user-shield me-2"></i><?= htmlspecialchars($adminName) ?>
@@ -447,7 +740,7 @@ $adminName = $adminData ? $adminData->name : 'Admin';
             <span class="user-name">Welcome back, <?= htmlspecialchars($adminName) ?></span>
             <span id="datetime" style="font-size:.7rem;color:var(--deep-green);opacity:.65;display:block;"></span>
         </div>
-        <div class="user-avatar"><?= strtoupper(substr($adminName, 0, 2)) ?></div>
+        <div class="user-avatar"><img src="<?= htmlspecialchars($adminPic) ?>" alt="Admin" style="width:40px;height:40px;min-width:40px;min-height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.12);display:block;"></div>
     </div>
 </nav>
 
@@ -530,7 +823,7 @@ if ($searchQuery !== '') {
     </td>
     <td class="s-category"><?= htmlspecialchars($item->category) ?></td>
     <td>
-        <div class="d-flex gap-1 justify-content-center flex-wrap">
+        <div class="d-flex flex-column gap-1">
             <button class="btn btn-edit btn-sm"
                 onclick="editProduct('<?= $item->inv_id ?>','<?= addslashes($item->name) ?>','<?= addslashes($item->size) ?>','<?= addslashes($item->color) ?>','<?= $item->price ?>','<?= addslashes($item->description) ?>','<?= $item->stock ?>','<?= addslashes($item->category) ?>','<?= addslashes($item->image) ?>')">
                 <i class="fas fa-edit"></i> Edit
@@ -759,7 +1052,7 @@ if ($searchQuery !== '') {
             <select style="min-width:220px;padding:8px 12px;font-size:.82rem;border-radius:10px;border:2px solid #d4e4d4;background:#f9f9f6;color:#2d5a2d;font-family:inherit;cursor:pointer;outline:none;"
                 id="status-sel-<?= htmlspecialchars($orderId) ?>"
                 onchange="updateOrderStatus('<?= htmlspecialchars($oEmail, ENT_QUOTES) ?>','<?= htmlspecialchars($orderId, ENT_QUOTES) ?>',this.value)">
-                <option value="">— Update Status —</option>
+                <option value=""> Update Status </option>
                 <option value="Pending">Pending</option>
                 <option value="Processing">Processing</option>
                 <option value="Shipped">Shipped</option>
@@ -778,17 +1071,17 @@ if ($searchQuery !== '') {
             $oiLine  = $oiPrice * $oiQty;
             $orderSubtotal2 += $oiLine;
         ?>
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;padding:6px 0;border-bottom:1px dashed #f0f0eb;">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;padding:6px 0;border-bottom:1px dashed #f0f0eb;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
                 <?php if ($oiImage): ?>
-                <img src="<?= htmlspecialchars($oiImage) ?>" alt="<?= htmlspecialchars($oiName) ?>" style="width:48px;height:48px;object-fit:cover;border-radius:12px;border:1px solid #e5e5e5;background:#fff;">
+                <img src="<?= htmlspecialchars($oiImage) ?>" alt="<?= htmlspecialchars($oiName) ?>" style="width:48px;height:48px;object-fit:cover;border-radius:12px;border:1px solid #e5e5e5;background:#fff;flex-shrink:0;">
                 <?php endif; ?>
                 <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                     <?= htmlspecialchars($oiName) ?> <b style="color:#7aab7a;">×<?= $oiQty ?></b>
                 </span>
             </div>
             <?php if ($oiPrice > 0): ?>
-            <span style="color:#2d5a2d;font-weight:600;">₱<?= number_format($oiLine) ?></span>
+            <span style="color:#2d5a2d;font-weight:600;flex-shrink:0;">₱<?= number_format($oiLine) ?></span>
             <?php endif; ?>
         </div>
         <?php endforeach; ?>
@@ -901,6 +1194,7 @@ if ($searchQuery !== '') {
     foreach ($allUsers2 as $uObj):
         $uEmail = $uObj->email ?? '';
         $uData  = ['name' => $uObj->name ?? '', 'role' => $uObj->role ?? 'user'];
+        $userAvatar = getAvatarURL($uObj->profile_pic ?? null, $uEmail, $uData['name'] ?? null, 46);
 
         $uOrders2    = count($ordersByUser[$uEmail] ?? []);
         $uCartItems  = $cartByUser[$uEmail] ?? [];
@@ -913,9 +1207,8 @@ if ($searchQuery !== '') {
     <div class="col-md-6">
         <div class="order-card h-100">
             <div class="d-flex align-items-center gap-3 mb-3">
-                <div style="width:46px;height:46px;border-radius:50%;background:<?= $isAdmin?'#1a2e1a':'#2d5a2d' ?>;color:#fff;
-                    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;">
-                    <?= strtoupper(substr($uData['name'] ?? '?', 0, 1)) ?>
+                <div style="width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid #e5e5e5;">
+                    <img src="<?= htmlspecialchars($userAvatar) ?>" alt="<?= htmlspecialchars($uData['name'] ?? 'User') ?>" style="width:100%;height:100%;object-fit:cover;display:block;">
                 </div>
                 <div style="flex:1;min-width:0;">
                     <div class="fw-bold text-truncate" style="color:#1a2e1a;"><?= htmlspecialchars($uData['name'] ?? '') ?></div>
@@ -956,8 +1249,90 @@ if ($searchQuery !== '') {
 </div>
 </div><!-- /section-users -->
 
+<!-- ── SECTION: Reviews ── -->
+<div id="section-reviews" style="display:none;">
+<div class="card p-4 mt-3">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-star" style="color:var(--deep-green);font-size:1.1rem;"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold mb-0" style="color:var(--deep-green);">User Reviews</h5>
+            <p class="mb-0 text-muted" style="font-size:.9rem;">Manage reviews, delete inappropriate feedback, and reply to customers.</p>
+        </div>
+    </div>
+    <?php $adminReviews = loadReviews(0, true); ?>
+    <?php if (empty($adminReviews)): ?>
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-star fa-3x mb-3 opacity-25"></i>
+        <p>No reviews have been submitted yet.</p>
+    </div>
+    <?php else: ?>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle text-center" style="font-size:.88rem;">
+            <thead>
+                <tr>
+                    <th>Reviewer</th>
+                    <th>Email</th>
+                    <th>Order</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Admin Reply</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($adminReviews as $review): ?>
+                <tr id="review-row-<?= (int)$review->review_id ?>">
+                    <td style="white-space:nowrap;">
+                        <div class="d-flex align-items-center gap-2 justify-content-center">
+                            <img src="<?= htmlspecialchars(getAvatarURL($review->author_pic ?? null, $review->author_email ?? null, $review->author_name ?? null, 36)) ?>" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid rgba(0,0,0,.08);">
+                            <span><?= htmlspecialchars($review->author_name ?: 'Anonymous') ?></span>
+                        </div>
+                    </td>
+                    <td><?= htmlspecialchars($review->author_email ?: $review->email) ?></td>
+                    <td><?= htmlspecialchars($review->order_id) ?></td>
+                    <td><?= htmlspecialchars($review->rating) ?>/5</td>
+                    <td style="max-width:220px;white-space:pre-wrap;word-break:break-word;"><?= htmlspecialchars($review->comment) ?></td>
+                    <td style="max-width:220px;white-space:pre-wrap;word-break:break-word;">
+                        <?= htmlspecialchars($review->reply ?: '—') ?>
+                        <?php if (!empty($review->reply_created_at)): ?>
+                            <div style="font-size:.72rem;color:#888;margin-top:4px;">Replied <?= htmlspecialchars($review->reply_created_at) ?></div>
+                        <?php endif; ?>
+                    </td>
+                    <td><?= htmlspecialchars($review->created_at) ?></td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            <button class="btn btn-edit btn-sm" onclick="replyReview(<?= (int)$review->review_id ?>, <?= json_encode($review->author_name ?: $review->author_email ?: 'Reviewer') ?>)">
+                                <i class="fas fa-reply"></i> Reply
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteReview(<?= (int)$review->review_id ?>)">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+</div>
+</div><!-- /section-reviews -->
+
 <!-- ── SECTION: Messages ── -->
 <div id="section-messages" style="display:none;">
+<?php
+$contactMsgs = [];
+try {
+    $db2 = getDBConnection();
+    $contactStmt = $db2->query("SELECT * FROM messages ORDER BY created_at DESC");
+    $contactMsgs = $contactStmt->fetchAll();
+} catch (Exception $e) {
+    // Tables may not exist yet.
+}
+?>
 <div class="card p-4 mt-3">
     <div class="d-flex align-items-center gap-3 mb-4">
         <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
@@ -967,14 +1342,7 @@ if ($searchQuery !== '') {
             <h5 class="fw-bold mb-0" style="color:var(--deep-green);">Customer Messages</h5>
         </div>
     </div>
-    <?php
-    $msgs = [];
-    try {
-        $db2 = getDBConnection();
-        $msgStmt = $db2->query("SELECT * FROM messages ORDER BY created_at DESC");
-        $msgs = $msgStmt->fetchAll();
-    } catch (Exception $e) { /* table may not exist yet */ }
-    if (empty($msgs)): ?>
+    <?php if (empty($contactMsgs)): ?>
     <div class="text-center py-5 text-muted">
         <i class="fas fa-envelope-open fa-3x mb-3 opacity-25"></i>
         <p>No messages received yet.</p>
@@ -988,7 +1356,7 @@ if ($searchQuery !== '') {
             </tr>
         </thead>
         <tbody>
-        <?php foreach ($msgs as $m): ?>
+        <?php foreach ($contactMsgs as $m): ?>
         <tr>
             <td class="fw-semibold"><?= htmlspecialchars($m->full_name ?? '') ?></td>
             <td><?= htmlspecialchars($m->email ?? '') ?></td>
@@ -1026,11 +1394,12 @@ const sectionTitles = {
     analytics:  'Analytics Dashboard',
     orders:     'Order History',
     users:      'User Summary',
+    reviews:    'User Reviews',
     messages:   'Customer Messages',
 };
 
 function showSection(name) {
-    ['inventory','addproduct','analytics','orders','users','messages'].forEach(s => {
+    ['inventory','addproduct','analytics','orders','users','reviews','messages'].forEach(s => {
         document.getElementById('section-' + s).style.display = s === name ? '' : 'none';
     });
     document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
@@ -1168,6 +1537,100 @@ function deleteUser(email, name) {
         .catch(() => alert('Request failed.'));
 }
 
+function deleteReview(reviewId) {
+    if (!confirm('Delete this review permanently?')) return;
+    fetch('admin_action.php?delete_review=' + encodeURIComponent(reviewId))
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Review deleted.');
+                const row = document.getElementById('review-row-' + reviewId);
+                if (row) row.remove();
+            } else {
+                alert(data.message || 'Could not delete review.');
+            }
+        })
+        .catch(() => alert('Request failed.'));
+}
+
+function replyReview(reviewId, author) {
+    // Use a proper modal instead of prompt()
+    let modal = document.getElementById('reply-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'reply-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);';
+        modal.innerHTML = `
+          <div style="background:#fff;border-radius:18px;padding:28px 32px;min-width:360px;max-width:500px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.18);font-family:inherit;">
+            <h5 id="reply-modal-title" style="margin:0 0 14px;font-size:1.05rem;color:#1a2e1a;font-weight:700;"></h5>
+            <textarea id="reply-modal-text" rows="4"
+              style="width:100%;border:2px solid #d4e4d4;border-radius:10px;padding:10px 12px;font-size:.9rem;font-family:inherit;color:#2d5a2d;resize:vertical;outline:none;transition:.2s;"
+              onfocus="this.style.borderColor='#2d5a2d'" onblur="this.style.borderColor='#d4e4d4'"
+              placeholder="Type your reply…"></textarea>
+            <div style="margin-top:4px;font-size:.75rem;color:#888;" id="reply-char-count">0 / 500 characters</div>
+            <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
+              <button onclick="document.getElementById('reply-modal').style.display='none'"
+                style="padding:8px 20px;border-radius:10px;border:2px solid #d4e4d4;background:#fff;color:#666;font-size:.88rem;cursor:pointer;font-family:inherit;">
+                Cancel
+              </button>
+              <button id="reply-send-btn"
+                style="padding:8px 22px;border-radius:10px;border:none;background:#2d5a2d;color:#fff;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;">
+                Send Reply
+              </button>
+            </div>
+          </div>`;
+        document.body.appendChild(modal);
+
+        document.getElementById('reply-modal-text').addEventListener('input', function() {
+            const len = this.value.length;
+            document.getElementById('reply-char-count').textContent = len + ' / 500 characters';
+            if (len > 500) this.value = this.value.slice(0, 500);
+        });
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+
+    document.getElementById('reply-modal-title').textContent = 'Reply to ' + author;
+    document.getElementById('reply-modal-text').value = '';
+    document.getElementById('reply-char-count').textContent = '0 / 500 characters';
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('reply-modal-text').focus(), 100);
+
+    const sendBtn = document.getElementById('reply-send-btn');
+    const newBtn = sendBtn.cloneNode(true);
+    sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+    newBtn.addEventListener('click', function() {
+        const trimmed = document.getElementById('reply-modal-text').value.trim();
+        if (!trimmed) {
+            document.getElementById('reply-modal-text').style.borderColor = '#dc2626';
+            document.getElementById('reply-modal-text').placeholder = 'Reply cannot be empty!';
+            return;
+        }
+        newBtn.disabled = true;
+        newBtn.textContent = 'Sending…';
+        fetch('admin_action.php?reply_review=1&review_id=' + encodeURIComponent(reviewId) + '&reply=' + encodeURIComponent(trimmed))
+            .then(r => r.json())
+            .then(data => {
+                modal.style.display = 'none';
+                if (data.success) {
+                    showToast('Reply saved and visible to the customer.');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    alert(data.message || 'Could not save reply.');
+                    newBtn.disabled = false;
+                    newBtn.textContent = 'Send Reply';
+                }
+            })
+            .catch(() => {
+                alert('Request failed. Please try again.');
+                newBtn.disabled = false;
+                newBtn.textContent = 'Send Reply';
+            });
+    });
+}
+
 function showToast(msg, isError = false) {
     let t = document.getElementById('admin-toast');
     if (!t) {
@@ -1176,7 +1639,8 @@ function showToast(msg, isError = false) {
         t.style.cssText = 'position:fixed;bottom:24px;right:24px;color:#fff;padding:14px 22px;border-radius:12px;font-size:.86rem;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.2);transition:.3s;';
         document.body.appendChild(t);
     }
-    t.style.background = isError ? '#dc2626' : '#2d5a2d';
+    t.style.background = isError ? '#b91c1c' : '#166534';
+    t.style.color = '#ffffff';
     t.textContent = msg;
     t.style.opacity = '1';
     setTimeout(() => t.style.opacity = '0', 3500);
