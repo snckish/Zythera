@@ -244,6 +244,18 @@ if ($adminRole !== 'admin') {
             margin-left: 6px;
         }
 
+        /* ── Force vertical button stack in action columns ── */
+        td .d-flex.flex-column {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+
+        td .d-flex.flex-column .btn {
+            width: 100%;
+            text-align: center;
+        }
+
         /* ── Sidebar Layout ── */
         .sidebar {
             position: fixed;
@@ -1303,14 +1315,9 @@ if ($searchQuery !== '') {
                     </td>
                     <td><?= htmlspecialchars($review->created_at) ?></td>
                     <td>
-                        <div class="d-flex flex-column gap-1">
-                            <button class="btn btn-edit btn-sm" onclick="replyReview(<?= (int)$review->review_id ?>, <?= json_encode($review->author_name ?: $review->author_email ?: 'Reviewer') ?>)">
-                                <i class="fas fa-reply"></i> Reply
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteReview(<?= (int)$review->review_id ?>)">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </div>
+                        <button class="btn btn-edit btn-sm w-100" onclick="replyReview(<?= (int)$review->review_id ?>, <?= json_encode($review->author_name ?: $review->author_email ?: 'Reviewer') ?>)">
+                            <i class="fas fa-reply"></i> Reply
+                        </button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -1610,24 +1617,33 @@ function replyReview(reviewId, author) {
         }
         newBtn.disabled = true;
         newBtn.textContent = 'Sending…';
-        fetch('admin_action.php?reply_review=1&review_id=' + encodeURIComponent(reviewId) + '&reply=' + encodeURIComponent(trimmed))
-            .then(r => r.json())
-            .then(data => {
-                modal.style.display = 'none';
-                if (data.success) {
-                    showToast('Reply saved and visible to the customer.');
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    alert(data.message || 'Could not save reply.');
-                    newBtn.disabled = false;
-                    newBtn.textContent = 'Send Reply';
-                }
-            })
-            .catch(() => {
-                alert('Request failed. Please try again.');
+        
+        const formData = new FormData();
+        formData.append('reply_review', '1');
+        formData.append('review_id', reviewId);
+        formData.append('reply', trimmed);
+        
+        fetch('admin_action.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            modal.style.display = 'none';
+            if (data.success) {
+                showToast('✓ Reply saved and sent to customer.');
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                alert(data.message || 'Could not save reply.');
                 newBtn.disabled = false;
                 newBtn.textContent = 'Send Reply';
-            });
+            }
+        })
+        .catch(() => {
+            alert('Request failed. Please try again.');
+            newBtn.disabled = false;
+            newBtn.textContent = 'Send Reply';
+        });
     });
 }
 

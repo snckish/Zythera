@@ -156,22 +156,22 @@ if (isset($_GET['delete_review'])) {
     exit;
 }
 
-if (isset($_GET['reply_review'])) {
+if (isset($_GET['reply_review']) || isset($_POST['reply_review'])) {
     header('Content-Type: application/json');
     $currentRole = $_SESSION['role'] ?? 'user';
     if ($currentRole !== 'admin') {
         echo json_encode(['success' => false, 'message' => 'Admin access required.']);
         exit;
     }
-    $reviewId = (int)($_GET['review_id'] ?? 0);
-    $reply = trim($_GET['reply'] ?? '');
+    $reviewId = (int)($_POST['review_id'] ?? $_GET['review_id'] ?? 0);
+    $reply = trim($_POST['reply'] ?? $_GET['reply'] ?? '');
     if ($reviewId <= 0 || $reply === '') {
         echo json_encode(['success' => false, 'message' => 'Review ID and reply text are required.']);
         exit;
     }
     try {
         replyToReview($reviewId, $reply);
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'message' => 'Reply sent to customer.']);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }

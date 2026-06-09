@@ -363,10 +363,10 @@ $reviews = loadReviews();
     }
 
     .review-item.own-review {
-      outline: 2px solid rgba(245, 200, 66, 0.4);
+      outline: 2px solid rgba(45, 90, 45, 0.4);
     }
     .review-item.own-review:hover {
-      outline: 2px solid rgba(245, 200, 66, 0.75);
+      outline: 2px solid rgba(45, 90, 45, 0.75);
     }
 
     .review-header {
@@ -617,7 +617,7 @@ $reviews = loadReviews();
                     // Prefer DB/uploaded profile_pic, fall back to known-email or ui-avatars
                     $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34);
                 ?>
-                <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="34" style="cursor:pointer;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
+                <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="34" height="34" style="cursor:pointer;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
                   <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2"></i>My Profile</a></li>
                   <?php if ($userRole === 'admin'): ?>
@@ -769,12 +769,9 @@ $reviews = loadReviews();
                 <div style="position:absolute;top:10px;right:10px;z-index:10;">
                   <button onclick="event.stopPropagation();deleteMyReview(<?= (int)($review->review_id ?? 0) ?>)"
                           title="Delete your review"
-                          style="background:rgba(220,38,38,.75);border:none;border-radius:50%;width:26px;height:26px;
-                                 color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
-                                 line-height:1;transition:.2s;"
-                          onmouseover="this.style.background='rgba(220,38,38,1)'"
-                          onmouseout="this.style.background='rgba(220,38,38,.75)'">
-                    <i class="fas fa-trash" style="font-size:.65rem;"></i>
+                          class="btn btn-danger btn-sm"
+                          style="padding:6px 12px;font-size:.8rem;">
+                    <i class="fas fa-trash me-1"></i> Delete
                   </button>
                 </div>
                 <?php endif; ?>
