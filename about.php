@@ -351,7 +351,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
             <!-- ── REAL TEAM PHOTO ── -->
             <div class="col-12">
               <div class="team-photo-card">
-                <img src="../team.jpeg" alt="The ZYTHERA Team">
+                <img src="pci/team.jpeg" alt="The ZYTHERA Team">
                 <div class="team-caption">
                   <h6>The <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> Team</h6>
                   <small>Design, sourcing, and customer experience — all under one roof.</small>

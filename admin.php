@@ -1307,17 +1307,31 @@ if ($searchQuery !== '') {
                     <td><?= htmlspecialchars($review->order_id) ?></td>
                     <td><?= htmlspecialchars($review->rating) ?>/5</td>
                     <td style="max-width:220px;white-space:pre-wrap;word-break:break-word;"><?= htmlspecialchars($review->comment) ?></td>
-                    <td style="max-width:220px;white-space:pre-wrap;word-break:break-word;">
-                        <?= htmlspecialchars($review->reply ?: '—') ?>
-                        <?php if (!empty($review->reply_created_at)): ?>
-                            <div style="font-size:.72rem;color:#888;margin-top:4px;">Replied <?= htmlspecialchars($review->reply_created_at) ?></div>
+                    <td id="reply-cell-<?= (int)$review->review_id ?>" style="max-width:220px;white-space:pre-wrap;word-break:break-word;">
+                        <?php if (!empty($review->reply)): ?>
+                            <span class="reply-text"><?= htmlspecialchars($review->reply) ?></span>
+                            <?php if (!empty($review->reply_created_at)): ?>
+                                <div style="font-size:.72rem;color:#888;margin-top:4px;">Replied <?= htmlspecialchars($review->reply_created_at) ?></div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <span class="reply-text" style="color:#aaa;">—</span>
                         <?php endif; ?>
                     </td>
                     <td><?= htmlspecialchars($review->created_at) ?></td>
                     <td>
-                        <button class="btn btn-edit btn-sm w-100" onclick="replyReview(<?= (int)$review->review_id ?>, <?= json_encode($review->author_name ?: $review->author_email ?: 'Reviewer') ?>)">
-                            <i class="fas fa-reply"></i> Reply
-                        </button>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <button class="btn btn-edit btn-sm w-100"
+                                onclick="replyReview(<?= (int)$review->review_id ?>, <?= json_encode($review->author_name ?: $review->author_email ?: 'Reviewer') ?>, <?= json_encode($review->reply ?: '') ?>)"
+                                id="reply-btn-<?= (int)$review->review_id ?>">
+                                <i class="fas fa-reply"></i>
+                                <?= !empty($review->reply) ? 'Edit Reply' : 'Reply' ?>
+                            </button>
+                            <button class="btn btn-sm w-100"
+                                style="background:#fee2e2;color:#b91c1c;border:none;border-radius:8px;font-size:.8rem;padding:5px 8px;cursor:pointer;"
+                                onclick="deleteReview(<?= (int)$review->review_id ?>)">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
