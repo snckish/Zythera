@@ -33,9 +33,9 @@ if ($adminRole !== 'admin') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZYTHERA | ADMIN</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <style>
-    :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+    :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
     body{font-family:var(--ui-font);}
     h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
     p,small,.caption,.text-muted{font-family:var(--text-font);}
@@ -88,7 +88,7 @@ if ($adminRole !== 'admin') {
             border-radius: 12px;
             padding: 0.75rem 1rem;
             color: var(--deep-green);
-            font-family: 'Lora', sans-serif;
+            font-family: var(--text-font);
             transition: all 0.3s ease;
         }
 
@@ -111,7 +111,7 @@ if ($adminRole !== 'admin') {
 
         .form-label {
             color: var(--deep-green);
-            font-family: 'Lora', sans-serif;
+            font-family: var(--text-font);
         }
 
         .btn-zythera {
@@ -670,7 +670,7 @@ if ($adminRole !== 'admin') {
 <!-- ── SIDEBAR ── -->
 <div class="sidebar" id="adminSidebar">
     <div class="sidebar-brand">
-        <div class="brand-name"><span style="color:var(--deep)">ZYTHERA</span></div>
+        <div class="brand-name"><span style="font-family: 'Playfair Display', serif; color: var(--deep); font-weight: 700;"> ZYTHERA </span></div>
         <div class="brand-sub">Admin Panel</div>
     </div>
 

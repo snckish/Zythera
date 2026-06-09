@@ -288,9 +288,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZYTHERA | Checkout</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
   body{font-family:var(--ui-font);}
   h1,h2,h3,h4,h5,.navbar-brand{font-family:var(--logo-font)}
   p,small{font-family:var(--text-font)}
@@ -474,7 +474,7 @@ footer .footer-brand{
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg fixed-top">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
+    <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
     <div class="ms-auto d-flex gap-2 align-items-center">
       <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill px-3">
         <i class="fas fa-arrow-left me-1"></i> Keep Shopping
@@ -488,7 +488,7 @@ footer .footer-brand{
 <div class="container py-4" style="max-width:980px;">
 
   <div class="mb-4">
-    <p class="step-label"><span style="color:var(--deep)">ZYTHERA</span> FURNITURE</p>
+    <p class="step-label"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> FURNITURE</p>
     <h2 style="font-family:'Playfair Display',serif;color:var(--deep);margin:0;">Checkout</h2>
   </div>
 
@@ -625,7 +625,7 @@ footer .footer-brand{
                  alt="GCash QR Code">
             <div class="qr-label">Scan with your GCash app</div>
             <div class="qr-number"><i class="fas fa-mobile-alt me-1"></i>0917-123-4567</div>
-            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong><span style="color:var(--deep)">ZYTHERA</span> FURNITURE</strong></div>
+            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> FURNITURE</strong></div>
           </div>
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:10px;">
             <i class="fas fa-info-circle me-1"></i>
@@ -650,7 +650,7 @@ footer .footer-brand{
                  alt="Maya QR Code">
             <div class="qr-label">Scan with your Maya app</div>
             <div class="qr-number"><i class="fas fa-wallet me-1"></i>0917-765-4321</div>
-            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong><span style="color:var(--deep)">ZYTHERA</span> FURNITURE</strong></div>
+            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> FURNITURE</strong></div>
           </div>
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:10px;">
             <i class="fas fa-info-circle me-1"></i>
@@ -772,7 +772,7 @@ footer .footer-brand{
 
 <footer>
   <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-  <span class="footer-brand"><span style="color:var(--deep)">ZYTHERA</span></span>
+  <span class="footer-brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

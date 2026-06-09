@@ -100,12 +100,12 @@ $reviews = loadReviews();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZYTHERA | FURNITURE</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --logo-font: 'Playfair Display', serif;
       --ui-font: 'Roboto', sans-serif;
-      --text-font: 'Lora', serif
+      --text-font: 'Merriweather', serif
     }
 
     body {
@@ -166,6 +166,7 @@ $reviews = loadReviews();
       color: var(--green) !important;
       font-size: 1.55rem;
       letter-spacing: 2px;
+.navbar-brand span { font-family: 'Playfair Display', serif; }
     }
 
     .nav-link {
@@ -355,6 +356,9 @@ $reviews = loadReviews();
       scroll-snap-align: start;
       flex-shrink: 0;
       transition: transform .2s, box-shadow .2s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
     .review-item:hover {
@@ -367,6 +371,40 @@ $reviews = loadReviews();
     }
     .review-item.own-review:hover {
       outline: 2px solid rgba(45, 90, 45, 0.75);
+    }
+
+    .review-delete-btn {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #dc2626;
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+      z-index: 10;
+    }
+
+    .review-delete-btn:hover {
+      background: #b91c1c;
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+    }
+
+    .review-delete-btn:active {
+      transform: scale(0.95);
+    }
+
+    .review-delete-btn i {
+      font-size: 0.85rem;
     }
 
     .review-header {
@@ -590,7 +628,7 @@ $reviews = loadReviews();
   <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
+      <a class="navbar-brand fw-bold" href="website.php"><span style="font-family: 'Playfair Display', serif; color: var(--deep); font-weight: 700;"> ZYTHERA </span></a>
 
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
@@ -761,19 +799,16 @@ $reviews = loadReviews();
               ?>
               <div class="review-item<?= $isOwn ? ' own-review' : '' ?>"
                    <?php if ($isOwn && $reviewOrderId): ?>
-                     style="cursor:pointer;position:relative;"
+                     style="cursor:pointer;"
                      onclick="window.location.href='order.php?order_id=<?= $reviewOrderId ?>'"
                      title="Click to view your order"
                    <?php endif; ?>>
                 <?php if ($isOwn): ?>
-                <div style="position:absolute;top:10px;right:10px;z-index:10;">
-                  <button onclick="event.stopPropagation();deleteMyReview(<?= (int)($review->review_id ?? 0) ?>)"
-                          title="Delete your review"
-                          class="btn btn-danger btn-sm"
-                          style="padding:6px 12px;font-size:.8rem;">
-                    <i class="fas fa-trash me-1"></i> Delete
-                  </button>
-                </div>
+                <button onclick="event.stopPropagation();deleteMyReview(<?= (int)($review->review_id ?? 0) ?>)"
+                        title="Delete your review"
+                        class="review-delete-btn">
+                  <i class="fas fa-trash"></i>
+                </button>
                 <?php endif; ?>
                 <div class="review-header">
                   <?php $authorPic = getAvatarURL($review->author_pic ?? null, $review->author_email ?? null, $review->author_name ?? null, 80); ?>
@@ -992,7 +1027,7 @@ $reviews = loadReviews();
 
   <footer class="footer">
     <img src="pci/Group_15.png" class="footer-logo">
-    <div class="brand"><span style="color:var(--deep)">ZYTHERA</span></div>
+    <div class="brand"><span style="font-family: 'Playfair Display', serif; color: var(--deep); font-weight: 700;"> ZYTHERA </span></div>
   </footer>
   <!-- ── CART SLIDE-OUT PANEL — hidden for admin ── -->
   <?php if ($userRole !== 'admin'): ?>

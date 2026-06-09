@@ -98,16 +98,16 @@ $pic = $dbUser->profile_pic ?? null;
 if (empty($pic) && (($dbUser->role ?? '') === 'admin')) {
     $email_l = strtolower($dbUser->email ?? '');
     if ($email_l === 'zythera@gmail.com') {
-        $pic = 'pci/pfp/beti.jpg';
+        $pic = 'pci/beti.jpg';
     } elseif ($email_l === 'admin@gmail.com') {
-        $pic = 'pci/pfp/admin.jpg';
+        $pic = 'pci/admin.jpg';
     } elseif ($email_l === 'mei@gmail.com') {
-        $pic = 'pci/pfp/mei.jpg';
+        $pic = 'pci/mei.jpg';
     } else {
         // fallback to name-based heuristics
         $lname = strtolower($dbUser->name ?? '');
-        if (strpos($lname, 'mei') !== false) $pic = 'pci/pfp/mei.jpg';
-        elseif (strpos($lname, 'beti') !== false) $pic = 'pci/pfp/beti.jpg';
+        if (strpos($lname, 'mei') !== false) $pic = 'pci/mei.jpg';
+        elseif (strpos($lname, 'beti') !== false) $pic = 'pci/beti.jpg';
         else $pic = null;
     }
 }
@@ -125,9 +125,9 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZYTHERA | MY PROFILE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+        :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
         body{font-family:var(--ui-font);}
         h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
         p,small,.caption,.text-muted{font-family:var(--text-font);}
@@ -147,7 +147,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
         }
 
         * {
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
             box-sizing: border-box;
         }
 
@@ -618,7 +618,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 <body>
 
     <nav class="navbar navbar-light px-4 py-2 fixed-top">
-        <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
+        <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
         <div class="ms-auto d-flex gap-2 align-items-center">
             <?php if ($userRole !== 'admin'): ?>
                 <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
@@ -762,7 +762,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
         <footer>
             <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-            <span class="footer-brand"><span style="color:var(--deep)">ZYTHERA</span></span>
+            <span class="footer-brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
         </footer>
 
         <!-- FIX: Bootstrap JS was missing -->

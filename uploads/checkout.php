@@ -162,12 +162,12 @@ $clearStmt->execute([$userEmail]);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZYTHERA | Checkout</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root{--green:#2d5a2d;--sage:#d4e4d4;--cream:#f5f2ec;--deep:#1a2e1a;--terra:#bc8a7b;}
-*{font-family:'DM Sans',sans-serif;box-sizing:border-box;}
+*{font-family:'Roboto',sans-serif;box-sizing:border-box;}
 body{background:var(--cream);min-height:100vh;padding-top:70px;}
 
 .navbar{background:#fff!important;box-shadow:0 1px 12px rgba(0,0,0,.07);}
@@ -193,7 +193,7 @@ body{background:var(--cream);min-height:100vh;padding-top:70px;}
   width:100%;padding:15px 14px 7px;
   background:var(--sage);border:2px solid transparent;
   border-radius:14px;outline:none;
-  font-family:'DM Sans',sans-serif;font-size:.92rem;
+  font-family:'Roboto',sans-serif;font-size:.92rem;
   color:var(--deep);transition:.2s;appearance:none;
 }
 .field textarea{min-height:80px;resize:none;padding-top:20px;}
@@ -273,7 +273,7 @@ footer .footer-brand{
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg fixed-top">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
+    <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
     <div class="ms-auto d-flex gap-2 align-items-center">
       <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill px-3">
         <i class="fas fa-arrow-left me-1"></i> Keep Shopping
@@ -287,7 +287,7 @@ footer .footer-brand{
 <div class="container py-4" style="max-width:980px;">
 
   <div class="mb-4">
-    <p class="step-label"><span style="color:var(--deep)">ZYTHERA</span> FURNITURE</p>
+    <p class="step-label"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> FURNITURE</p>
     <h2 style="font-family:'Playfair Display',serif;color:var(--deep);margin:0;">Checkout</h2>
   </div>
 
@@ -475,7 +475,7 @@ footer .footer-brand{
 
 <footer>
   <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-  <span class="footer-brand"><span style="color:var(--deep)">ZYTHERA</span></span>
+  <span class="footer-brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -586,9 +586,9 @@ function getAvatarURL($profilePic, $email = null, $name = null, $size = 80): str
     }
 
     $e = strtolower(trim((string)($email ?? '')));
-    if ($e === 'zythera@gmail.com') return 'pci/pfp/beti.jpg';
-    if ($e === 'admin@gmail.com')   return 'pci/pfp/admin.jpg';
-    if ($e === 'mei@gmail.com')     return 'pci/pfp/mei.jpg';
+    if ($e === 'zythera@gmail.com') return 'pci/beti.jpg';
+    if ($e === 'admin@gmail.com')   return 'pci/admin.jpg';
+    if ($e === 'mei@gmail.com')     return 'pci/mei.jpg';
 
     $display = trim((string)($name ?? $email ?? '')) ?: 'User';
     return 'https://ui-avatars.com/api/?name=' . urlencode($display) . '&background=2d5a2d&color=fff&size=' . intval($size);

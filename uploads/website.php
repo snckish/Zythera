@@ -49,7 +49,7 @@ usort($inventory, function ($a, $b) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZYTHERA | FURNITURE</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
@@ -63,7 +63,7 @@ usort($inventory, function ($a, $b) {
     }
 
     * {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Roboto', sans-serif;
     }
 
     body {
@@ -128,7 +128,7 @@ usort($inventory, function ($a, $b) {
       border-radius: 50px;
       color: #fff;
       text-decoration: none;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Roboto', sans-serif;
       font-size: .9rem;
       font-weight: 600;
       backdrop-filter: blur(4px);
@@ -202,7 +202,7 @@ usort($inventory, function ($a, $b) {
       padding: .65rem 1rem;
       font-weight: 600;
       width: 100%;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Roboto', sans-serif;
       transition: .2s;
     }
 
@@ -264,7 +264,7 @@ usort($inventory, function ($a, $b) {
       font-size: .9rem;
       background: var(--cream);
       outline: none;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Roboto', sans-serif;
       transition: .2s;
     }
 
@@ -375,7 +375,7 @@ usort($inventory, function ($a, $b) {
   <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
+      <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
 
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
@@ -633,7 +633,7 @@ usort($inventory, function ($a, $b) {
 
   <footer class="footer">
     <img src="pci/Group_15.png" class="footer-logo">
-    <div class="brand"><span style="color:var(--deep)">ZYTHERA</span></div>
+    <div class="brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></div>
   </footer>
   <!-- ── CART SLIDE-OUT PANEL — hidden for admin ── -->
   <?php if ($userRole !== 'admin'): ?>

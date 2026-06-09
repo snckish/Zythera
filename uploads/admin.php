@@ -28,9 +28,9 @@ if (!in_array($loggedIn, ADMIN_EMAILS, true)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZYTHERA | ADMIN</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+        :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
         body{font-family:var(--ui-font);}
         h1,h2,h3,h4,h5,.navbar-brand{font-family:var(--logo-font)}
         p,small{font-family:var(--text-font)}
@@ -49,7 +49,7 @@ if (!in_array($loggedIn, ADMIN_EMAILS, true)) {
 
         body { 
             background-color: var(--cream); 
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
             color: var(--deep-green);
         }
 
@@ -81,7 +81,7 @@ if (!in_array($loggedIn, ADMIN_EMAILS, true)) {
             border-radius: 12px;
             padding: 0.75rem 1rem;
             color: var(--deep-green);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
             transition: all 0.3s ease;
         }
 
@@ -104,7 +104,7 @@ if (!in_array($loggedIn, ADMIN_EMAILS, true)) {
 
         .form-label {
             color: var(--deep-green);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
         }
 
         .btn-zythera {
@@ -183,7 +183,7 @@ if (!in_array($loggedIn, ADMIN_EMAILS, true)) {
             color: var(--deep-green);
             outline: none;
             transition: .2s;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
         }
 
         .search-wrap input:focus {
@@ -350,7 +350,7 @@ if (!in_array($loggedIn, ADMIN_EMAILS, true)) {
 <!-- ── SIDEBAR ── -->
 <div class="sidebar" id="adminSidebar">
     <div class="sidebar-brand">
-        <div class="brand-name"><span style="color:var(--deep)">ZYTHERA</span></div>
+        <div class="brand-name"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></div>
         <div class="brand-sub">Admin Panel</div>
     </div>
 

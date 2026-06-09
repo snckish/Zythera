@@ -172,11 +172,11 @@ CREATE TABLE IF NOT EXISTS messages (
 
 INSERT INTO users (email, name, password, role, profile_pic) VALUES
 
-('zythera@gmail.com', 'Zythera Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pci/pfp/beti.jpg'),
+('zythera@gmail.com', 'Zythera Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pci/beti.jpg'),
 
-('admin@gmail.com', 'System Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pci/pfp/admin.jpg'),
+('admin@gmail.com', 'System Admin', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pci/admin.jpg'),
 
-('mei@gmail.com', 'Mei', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pci/pfp/mei.jpg')
+('mei@gmail.com', 'Mei', '$2y$10$WHqvKNeQDyTM9lWhI0aYgewH8d872dzE3L/mruHcmQQHeDI0kouO.', 'admin', 'pcifp/mei.jpg')
 
 ON DUPLICATE KEY UPDATE
 

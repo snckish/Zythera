@@ -26,9 +26,9 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZYTHERA | About</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+    :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
     body{font-family:var(--ui-font);}
     h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
     p,small,.caption,.text-muted{font-family:var(--text-font);}
@@ -43,7 +43,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
         :root {
       --logo-font: 'Playfair Display', serif;
       --ui-font: 'Roboto', sans-serif;
-      --text-font: 'Lora', serif
+      --text-font: 'Merriweather', serif
     }
 
     body {
@@ -114,6 +114,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
       overflow: hidden;
       box-shadow: 0 4px 20px rgba(0,0,0,.07);
       transition: transform .25s, box-shadow .25s;
+.navbar-brand span { font-family: 'Playfair Display', serif; }
     }
     .team-photo-card:hover { transform: translateY(-4px); box-shadow: 0 14px 38px rgba(0,0,0,.11); }
    .team-photo-card img { width: 100%; height: 250px; object-fit: cover; object-position: center 60%; display: block; }
@@ -161,7 +162,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
 
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-     <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
+     <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
 
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
@@ -226,7 +227,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
     <div class="container">
       <span class="hero-badge">Our Story</span>
       <h1>Furniture made for<br><em>how you actually live.</em></h1>
-      <p><span style="color:var(--deep)">ZYTHERA</span> started with a simple frustration — furniture that looked great in showrooms but fell short at home. We set out to fix that by curating pieces built to last, designed to feel right, and priced to be honest.</p>
+      <p><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> started with a simple frustration — furniture that looked great in showrooms but fell short at home. We set out to fix that by curating pieces built to last, designed to feel right, and priced to be honest.</p>
     </div>
   </section>
 
@@ -253,7 +254,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
               <div class="value-num">02</div>
               <div>
                 <h6>Comfort first, always</h6>
-                <p>Every sofa, chair, and bed frame is tested for daily use — not just to be photographed. If it isn't comfortable, it isn't <span style="color:var(--deep)">ZYTHERA</span>.</p>
+                <p>Every sofa, chair, and bed frame is tested for daily use — not just to be photographed. If it isn't comfortable, it isn't <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span>.</p>
               </div>
             </div>
             <div class="value-item">
@@ -298,7 +299,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   <section class="highlight-row">
     <div class="container">
       <div class="text-center mb-5">
-        <p class="section-label">Why <span style="color:var(--deep)">ZYTHERA</span></p>
+        <p class="section-label">Why <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></p>
         <div class="sage-divider mx-auto"></div>
         <h2 class="section-title">A different kind of furniture store</h2>
       </div>
@@ -344,7 +345,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
           </div>
         </div>
         <div class="col-lg-7">
-          <p class="section-label mb-1">The People Behind <span style="color:var(--deep)">ZYTHERA</span></p>
+          <p class="section-label mb-1">The People Behind <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></p>
           <div class="sage-divider"></div>
           <div class="row g-3">
             <!-- ── REAL TEAM PHOTO ── -->
@@ -352,7 +353,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
               <div class="team-photo-card">
                 <img src="../team.jpeg" alt="The ZYTHERA Team">
                 <div class="team-caption">
-                  <h6>The <span style="color:var(--deep)">ZYTHERA</span> Team</h6>
+                  <h6>The <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> Team</h6>
                   <small>Design, sourcing, and customer experience — all under one roof.</small>
                 </div>
               </div>

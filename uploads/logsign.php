@@ -255,10 +255,10 @@ if (!empty($_SESSION['logged_in_user'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZYTHERA</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+<title> ZYTHERA </title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
   body{font-family:var(--ui-font);}
   h1,h2,h3,h4,h5,.navbar-brand{font-family:var(--logo-font)}
   p,small{font-family:var(--text-font)}
@@ -274,7 +274,7 @@ if (!empty($_SESSION['logged_in_user'])) {
 body{
   min-height:100vh;
   background:linear-gradient(135deg,#c8dcc8 0%,#f5f2ec 60%,#e8d8c8 100%);
-  font-family:'DM Sans',sans-serif;
+  font-family:'Roboto',sans-serif;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   padding:80px 16px 32px;
@@ -338,7 +338,7 @@ body{
 }
 .tabs button{
   flex:1;padding:11px;border:none;border-radius:50px;
-  background:transparent;font-family:'DM Sans',sans-serif;
+  background:transparent;font-family:'Roboto',sans-serif;
   font-size:.9rem;font-weight:600;color:var(--green);
   cursor:pointer;transition:.25s;
 }
@@ -357,7 +357,7 @@ body{
   width:100%;padding:15px 14px 7px;
   background:var(--sage);border:2px solid transparent;
   border-radius:var(--radius);outline:none;
-  font-family:'DM Sans',sans-serif;font-size:.95rem;
+  font-family:'Roboto',sans-serif;font-size:.95rem;
   color:var(--deep);transition:.2s;appearance:none;
 }
 .field input:focus,.field select:focus{
@@ -379,7 +379,7 @@ body{
 /* ── Submit ── */
 .btn-submit{
   width:100%;padding:14px;border:none;border-radius:50px;
-  font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;
+  font-family:'Roboto',sans-serif;font-size:1rem;font-weight:700;
   cursor:pointer;transition:.25s;margin-top:4px;letter-spacing:.5px;
 }
 .btn-submit.user {background:var(--green);color:#fff;}
@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
 
 <!-- CARD -->
 <div class="card">
-  <div class="brand"><span style="color:var(--deep)">ZYTHERA</span></div>
+  <div class="brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></div>
   <p class="tagline">Furniture crafted for lives that deserve beauty.</p>
 
   <!-- TABS -->
@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
 
 <div class="footer-brand">
   <img src="pci/Group_15.png" class="footer-logo">
-  <span class="brand-name"><span style="color:var(--deep)">ZYTHERA</span></span>
+  <span class="brand-name"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
 </div>
 
 <script>

@@ -98,9 +98,9 @@ function getStepIndex(string $status): int {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZYTHERA | My Orders</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Lora',serif}
+  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
   body{font-family:var(--ui-font);}
   h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
   p,small,.caption,.text-muted{font-family:var(--text-font);}
@@ -196,7 +196,7 @@ function getStepIndex(string $status): int {
 <body style="display:flex;flex-direction:column;min-height:100vh;">
 
 <nav class="navbar navbar-light px-4 py-2 fixed-top">
-  <a class="navbar-brand fw-bold" href="website.php"><span style="color:var(--deep)">ZYTHERA</span></a>
+  <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
   <div class="ms-auto d-flex gap-2 align-items-center">
     <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
     <a href="profile.php" class="btn btn-sm btn-light rounded-pill">My Profile</a>
@@ -209,7 +209,7 @@ function getStepIndex(string $status): int {
 <div class="container py-4" style="max-width:780px;">
 
   <div class="page-header">
-    <div class="section-label"><span style="color:var(--deep)">ZYTHERA</span> FURNITURE</div>
+    <div class="section-label"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> FURNITURE</div>
     <h2>My Orders
       <span class="badge rounded-pill ms-2"
             style="background:var(--mid);color:#fff;font-size:.75rem;font-weight:600;vertical-align:middle;padding:5px 12px;">
@@ -436,7 +436,7 @@ function getStepIndex(string $status): int {
 
 <footer>
   <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-  <span class="footer-brand"><span style="color:var(--deep)">ZYTHERA</span></span>
+  <span class="footer-brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
