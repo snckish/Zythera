@@ -42,7 +42,7 @@ body.dark svg text {
 body.dark .navbar,
 body.dark .top-bar,
 body.dark .top-navbar {
-  background: rgba(10,20,10,0.97) !important;
+  background: rgba(14, 83, 14, 0.97) !important;
   border-bottom-color: rgba(255,255,255,.07) !important;
 }
 body.dark .navbar-brand,

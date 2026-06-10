@@ -1,8 +1,40 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Changed to 0 to prevent output in API responses
 
 include 'config.php';
+
+// ── Reply to review (POST) — must be checked BEFORE the generic POST block ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply_review'])) {
+    header('Content-Type: application/json');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+
+    try {
+        $currentRole = $_SESSION['role'] ?? 'user';
+        if ($currentRole !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Admin access required.']);
+            exit;
+        }
+
+        $reviewId = (int)($_POST['review_id'] ?? 0);
+        $reply    = trim($_POST['reply'] ?? '');
+
+        if ($reviewId <= 0 || $reply === '') {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Review ID and reply text are required.']);
+            exit;
+        }
+
+        replyToReview($reviewId, $reply);
+        http_response_code(200);
+        echo json_encode(['success' => true, 'message' => 'Reply sent to customer.']);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // message-sending feature removed
@@ -125,58 +157,11 @@ if (isset($_GET['delete_user'])) {
 
 if (isset($_GET['delete_review'])) {
     header('Content-Type: application/json');
-    $reviewId = (int)$_GET['delete_review'];
-    $currentUser = $_SESSION['logged_in_user'] ?? null;
-    $currentRole = $_SESSION['role'] ?? 'user';
-
-    if (!$currentUser) {
-        echo json_encode(['success' => false, 'message' => 'Not logged in.']);
-        exit;
-    }
-
-    try {
-        $db = getDBConnection();
-        // Only allow if admin OR the review belongs to the current user
-        $chk = $db->prepare("SELECT email FROM reviews WHERE review_id = ?");
-        $chk->execute([$reviewId]);
-        $row = $chk->fetch(PDO::FETCH_ASSOC);
-        if (!$row) {
-            echo json_encode(['success' => false, 'message' => 'Review not found.']);
-            exit;
-        }
-        if ($currentRole !== 'admin' && strtolower($row['email']) !== strtolower($currentUser)) {
-            echo json_encode(['success' => false, 'message' => 'You can only delete your own reviews.']);
-            exit;
-        }
-        deleteReview($reviewId);
-        echo json_encode(['success' => true]);
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-    }
+    echo json_encode(['success' => false, 'message' => 'Review deletion is not allowed.']);
     exit;
 }
 
-if (isset($_GET['reply_review']) || isset($_POST['reply_review'])) {
-    header('Content-Type: application/json');
-    $currentRole = $_SESSION['role'] ?? 'user';
-    if ($currentRole !== 'admin') {
-        echo json_encode(['success' => false, 'message' => 'Admin access required.']);
-        exit;
-    }
-    $reviewId = (int)($_POST['review_id'] ?? $_GET['review_id'] ?? 0);
-    $reply = trim($_POST['reply'] ?? $_GET['reply'] ?? '');
-    if ($reviewId <= 0 || $reply === '') {
-        echo json_encode(['success' => false, 'message' => 'Review ID and reply text are required.']);
-        exit;
-    }
-    try {
-        replyToReview($reviewId, $reply);
-        echo json_encode(['success' => true, 'message' => 'Reply sent to customer.']);
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-    }
-    exit;
-}
+
 
 if (isset($_GET['restock_id'], $_GET['amount'])) {
     $inv_id = (int)$_GET['restock_id'];

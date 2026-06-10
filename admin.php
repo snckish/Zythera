@@ -1270,7 +1270,7 @@ if ($searchQuery !== '') {
         </div>
         <div>
             <h5 class="fw-bold mb-0" style="color:var(--deep-green);">User Reviews</h5>
-            <p class="mb-0 text-muted" style="font-size:.9rem;">Manage reviews, delete inappropriate feedback, and reply to customers.</p>
+            <p class="mb-0 text-muted" style="font-size:.9rem;">Respond to customer feedback and manage review replies.</p>
         </div>
     </div>
     <?php $adminReviews = loadReviews(0, true); ?>
@@ -1319,19 +1319,12 @@ if ($searchQuery !== '') {
                     </td>
                     <td><?= htmlspecialchars($review->created_at) ?></td>
                     <td>
-                        <div style="display:flex;flex-direction:column;gap:6px;">
-                            <button class="btn btn-edit btn-sm w-100"
-                                onclick="replyReview(<?= (int)$review->review_id ?>, <?= json_encode($review->author_name ?: $review->author_email ?: 'Reviewer') ?>, <?= json_encode($review->reply ?: '') ?>)"
-                                id="reply-btn-<?= (int)$review->review_id ?>">
-                                <i class="fas fa-reply"></i>
-                                <?= !empty($review->reply) ? 'Edit Reply' : 'Reply' ?>
-                            </button>
-                            <button class="btn btn-sm w-100"
-                                style="background:#fee2e2;color:#b91c1c;border:none;border-radius:8px;font-size:.8rem;padding:5px 8px;cursor:pointer;"
-                                onclick="deleteReview(<?= (int)$review->review_id ?>)">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </button>
-                        </div>
+                        <button class="btn btn-edit btn-sm w-100"
+                            onclick="replyReview(<?= (int)$review->review_id ?>, '<?= addslashes($review->author_name ?: $review->author_email ?: 'Reviewer') ?>')"
+                            id="reply-btn-<?= (int)$review->review_id ?>">
+                            <i class="fas fa-reply"></i>
+                            <?= !empty($review->reply) ? 'Edit Reply' : 'Reply' ?>
+                        </button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -1558,22 +1551,6 @@ function deleteUser(email, name) {
         .catch(() => alert('Request failed.'));
 }
 
-function deleteReview(reviewId) {
-    if (!confirm('Delete this review permanently?')) return;
-    fetch('admin_action.php?delete_review=' + encodeURIComponent(reviewId))
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Review deleted.');
-                const row = document.getElementById('review-row-' + reviewId);
-                if (row) row.remove();
-            } else {
-                alert(data.message || 'Could not delete review.');
-            }
-        })
-        .catch(() => alert('Request failed.'));
-}
-
 function replyReview(reviewId, author) {
     // Use a proper modal instead of prompt()
     let modal = document.getElementById('reply-modal');
@@ -1639,7 +1616,8 @@ function replyReview(reviewId, author) {
         
         fetch('admin_action.php', {
             method: 'POST',
-            body: formData
+            body: formData,
+            credentials: 'same-origin'
         })
         .then(r => r.json())
         .then(data => {
@@ -1653,8 +1631,9 @@ function replyReview(reviewId, author) {
                 newBtn.textContent = 'Send Reply';
             }
         })
-        .catch(() => {
-            alert('Request failed. Please try again.');
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('Request failed. Please check the browser console and try again.');
             newBtn.disabled = false;
             newBtn.textContent = 'Send Reply';
         });

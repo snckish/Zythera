@@ -509,7 +509,9 @@ function getStepIndex(string $status): int {
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.85rem;">Write Your Review</label>
           <textarea name="comment" rows="4" class="form-control" style="border-radius:12px;border:2px solid var(--sage);font-size:.88rem;resize:vertical;"
-            placeholder="What did you love about your purchase? How was delivery? Any feedback for us?"
+            placeholder="What did you love about your purchase?
+How was delivery? 
+Any feedback for us?"
             required><?= htmlspecialchars($selectedComment) ?></textarea>
         </div>
 
@@ -746,7 +748,7 @@ function downloadReceipt() {
     <!-- Footer -->
     <div style="text-align:center;padding-top:16px;border-top:1px solid #eee;color:#666;font-size:12px;line-height:1.6;">
       <p style="margin:0;">Thank you for your purchase!</p>
-      <p style="margin:6px 0 0;">For inquiries, contact us at: <strong>zytherr@gmail.com</strong></p>
+      <p style="margin:6px 0 0;">For inquiries, contact us at: <strong>zythera@gmail.com</strong></p>
       <p style="margin:4px 0;font-size:11px;color:#999;">Order printed on ${new Date().toLocaleString()}</p>
     </div>
   </div>
