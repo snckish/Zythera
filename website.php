@@ -834,83 +834,33 @@ $reviews = loadReviews();
               </div>
             <?php endforeach; ?>
           <?php else: ?>
-          <?php endif; ?>
-
-          <!-- ── Static showcase reviews (always visible) ── -->
-          <?php
-          $staticReviews = [
-            [
-              'name'   => 'Maria Santos',
-              'avatar' => 'https://i.pravatar.cc/80?img=47',
-              'stars'  => 5,
-              'comment'=> 'The sofa exceeded my expectations! Very comfortable, elegant, and perfect for our living room. Delivery was fast and the packaging was excellent.',
-              'reply'  => 'Thank you so much, Maria! We\'re thrilled you love your new sofa. Enjoy every cozy moment on it! 🌿',
-            ],
-            [
-              'name'   => 'Juan dela Cruz',
-              'avatar' => 'https://i.pravatar.cc/80?img=12',
-              'stars'  => 5,
-              'comment'=> 'Napakaganda ng quality! Worth every peso. The chair set looks even better in person than in the photos. Highly recommend to everyone.',
-              'reply'  => 'Maraming salamat, Juan! So happy to hear the chairs look great in your home. We really put care into every piece. 😊',
-            ],
-            [
-              'name'   => 'Angela Reyes',
-              'avatar' => 'https://i.pravatar.cc/80?img=32',
-              'stars'  => 4,
-              'comment'=> 'Great furniture at a very reasonable price. Assembly was straightforward and the finish is really premium. Would definitely buy again!',
-              'reply'  => 'Thank you, Angela! We appreciate your kind words. If you ever need assistance, don\'t hesitate to reach out. 💚',
-            ],
-            [
-              'name'   => 'Ramon Villanueva',
-              'avatar' => 'https://i.pravatar.cc/80?img=60',
-              'stars'  => 5,
-              'comment'=> 'Solid wood, sturdy build — you can tell the craftsmanship is top-notch. My whole family is in love with the dining set we ordered.',
-              'reply'  => 'That means the world to us, Ramon! Family moments around a beautiful table are exactly what we design for. 🙏',
-            ],
-            [
-              'name'   => 'Lovelyn Bautista',
-              'avatar' => 'https://i.pravatar.cc/80?img=5',
-              'stars'  => 5,
-              'comment'=> 'I was hesitant to order furniture online but Zythera proved me wrong. The sofa arrived in perfect condition and looks absolutely stunning!',
-              'reply'  => 'We\'re so glad we could win you over, Lovelyn! Your trust means everything to us. Welcome to the Zythera family! 🌟',
-            ],
-            [
-              'name'   => 'Carlo Mendoza',
-              'avatar' => 'https://i.pravatar.cc/80?img=68',
-              'stars'  => 4,
-              'comment'=> 'Good value for the price. The color matches perfectly with our interior. Customer service was very helpful when I had questions about sizing.',
-              'reply'  => 'Thank you for the kind words, Carlo! We\'re always happy to help. Looking forward to your next order! 😊',
-            ],
-            [
-              'name'   => 'Grace Ocampo',
-              'avatar' => 'https://i.pravatar.cc/80?img=9',
-              'stars'  => 5,
-              'comment'=> 'Best purchase I\'ve made this year! The quality is incredible and it makes our sala look like a showroom. 10/10 would recommend.',
-              'reply'  => 'Wow, showroom-worthy — that\'s the best compliment! Thank you so much, Grace. We hope every guest notices it! ✨',
-            ],
-          ];
-          ?>
-          <?php foreach ($staticReviews as $sr): ?>
             <div class="review-item">
               <div class="review-header">
-                <img src="<?= htmlspecialchars($sr['avatar']) ?>" class="avatar" alt="<?= htmlspecialchars($sr['name']) ?>">
+                <img src="https://i.pravatar.cc/80?img=13" class="avatar" alt="Verified Buyer">
                 <div>
-                  <div style="font-weight:700;color:#fff;font-size:.9rem;"><?= htmlspecialchars($sr['name']) ?></div>
+                  <div style="font-weight:700;color:#fff;font-size:.9rem;">Verified Buyer</div>
                   <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
                 </div>
               </div>
-              <div class="stars mb-2" style="color:#f5c842;"><?= str_repeat('★', $sr['stars']) . str_repeat('☆', 5 - $sr['stars']) ?></div>
+              <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
               <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-                <?= htmlspecialchars($sr['comment']) ?>
+                The sofa exceeded my expectations. Very comfortable, elegant, and perfect for our living room.
               </p>
-              <?php if (!empty($sr['reply'])): ?>
-              <div style="margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-size:.82rem;line-height:1.6;">
-                <strong style="display:block;margin-bottom:6px;color:#d4e4d4;">Admin reply:</strong>
-                <?= htmlspecialchars($sr['reply']) ?>
-              </div>
-              <?php endif; ?>
             </div>
-          <?php endforeach; ?>
+            <div class="review-item">
+              <div class="review-header">
+                <img src="https://i.pravatar.cc/80?img=25" class="avatar" alt="Verified Buyer">
+                <div>
+                  <div style="font-weight:700;color:#fff;font-size:.9rem;">Verified Buyer</div>
+                  <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+                </div>
+              </div>
+              <div class="stars mb-2" style="color:#f5c842;">★★★★★</div>
+              <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
+                Excellent quality and very fast delivery. The furniture looks premium and modern.
+              </p>
+            </div>
+          <?php endif; ?>
         </div>
 
         <!-- Right arrow -->
