@@ -388,7 +388,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   <!-- Logout Confirmation Modal -->
 <div id="logoutModalOverlay" class="logout-modal-overlay">
     <div class="logout-modal">
-        <h2>Confirm Log Out</h2>
+        <h2>Log Out Confirmation</h2>
         <p>Are you sure you want to log out of your account?</p>
         <div class="logout-modal-buttons">
             <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">
@@ -401,158 +401,156 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
     </div>
 </div>
 
+<!-- ── HERO ── -->
+<section class="about-hero">
+  <div class="container">
+    <span class="hero-badge">Our Story</span>
+    <h1>Furniture made for<br><em>how you actually live.</em></h1>
+    <p><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> started with a simple frustration, furniture that looked great in showrooms but fell short at home. We set out to fix that by curating pieces built to last, designed to feel right, and priced to be honest.</p>
+  </div>
+</section>
 
-  <!-- ── HERO ── -->
-  <section class="about-hero">
-    <div class="container">
-      <span class="hero-badge">Our Story</span>
-      <h1>Furniture made for<br><em>how you actually live.</em></h1>
-      <p><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> started with a simple frustration — furniture that looked great in showrooms but fell short at home. We set out to fix that by curating pieces built to last, designed to feel right, and priced to be honest.</p>
-    </div>
-  </section>
-
-  <!-- ── PHILOSOPHY ── -->
-  <section class="section">
-    <div class="container">
-      <div class="row align-items-center gy-5">
-        <div class="col-lg-6">
-          <p class="section-label">Our Philosophy</p>
-          <div class="sage-divider"></div>
-          <h2 class="section-title">We believe a room should<br>feel like a breath of fresh air.</h2>
-          <p class="text-muted mb-4" style="line-height:1.8;font-size:.97rem;">
-            Every piece in our collection goes through a strict review — for comfort, build quality, and how it looks after two years, not just day one. If it doesn't pass our home test, it doesn't make the shelf.
-          </p>
-          <div class="d-flex flex-column gap-3">
-            <div class="value-item">
-              <div class="value-num">01</div>
-              <div>
-                <h6>Materials that age well</h6>
-                <p>We favour solid wood, natural textiles, and metal that develops character over time — not veneers or materials that chip and fade.</p>
-              </div>
-            </div>
-            <div class="value-item">
-              <div class="value-num">02</div>
-              <div>
-                <h6>Comfort first, always</h6>
-                <p>Every sofa, chair, and bed frame is tested for daily use — not just to be photographed. If it isn't comfortable, it isn't <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span>.</p>
-              </div>
-            </div>
-            <div class="value-item">
-              <div class="value-num">03</div>
-              <div>
-                <h6>Honest pricing</h6>
-                <p>No inflated "original prices." What you see is the real cost of a well-made piece, delivered to your door.</p>
-              </div>
+<!-- ── PHILOSOPHY ── -->
+<section class="section">
+  <div class="container">
+    <div class="row align-items-center gy-5">
+      <div class="col-lg-6">
+        <p class="section-label">Our Philosophy</p>
+        <div class="sage-divider"></div>
+        <h2 class="section-title">We believe a room should<br>feel like a breath of fresh air.</h2>
+        <p class="text-muted mb-4" style="line-height:1.8;font-size:.97rem;">
+          Every piece in our collection goes through a strict review for comfort, build quality, and how it looks after two years, not just day one. If it doesn't pass our home test, it doesn't make the shelf.
+        </p>
+        <div class="d-flex flex-column gap-3">
+          <div class="value-item">
+            <div class="value-num">01</div>
+            <div>
+              <h6>Materials that age well</h6>
+              <p>We favour solid wood, natural textiles, and metal that develops character over time, not veneers or materials that chip and fade.</p>
             </div>
           </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="img-rounded" style="height:420px;">
-            <img src="pci/image_8.png" alt="ZYTHERA furniture craftsmanship">
+          <div class="value-item">
+            <div class="value-num">02</div>
+            <div>
+              <h6>Comfort first, always</h6>
+              <p>Every sofa, chair, and bed frame is tested for daily use not just to be photographed. If it isn't comfortable, it isn't <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span>.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <div class="value-num">03</div>
+            <div>
+              <h6>Honest pricing</h6>
+              <p>No inflated original prices. What you see is the real cost of a well-made piece, delivered to your door.</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- ── METRICS ── -->
-  <div class="metric-strip">
-    <div class="container">
-      <div class="row g-0 justify-content-center">
-        <div class="col-6 col-md-3">
-          <div class="metric-item"><h3>250+</h3><p>Curated pieces across every room</p></div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="metric-item"><h3>4.9</h3><p>Average customer rating out of 5</p></div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="metric-item"><h3>95%</h3><p>Customers who order a second time</p></div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="metric-item"><h3>3 yrs</h3><p>Average warranty on structural pieces</p></div>
+      <div class="col-lg-6">
+        <div class="img-rounded" style="height:420px;">
+          <img src="pci/image_8.png" alt="ZYTHERA furniture craftsmanship">
         </div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- ── WHY ZYTHERA ── -->
-  <section class="highlight-row">
-    <div class="container">
-      <div class="text-center mb-5">
-        <p class="section-label">Why <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></p>
-        <div class="sage-divider mx-auto"></div>
-        <h2 class="section-title">A different kind of furniture store</h2>
+<!-- ── METRICS ── -->
+<div class="metric-strip">
+  <div class="container">
+    <div class="row g-0 justify-content-center">
+      <div class="col-6 col-md-3">
+        <div class="metric-item"><h3>50+</h3><p>Curated pieces across every room</p></div>
       </div>
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="feature-card">
-            <div class="icon-wrap"><i class="fas fa-leaf"></i></div>
-            <h5>Curated, not cluttered</h5>
-            <p>We'd rather carry 250 great pieces than 2,500 average ones. Every product is hand-picked by our team before it reaches the site.</p>
+      <div class="col-6 col-md-3">
+        <div class="metric-item"><h3>4.9</h3><p>Average customer rating out of 5</p></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="metric-item"><h3>95%</h3><p>Customers who order a second time</p></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="metric-item"><h3>1 yrs</h3><p>Average warranty on structural pieces</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── WHY ZYTHERA ── -->
+<section class="highlight-row">
+  <div class="container">
+    <div class="text-center mb-5">
+      <p class="section-label">Why <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></p>
+      <div class="sage-divider mx-auto"></div>
+      <h2 class="section-title">A different kind of furniture store</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="icon-wrap"><i class="fas fa-leaf"></i></div>
+          <h5>Curated, not cluttered</h5>
+          <p>We'd rather carry 100 great pieces than 300 average ones. Every product is hand-picked by our team before it reaches the site.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="icon-wrap"><i class="fas fa-ruler-combined"></i></div>
+          <h5>Built for real homes</h5>
+          <p>Apartment-sized, family-sized, rental-friendly; our collection is chosen with actual living spaces in mind, not staged showrooms.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="icon-wrap"><i class="fas fa-headset"></i></div>
+          <h5>Support that stays</h5>
+          <p>Questions before you order, help when it arrives, and warranty support after. We're here through the whole experience, not just checkout.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TEAM + CTA ── -->
+<section class="section" style="background:var(--cream);">
+  <div class="container">
+    <div class="row align-items-start gy-5">
+      <div class="col-lg-5">
+        <div class="cta-panel">
+          <span class="tag-badge" style="background:rgba(212,228,212,.15);color:var(--sage);border:1px solid rgba(212,228,212,.3);">Ready to start?</span>
+          <h2>Find furniture that fits your space and your life.</h2>
+          <p>Whether you're furnishing a studio or redesigning a family home, our team is here to help you choose pieces you'll actually love living with.</p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="website.php#products" class="btn-green btn">Browse Products</a>
+            <a href="website.php#contact" class="btn-outline-green btn">Get in Touch</a>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="feature-card">
-            <div class="icon-wrap"><i class="fas fa-ruler-combined"></i></div>
-            <h5>Built for real homes</h5>
-            <p>Apartment-sized, family-sized, rental-friendly — our collection is chosen with actual living spaces in mind, not staged showrooms.</p>
+      </div>
+      <div class="col-lg-7">
+        <p class="section-label mb-1">The People Behind <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></p>
+        <div class="sage-divider"></div>
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="team-photo-card">
+              <img src="pci/team.jpeg" alt="The ZYTHERA Team">
+              <div class="team-caption">
+                <h6>The <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> Team</h6>
+                <small>Design, sourcing, and customer experience all under one roof.</small>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="col-md-4">
-          <div class="feature-card">
-            <div class="icon-wrap"><i class="fas fa-headset"></i></div>
-            <h5>Support that stays</h5>
-            <p>Questions before you order, help when it arrives, and warranty support after — we're here through the whole experience, not just checkout.</p>
+          <div class="col-12">
+            <div class="feature-card" style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem;">
+              <div class="icon-wrap mb-0" style="flex-shrink:0;"><i class="fas fa-users"></i></div>
+              <div>
+                <h6 style="font-family:var(--logo-font);color:var(--deep);margin-bottom:.2rem;">A small team with high standards</h6>
+                <p style="font-size:.88rem;margin:0;">Every order, inquiry, and delivery is handled by people who genuinely care about getting it right. Not a call centre, not a bot.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ── TEAM + CTA ── -->
-  <section class="section" style="background:var(--cream);">
-    <div class="container">
-      <div class="row align-items-start gy-5">
-        <div class="col-lg-5">
-          <div class="cta-panel">
-            <span class="tag-badge" style="background:rgba(212,228,212,.15);color:var(--sage);border:1px solid rgba(212,228,212,.3);">Ready to start?</span>
-            <h2>Find furniture that fits your space and your life.</h2>
-            <p>Whether you're furnishing a studio or redesigning a family home, our team is here to help you choose pieces you'll actually love living with.</p>
-            <div class="d-flex flex-wrap gap-3">
-              <a href="website.php#products" class="btn-green btn">Browse Products</a>
-              <a href="website.php#contact" class="btn-outline-green btn">Get in Touch</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-7">
-          <p class="section-label mb-1">The People Behind <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></p>
-          <div class="sage-divider"></div>
-          <div class="row g-3">
-            <!-- ── REAL TEAM PHOTO ── -->
-            <div class="col-12">
-              <div class="team-photo-card">
-                <img src="pci/team.jpeg" alt="The ZYTHERA Team">
-                <div class="team-caption">
-                  <h6>The <span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> Team</h6>
-                  <small>Design, sourcing, and customer experience — all under one roof.</small>
-                </div>
-              </div>
-            </div>
-            <!-- ── TAGLINE CARD ── -->
-            <div class="col-12">
-              <div class="feature-card" style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem;">
-                <div class="icon-wrap mb-0" style="flex-shrink:0;"><i class="fas fa-users"></i></div>
-                <div>
-                  <h6 style="font-family:var(--logo-font);color:var(--deep);margin-bottom:.2rem;">A small team with high standards</h6>
-                  <p style="font-size:.88rem;margin:0;">Every order, inquiry, and delivery is handled by people who genuinely care about getting it right — not a call centre, not a bot.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>

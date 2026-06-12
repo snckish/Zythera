@@ -1337,9 +1337,9 @@ body.dark .review-edit-modal textarea:focus {
                           title="Review options"
                           onclick="toggleReviewMenu('<?= $cardId ?>')">&#8942;</button>
                   <div class="review-dropdown" id="menu-<?= $cardId ?>">
-                    <button onclick="openEditReview(<?= $reviewIdInt ?>, <?= (int)($review->rating ?? 5) ?>, <?= json_encode($commentText) ?>)">
+                  <!-- <button onclick="openEditReview(<?= $reviewIdInt ?>, <?= (int)($review->rating ?? 5) ?>, <?= json_encode($commentText) ?>)">
                       <i class="fas fa-pencil-alt"></i> Edit Review
-                    </button>
+                    </button>--->
                     <button class="danger" onclick="deleteMyReview(<?= $reviewIdInt ?>)">
                       <i class="fas fa-trash"></i> Delete Review
                     </button>
@@ -1734,7 +1734,7 @@ body.dark .review-edit-modal textarea:focus {
   <!-- Logout Confirmation Modal -->
 <div id="logoutModalOverlay" class="logout-modal-overlay">
     <div class="logout-modal">
-        <h2>Confirm Log Out</h2>
+        <h2>Log Out Confirmation</h2>
         <p>Are you sure you want to log out of your account?</p>
         <div class="logout-modal-buttons">
             <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">

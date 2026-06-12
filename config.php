@@ -124,85 +124,62 @@ function loadUsers(): array {
     }
 }
 
-// ── LOAD CARTS ────────────────────────────────────────────────
-function loadCarts(): array {
-    try {
-        $db = getDBConnection();
-        $stmt = $db->query("
-            SELECT *
-            FROM carts
-        ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        die("loadCarts ERROR: " . $e->getMessage());
-    }
-}
-
-// ── LOAD USER CART ────────────────────────────────────────────
+// ── SESSION-BASED CART FUNCTIONS ──────────────────────────────
+/**
+ * Load user's cart from session.
+ * Session cart is indexed by inv_id for quick lookups.
+ */
 function loadCartForUser(string $email): array {
-    try {
-        $db = getDBConnection();
-        $stmt = $db->prepare("
-            SELECT
-                c.inv_id AS inv_id,
-                inv.name AS name,
-                inv.price AS price,
-                c.qty AS qty,
-                inv.image AS image
-            FROM carts c
-            LEFT JOIN inventory inv ON inv.inv_id = c.inv_id
-            WHERE c.email = ?
-        ");
-        $stmt->execute([$email]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        die("loadCartForUser ERROR: " . $e->getMessage());
+    if (!isset($_SESSION['cart'][$email])) {
+        $_SESSION['cart'][$email] = [];
     }
+    return $_SESSION['cart'][$email];
 }
 
 function loadCart(string $email): array {
     return loadCartForUser($email);
 }
 
+/**
+ * Save user's cart to session.
+ */
 function saveCartForUser(string $email, array $cart): void {
     saveCart($email, $cart);
 }
 
-// ── SAVE USER CART ────────────────────────────────────────────
 function saveCart(string $email, array $cart): void {
-    try {
-        $db = getDBConnection();
-        $db->prepare("DELETE FROM carts WHERE email = ?")->execute([$email]);
+    $_SESSION['cart'][$email] = $cart;
+}
 
-        foreach ($cart as $item) {
-            $insert = $db->prepare("
-                INSERT INTO carts (email, inv_id, qty)
-                VALUES (?, ?, ?)
-                ON DUPLICATE KEY UPDATE qty = VALUES(qty)
-            ");
-            $insert->execute([
-                $email,
-                (int)($item['inv_id'] ?? 0),
-                (int)($item['qty'] ?? 1),
-            ]);
-        }
-    } catch (PDOException $e) {
-        die("saveCart ERROR: " . $e->getMessage());
+/**
+ * Clear user's cart from session.
+ */
+function clearCartForUser(string $email): void {
+    if (isset($_SESSION['cart'][$email])) {
+        unset($_SESSION['cart'][$email]);
     }
 }
 
-// ── CLEAR USER CART ───────────────────────────────────────────
-function clearCartForUser(string $email): void {
-    try {
-        $db = getDBConnection();
-        $stmt = $db->prepare("
-            DELETE FROM carts
-            WHERE email = ?
-        ");
-        $stmt->execute([$email]);
-    } catch (PDOException $e) {
-        die("clearCartForUser ERROR: " . $e->getMessage());
+/**
+ * Get all carts from session (for admin stats).
+ * Returns array indexed by email with cart items.
+ */
+function loadCarts(): array {
+    $allCarts = [];
+    if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+        foreach ($_SESSION['cart'] as $email => $cart) {
+            foreach ($cart as $item) {
+                $allCarts[] = [
+                    'email' => $email,
+                    'inv_id' => $item['inv_id'] ?? 0,
+                    'qty' => $item['qty'] ?? 0,
+                    'name' => $item['name'] ?? '',
+                    'price' => $item['price'] ?? 0,
+                ];
+            }
+        }
     }
+    return $allCarts;
 }
 
 // ── SAVE ORDER ────────────────────────────────────────────────
@@ -380,9 +357,6 @@ function replyToReview(int $reviewId, string $reply): void {
         die("replyToReview ERROR: " . $e->getMessage());
     }
 }
-
-// ── USER MESSAGE / RECEIPT TABLE ─────────────────────────────────
-// user_messages (admin -> user receipts) feature removed
 
 // ── LOAD ORDERS ───────────────────────────────────────────────
 function loadOrders(): array {

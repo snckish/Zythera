@@ -407,7 +407,7 @@ function getStepIndex(string $status): int {
 <!-- Logout Confirmation Modal -->
 <div id="logoutModalOverlay" class="logout-modal-overlay">
     <div class="logout-modal">
-        <h2>Confirm Log Out</h2>
+        <h2>Log Out Confirmation </h2>
         <p>Are you sure you want to log out of your account?</p>
         <div class="logout-modal-buttons">
             <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">

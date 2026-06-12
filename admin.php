@@ -727,12 +727,12 @@ if ($adminRole !== 'admin') {
     }
 
     .logout-confirm-btn {
-      background: var(--green);
+      background: var(--deep-green);
       color: #fff;
       min-width: 120px;
     }
     .logout-confirm-btn:hover {
-      background: var(--deep);
+      background: var(--sage-dark);
     }
     .logout-confirm-btn:active {
       transform: scale(0.98);
@@ -757,8 +757,8 @@ if ($adminRole !== 'admin') {
 
 <div id="logoutModalOverlay" class="logout-modal-overlay">
     <div class="logout-modal">
-        <h2>Confirm Log Out</h2>
-        <p>Are you sure you want to logout from your admin account? You'll need to log in again to access the admin panel.</p>
+        <h2>Log Out Confirmation</h2>
+        <p>Are you sure you want to log out of your account?</p>
         <div class="logout-modal-buttons">
             <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">
                 Stay
@@ -1334,6 +1334,7 @@ if ($searchQuery !== '') {
                     <?= $isAdmin ? 'ADMIN' : 'USER' ?>
                 </span>
             </div>
+            <?php if (!$isAdmin): ?>
             <div class="d-flex gap-2 flex-wrap mb-3">
                 <div style="flex:1;background:#f9f9f6;border-radius:10px;padding:10px;text-align:center;min-width:70px;">
                     <div style="font-size:1.1rem;font-weight:800;color:#2d5a2d;"><?= $uOrders2 ?></div>
@@ -1355,6 +1356,7 @@ if ($searchQuery !== '') {
                 onclick="deleteUser('<?= htmlspecialchars($uEmail, ENT_QUOTES) ?>', '<?= htmlspecialchars($uData['name'] ?? '', ENT_QUOTES) ?>')">
                 <i class="fas fa-user-times me-1"></i> Delete User
             </button>
+            <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
