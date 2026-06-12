@@ -144,6 +144,10 @@ $reviews = loadReviews();
       --cream: #f5f2ec;
       --terra: #bc8a7b;
       --deep: #1a2e1a;
+      --radius-card: 18px;
+      --shadow-card: 0 2px 16px rgba(0,0,0,.07);
+      --shadow-hover: 0 12px 36px rgba(0,0,0,.13);
+      --transition: .22s ease;
     }
 
     * {
@@ -153,36 +157,100 @@ $reviews = loadReviews();
     body {
       font-family: var(--ui-font);
       background: var(--cream);
-      padding-top: 70px;
+      padding-top: 68px;
     }
 
+    /* ── NAVBAR ── */
     .navbar {
-      background: #fff !important;
-      box-shadow: 0 1px 12px rgba(0, 0, 0, .07);
+      background: rgba(255,255,255,.96) !important;
+      box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 4px 20px rgba(0,0,0,.04);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      min-height: 68px;
     }
 
     .navbar-brand {
       font-family: 'Playfair Display', serif;
-      color: var(--green) !important;
-      font-size: 1.55rem;
-      letter-spacing: 2px;
-.navbar-brand span { font-family: 'Playfair Display', serif; }
+      color: var(--deep) !important;
+      font-size: 1.5rem;
+      letter-spacing: 2.5px;
+      font-weight: 700;
+      padding: 0;
     }
+    .navbar-brand span { font-family: 'Playfair Display', serif; }
 
     .nav-link {
       font-weight: 500;
-      color: #444 !important;
-      font-size: .9rem;
+      color: #555 !important;
+      font-size: .875rem;
+      letter-spacing: .2px;
+      padding: 6px 4px !important;
+      position: relative;
+      transition: color var(--transition);
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--green);
+      border-radius: 2px;
+      transform: scaleX(0);
+      transition: transform var(--transition);
+    }
+    .nav-link:hover { color: var(--green) !important; }
+    .nav-link:hover::after { transform: scaleX(1); }
+
+    /* User capsule in nav */
+    .nav-user-capsule {
+      display: flex;
+      align-items: center;
+      background: var(--sage);
+      border-radius: 50px;
+      padding: 4px 14px 4px 8px;
+      gap: 8px;
+      border: 1px solid rgba(45,90,45,.12);
     }
 
-    .nav-link:hover {
-      color: var(--green) !important;
+    /* ── DARK MODE TOGGLE ── */
+    .dark-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px 6px 10px;
+      border: 1.5px solid rgba(45,90,45,.25);
+      border-radius: 50px;
+      background: transparent;
+      color: var(--green);
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .dark-toggle-btn:hover {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+    .dark-toggle-icon { display: flex; align-items: center; }
+    body.dark .dark-toggle-btn {
+      border-color: rgba(168,212,168,.4) !important;
+      color: #a8d4a8 !important;
+      background: transparent !important;
+    }
+    body.dark .dark-toggle-btn:hover {
+      background: rgba(168,212,168,.15) !important;
+      color: #fff !important;
+      border-color: rgba(168,212,168,.7) !important;
     }
 
+    /* ── HERO ── */
     .hero {
       position: relative;
-      height: 92vh;
-      min-height: 480px;
+      height: 90vh;
+      min-height: 520px;
       overflow: hidden;
       background: var(--deep);
       display: flex;
@@ -197,33 +265,33 @@ $reviews = loadReviews();
       height: 100%;
       object-fit: cover;
       object-position: center;
-      opacity: 0.55;
+      opacity: 0.5;
       z-index: 0;
     }
 
     .hero-text {
       position: relative;
       z-index: 1;
-      max-width: 700px;
+      max-width: 680px;
       text-align: center;
       color: #fff;
       font-family: var(--logo-font);
-      font-size: clamp(1.3rem, 3vw, 2rem);
-      font-style: bold;
-      line-height: 1.7;
-      padding: 40px;
-      border: 1px solid rgba(147, 174, 153, 0.2);
-      border-radius: 6px;
-      background: rgba(0, 0, 0, .18);
-      backdrop-filter: blur(6px);
+      font-size: clamp(1.15rem, 2.5vw, 1.75rem);
+      line-height: 1.8;
+      padding: 44px 48px;
+      border: 1px solid rgba(212,228,212,.18);
+      border-radius: 12px;
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .hero-cta {
-      margin-top: 24px;
+      margin-top: 28px;
       display: inline-block;
-      padding: 12px 32px;
-      background: rgba(255, 255, 255, .15);
-      border: 2px solid rgba(255, 255, 255, .5);
+      padding: 13px 36px;
+      background: rgba(255,255,255,.12);
+      border: 2px solid rgba(255,255,255,.45);
       border-radius: 50px;
       color: #fff;
       text-decoration: none;
@@ -231,66 +299,81 @@ $reviews = loadReviews();
       font-size: .9rem;
       font-weight: 600;
       backdrop-filter: blur(4px);
-      transition: .25s;
+      transition: background var(--transition), border-color var(--transition);
+      letter-spacing: .3px;
     }
-
     .hero-cta:hover {
-      background: rgba(255, 255, 255, .3);
+      background: rgba(255,255,255,.22);
+      border-color: rgba(255,255,255,.75);
       color: #fff;
     }
 
-    /* SECTION */
+    /* ── SECTIONS ── */
     .section {
-      padding: 64px 0;
+      padding: 72px 0;
     }
 
     .section-title {
       font-family: 'Playfair Display', serif;
       color: var(--green);
-      font-size: 1.9rem;
-      margin-bottom: 36px;
+      font-size: clamp(1.5rem, 3vw, 1.9rem);
+      margin-bottom: 40px;
     }
 
-    /* PRODUCT CARD */
+    /* ── PRODUCT CARD ── */
     .product-card {
       border: none;
-      border-radius: 20px;
+      border-radius: var(--radius-card);
       overflow: hidden;
       background: #fff;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, .07);
-      transition: transform .25s, box-shadow .25s;
+      box-shadow: var(--shadow-card);
+      transition: transform var(--transition), box-shadow var(--transition);
       height: 100%;
+      display: flex;
+      flex-direction: column;
     }
 
     .product-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 14px 38px rgba(0, 0, 0, .13);
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
     }
 
     .product-card img {
-      height: 220px;
+      height: 210px;
       object-fit: cover;
       width: 100%;
+      flex-shrink: 0;
+    }
+
+    .product-card .p-4 {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
     }
 
     .product-name {
       font-family: 'Playfair Display', serif;
       color: var(--green);
-      font-size: 1.05rem;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.35;
     }
 
     .product-price {
       color: var(--terra);
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-weight: 700;
     }
 
     .stock-badge {
       background: var(--green);
       color: #fff;
-      font-size: .7rem;
+      font-size: .68rem;
       border-radius: 6px;
-      padding: 3px 8px;
+      padding: 3px 9px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .btn-cart {
@@ -298,27 +381,46 @@ $reviews = loadReviews();
       color: #fff;
       border: none;
       border-radius: 10px;
-      padding: .65rem 1rem;
+      padding: .7rem 1rem;
       font-weight: 600;
       width: 100%;
       font-family: var(--ui-font);
-      transition: .2s;
+      font-size: .88rem;
+      transition: background var(--transition), transform .1s;
+      margin-top: auto;
+      letter-spacing: .2px;
     }
+    .btn-cart:hover { background: var(--deep); color: #fff; }
+    .btn-cart:active { transform: scale(.98); }
+    .btn-cart:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
-    .btn-cart:hover {
-      background: var(--deep);
-      color: #fff;
+    /* Qty stepper */
+    .qty-stepper-row {
+      display: flex;
+      align-items: center;
+      border: 2px solid var(--sage);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
     }
-
-    .btn-cart:disabled {
-      opacity: .5;
-      cursor: not-allowed;
+    .qty-stepper-row .input-group-text {
+      border: none;
+      background: #fff;
+      color: #888;
+      font-size: .8rem;
+      padding: 8px 10px;
+    }
+    .qty-stepper-row input {
+      border: none;
+      text-align: center;
+      font-weight: 600;
     }
 
     /* REVIEWS */
     .reviews-section {
-      padding: 64px 0;
+      padding: 72px 0;
       overflow: hidden;
+      background: var(--cream);
     }
 
     .review-scroll-wrapper {
@@ -327,14 +429,15 @@ $reviews = loadReviews();
 
     .review-scroll-track {
       display: flex;
-      gap: 18px;
+      gap: 16px;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
-      padding: 8px 4px 20px;
+      padding: 8px 4px 28px;
       scrollbar-width: none;
       cursor: grab;
       user-select: none;
+      align-items: stretch;
     }
 
     .review-scroll-track::-webkit-scrollbar {
@@ -346,19 +449,22 @@ $reviews = loadReviews();
       scroll-snap-type: none;
     }
 
+    /* Review card — fixed width, flexible HEIGHT */
     .review-item {
       background: var(--green);
       border-radius: 20px;
-      padding: 24px 22px;
+      padding: 22px 20px 22px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, .07);
-      min-width: 260px;
-      max-width: 260px;
+      min-width: 280px;
+      max-width: 280px;
       scroll-snap-align: start;
       flex-shrink: 0;
       transition: transform .2s, box-shadow .2s;
       position: relative;
       display: flex;
       flex-direction: column;
+      height: auto;
+      overflow: visible;
     }
 
     .review-item:hover {
@@ -367,51 +473,236 @@ $reviews = loadReviews();
     }
 
     .review-item.own-review {
-      outline: 2px solid rgba(45, 90, 45, 0.4);
+      outline: 2px solid rgba(255,255,255,.3);
+      outline-offset: 2px;
     }
     .review-item.own-review:hover {
-      outline: 2px solid rgba(45, 90, 45, 0.75);
+      outline-color: rgba(255,255,255,.6);
     }
 
-    .review-delete-btn {
+    /* ── Three-dot menu ── */
+    .review-menu-wrapper {
       position: absolute;
-      bottom: 14px;
-      right: 14px;
-      width: 30px;
-      height: 30px;
+      top: 12px;
+      right: 12px;
+      z-index: 20;
+    }
+
+    .review-menu-btn {
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      background: #dc2626;
+      background: rgba(255,255,255,.15);
       border: none;
-      color: white;
+      color: rgba(255,255,255,.8);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1rem;
+      line-height: 1;
+      letter-spacing: 0;
+      transition: background .15s, color .15s;
       padding: 0;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
-      z-index: 10;
+      flex-shrink: 0;
+    }
+    .review-menu-btn:hover {
+      background: rgba(255,255,255,.28);
+      color: #fff;
     }
 
-    .review-delete-btn:hover {
-      background: #b91c1c;
-      transform: scale(1.1);
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+    .review-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 152px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.18);
+      overflow: hidden;
+      display: none;
+      z-index: 100;
+    }
+    .review-dropdown.open { display: block; }
+
+    .review-dropdown button {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 10px 14px;
+      background: none;
+      border: none;
+      font-size: .82rem;
+      font-weight: 500;
+      color: #333;
+      cursor: pointer;
+      text-align: left;
+      transition: background .12s;
+      white-space: nowrap;
+    }
+    .review-dropdown button:hover { background: #f5f2ec; }
+    .review-dropdown button.danger { color: #dc2626; }
+    .review-dropdown button.danger:hover { background: #fee2e2; }
+    .review-dropdown button i { width: 14px; text-align: center; flex-shrink: 0; }
+
+    /* Review text — wraps properly, no overflow/truncation */
+    .review-body {
+      font-size: .88rem;
+      color: var(--sage);
+      line-height: 1.65;
+      margin: 0;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: pre-line;
+      flex: 1;
+      min-width: 0;
     }
 
-    .review-delete-btn:active {
-      transform: scale(0.95);
+    /* Long review: clamp to ~5 lines */
+    .review-body.clamped {
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      white-space: normal;
     }
 
-    .review-delete-btn i {
-      font-size: 0.85rem;
+    .review-expand-btn {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: .75rem;
+      color: rgba(255,255,255,.65);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      align-self: flex-start;
+      transition: color .15s;
     }
+    .review-expand-btn:hover { color: #fff; }
+
+    /* Admin reply box */
+    .review-reply-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.1);
+      border-left: 3px solid rgba(255,255,255,.25);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .review-reply-label {
+      display: block;
+      font-size: .72rem;
+      font-weight: 700;
+      color: #d4e4d4;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .review-reply-text {
+      font-size: .82rem;
+      color: rgba(255,255,255,.88);
+      line-height: 1.6;
+      margin: 0;
+      white-space: pre-line;
+    }
+
+    /* Edit review modal */
+    .review-edit-modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 9998;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .review-edit-modal-bg.open { display: flex; }
+
+    .review-edit-modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 26px 22px;
+      width: min(440px, calc(100vw - 32px));
+      box-shadow: 0 16px 48px rgba(0,0,0,.22);
+      position: relative;
+    }
+    .review-edit-modal h5 {
+      font-family: 'Playfair Display', serif;
+      color: var(--green);
+      margin-bottom: 18px;
+      font-size: 1.1rem;
+    }
+    .review-edit-modal textarea {
+      width: 100%;
+      border: 2px solid var(--sage);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: .88rem;
+      font-family: var(--ui-font);
+      resize: vertical;
+      min-height: 110px;
+      max-height: 260px;
+      outline: none;
+      transition: border-color .2s;
+      box-sizing: border-box;
+    }
+    .review-edit-modal textarea:focus { border-color: var(--green); }
+    .review-char-count {
+      font-size: .72rem;
+      color: #999;
+      text-align: right;
+      margin-top: 4px;
+    }
+    .review-char-count.over { color: #dc2626; font-weight: 600; }
+    .review-edit-stars { display: flex; gap: 6px; margin-bottom: 14px; }
+    .review-edit-stars span {
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #ddd;
+      transition: color .12s;
+      line-height: 1;
+      user-select: none;
+    }
+    .review-edit-stars span.lit { color: #f5c842; }
+    .review-edit-modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      justify-content: flex-end;
+    }
+    .review-edit-modal-actions button {
+      padding: 9px 22px;
+      border-radius: 50px;
+      border: none;
+      font-weight: 600;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .btn-save-review {
+      background: var(--green);
+      color: #fff;
+    }
+    .btn-save-review:hover { background: var(--deep); }
+    .btn-cancel-review {
+      background: #f0ece4;
+      color: #555;
+    }
+    .btn-cancel-review:hover { background: #e2ddd4; }
 
     .review-header {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+      padding-right: 36px; /* space for the three-dot menu */
     }
 
     .avatar {
@@ -420,20 +711,15 @@ $reviews = loadReviews();
       border-radius: 50%;
       object-fit: cover;
       flex-shrink: 0;
-      border: 2px solid var(--sage);
-    }
-
-    .review-item p {
-      font-size: .88rem;
-      color: var(--green);
-      line-height: 1.6;
-      margin: 0;
+      border: 2px solid rgba(255,255,255,.25);
     }
 
     .stars {
-      color: var(--green);
+      color: #f5c842;
       font-size: .85rem;
       letter-spacing: 1px;
+      flex-shrink: 0;
+      margin-bottom: 10px;
     }
 
     /* Arrow nav buttons */
@@ -441,52 +727,42 @@ $reviews = loadReviews();
       position: absolute;
       top: 50%;
       transform: translateY(-60%);
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       border: none;
       background: #fff;
       color: var(--green);
-      box-shadow: 0 3px 14px rgba(0, 0, 0, .14);
+      box-shadow: 0 3px 16px rgba(0, 0, 0, .13);
       cursor: pointer;
-      font-size: .95rem;
+      font-size: .9rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background .2s, color .2s;
+      transition: background var(--transition), color var(--transition), box-shadow var(--transition);
       z-index: 2;
     }
 
     .scroll-btn:hover {
       background: var(--green);
       color: #fff;
+      box-shadow: 0 4px 20px rgba(45,90,45,.25);
     }
 
-    .scroll-btn.left {
-      left: -16px;
-    }
-
-    .scroll-btn.right {
-      right: -16px;
-    }
+    .scroll-btn.left { left: -18px; }
+    .scroll-btn.right { right: -18px; }
 
     @media (max-width: 576px) {
-      .scroll-btn {
-        display: none;
-      }
-
-      .review-item {
-        min-width: 220px;
-        max-width: 220px;
-      }
+      .scroll-btn { display: none; }
+      .review-item { min-width: 248px; max-width: 248px; }
     }
 
     /* CONTACT */
     .contact-card {
       background: #fff;
-      border-radius: 20px;
+      border-radius: var(--radius-card);
       padding: 36px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, .07);
+      box-shadow: var(--shadow-card);
     }
 
     .input-box {
@@ -500,11 +776,12 @@ $reviews = loadReviews();
       padding: 14px 16px;
       border: 2px solid var(--sage);
       border-radius: 12px;
-      font-size: .9rem;
+      font-size: .875rem;
       background: var(--cream);
       outline: none;
       font-family: var(--ui-font);
-      transition: .2s;
+      transition: border-color var(--transition), background var(--transition);
+      color: #333;
     }
 
     .input-box input:focus,
@@ -524,10 +801,10 @@ $reviews = loadReviews();
       background: transparent;
     }
 
-    .input-box input:focus~label,
-    .input-box input:not(:placeholder-shown)~label,
-    .input-box textarea:focus~label,
-    .input-box textarea:not(:placeholder-shown)~label {
+    .input-box input:focus ~ label,
+    .input-box input:not(:placeholder-shown) ~ label,
+    .input-box textarea:focus ~ label,
+    .input-box textarea:not(:placeholder-shown) ~ label {
       top: 0;
       font-size: .7rem;
       background: #fff;
@@ -551,36 +828,108 @@ $reviews = loadReviews();
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: .2s;
+      transition: background var(--transition), color var(--transition), transform var(--transition);
+      text-decoration: none;
     }
 
     .social-icon:hover {
       background: var(--green);
       color: #fff;
+      transform: translateY(-2px);
     }
 
-    .footer {
+    /* ── FOOTER ── */
+    .site-footer {
+      background: var(--deep);
+      color: rgba(212,228,212,.75);
+      padding: 56px 0 0;
+      margin-top: 0;
+      font-family: var(--ui-font);
+    }
+    .site-footer .footer-brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.45rem;
+      color: #fff;
+      letter-spacing: 2px;
+      font-weight: 700;
+    }
+    .site-footer .footer-tagline {
+      font-size: .82rem;
+      color: rgba(212,228,212,.6);
+      line-height: 1.7;
+      margin-top: 8px;
+      max-width: 220px;
+    }
+    .site-footer .footer-logo-img {
+      width: 28px;
+      opacity: .85;
+    }
+    .site-footer .footer-col-title {
+      font-size: .7rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(212,228,212,.45);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .site-footer .footer-link {
+      display: block;
+      color: rgba(212,228,212,.72);
+      text-decoration: none;
+      font-size: .85rem;
+      line-height: 1;
+      padding: 5px 0;
+      transition: color .15s;
+    }
+    .site-footer .footer-link:hover { color: #fff; }
+    .site-footer .footer-link i {
+      width: 16px;
+      font-size: .78rem;
+      margin-right: 7px;
+      opacity: .65;
+    }
+    .site-footer .footer-divider {
+      border-color: rgba(255,255,255,.08);
+      margin: 40px 0 0;
+    }
+    .site-footer .footer-bottom {
+      padding: 18px 0;
       display: flex;
       align-items: center;
-      /* vertical align */
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .site-footer .footer-bottom-text {
+      font-size: .77rem;
+      color: rgba(212,228,212,.38);
+    }
+    .site-footer .footer-social {
+      display: flex;
+      gap: 10px;
+    }
+    .site-footer .footer-social a {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.07);
+      color: rgba(212,228,212,.7);
+      display: flex;
+      align-items: center;
       justify-content: center;
-      /* center horizontally */
-      gap: 20px;
-      /* space between logo & text */
-      padding: 20px;
+      font-size: .82rem;
+      text-decoration: none;
+      transition: background .15s, color .15s;
     }
-
-    .footer-logo {
-      width: 30px;
+    .site-footer .footer-social a:hover {
+      background: var(--green);
+      color: #fff;
     }
-
-    .brand {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px;
-      font-weight: bold;
-      color: var(--green);
+    @media (max-width: 767px) {
+      .site-footer { padding: 44px 0 0; }
+      .site-footer .footer-col { margin-bottom: 32px; }
+      .site-footer .footer-bottom { justify-content: center; text-align: center; }
     }
-
 
     .toast-fixed {
       position: fixed;
@@ -638,33 +987,33 @@ $reviews = loadReviews();
           <a href="#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
           <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
+          <button id="darkToggle" onclick="toggleDark()" class="dark-toggle-btn" title="Toggle dark mode" aria-label="Toggle dark mode">
+            <span class="dark-toggle-icon">
+              <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </span>
+            <span class="dark-toggle-label" id="darkToggleLabel">Dark</span>
+          </button>
           <?php if ($userEmail): ?>
-
-
-
-            <div class="d-flex align-items-center bg-light rounded-pill px-3 py-1 border shadow-sm gap-2">
+            <div class="nav-user-capsule">
               <div class="text-end d-none d-md-block">
-                <p class="mb-0 fw-bold" style="font-size:.8rem;color:var(--green);"><?= htmlspecialchars($userName) ?></p>
+                <p class="mb-0 fw-bold" style="font-size:.78rem;color:var(--green);"><?= htmlspecialchars($userName) ?></p>
                 <?php if ($loginTime): ?>
                   <small class="text-muted" style="font-size:.6rem;"><span id="liveTime"></span></small>
                 <?php endif; ?>
               </div>
               <div class="dropdown">
                 <?php
-                    // Determine nav avatar: prefer uploaded profile_pic if it exists on disk, else use email/name-based admin fallbacks, else ui-avatars
-                    // Prefer DB/uploaded profile_pic, fall back to known-email or ui-avatars
                     $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34);
                 ?>
-                <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="34" height="34" style="cursor:pointer;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                  <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2"></i>My Profile</a></li>
+                <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="32" height="32" style="cursor:pointer;border:2px solid rgba(45,90,45,.2);object-fit:cover;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius:14px;min-width:190px;">
+                  <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2 text-muted" style="font-size:.85rem;"></i>My Profile</a></li>
                   <?php if ($userRole === 'admin'): ?>
-                    <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2"></i>Admin Panel</a></li>
+                    <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2 text-muted" style="font-size:.85rem;"></i>Admin Panel</a></li>
                   <?php endif; ?>
-                  <li>
-                    <hr class="dropdown-divider">
-                  </li>
-                  <li><a class="dropdown-item py-2 text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                  <li><hr class="dropdown-divider my-1"></li>
+                  <li><a class="dropdown-item py-2 text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
                 </ul>
               </div>
             </div>
@@ -796,39 +1145,62 @@ $reviews = loadReviews();
                 $stars = str_repeat('★', max(1, min(5, (int)($review->rating ?? 5))));
                 $isOwn = ($userEmail && strtolower($userEmail) === strtolower($review->author_email ?? ''));
                 $reviewOrderId = htmlspecialchars($review->order_id ?? '');
+                $reviewIdInt   = (int)($review->review_id ?? 0);
+                $cardId        = 'rv-' . $reviewIdInt;
+
+                // Character limit: truncate at 300 chars for display
+                $CHAR_LIMIT  = 300;
+                $commentText = $review->comment;
+                $isLong      = mb_strlen($commentText) > $CHAR_LIMIT || substr_count($commentText, "\n") >= 4;
               ?>
               <div class="review-item<?= $isOwn ? ' own-review' : '' ?>"
+                   id="card-<?= $cardId ?>"
                    <?php if ($isOwn && $reviewOrderId): ?>
                      style="cursor:pointer;"
                      onclick="window.location.href='order.php?order_id=<?= $reviewOrderId ?>'"
                      title="Click to view your order"
                    <?php endif; ?>>
+
                 <?php if ($isOwn): ?>
-                <button onclick="event.stopPropagation();deleteMyReview(<?= (int)($review->review_id ?? 0) ?>)"
-                        title="Delete your review"
-                        class="review-delete-btn">
-                  <i class="fas fa-trash"></i>
-                </button>
+                <!-- ⋮ Three-dot menu (own reviews only) -->
+                <div class="review-menu-wrapper" onclick="event.stopPropagation()">
+                  <button class="review-menu-btn"
+                          title="Review options"
+                          onclick="toggleReviewMenu('<?= $cardId ?>')">&#8942;</button>
+                  <div class="review-dropdown" id="menu-<?= $cardId ?>">
+                    <button onclick="openEditReview(<?= $reviewIdInt ?>, <?= (int)($review->rating ?? 5) ?>, <?= json_encode($commentText) ?>)">
+                      <i class="fas fa-pencil-alt"></i> Edit Review
+                    </button>
+                    <button class="danger" onclick="deleteMyReview(<?= $reviewIdInt ?>)">
+                      <i class="fas fa-trash"></i> Delete Review
+                    </button>
+                  </div>
+                </div>
                 <?php endif; ?>
+
                 <div class="review-header">
                   <?php $authorPic = getAvatarURL($review->author_pic ?? null, $review->author_email ?? null, $review->author_name ?? null, 80); ?>
                   <img src="<?= htmlspecialchars($authorPic) ?>" class="avatar" alt="<?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>">
-                  <div>
-                    <div style="font-weight:700;color:#fff;font-size:.9rem;">
+                  <div style="min-width:0;">
+                    <div style="font-weight:700;color:#fff;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                       <?= htmlspecialchars($review->author_name ?: 'Verified Buyer') ?>
-                      <?php if ($isOwn): ?><span style="font-size:.65rem;background:rgba(255,255,255,.15);border-radius:50px;padding:1px 7px;margin-left:5px;font-weight:500;">You</span><?php endif; ?>
+                      <?php if ($isOwn): ?><span style="font-size:.65rem;background:rgba(255,255,255,.18);border-radius:50px;padding:1px 7px;margin-left:5px;font-weight:500;white-space:nowrap;">You</span><?php endif; ?>
                     </div>
-                    <div style="font-size:.72rem;color:var(--sage);opacity:.85;">Verified Buyer</div>
+                    <div style="font-size:.72rem;color:rgba(212,228,212,.8);">Verified Buyer</div>
                   </div>
                 </div>
-                <div class="stars mb-2" style="color:#f5c842;"><?= $stars ?></div>
-                <p style="font-size:.88rem;color:var(--sage);line-height:1.6;margin:0;">
-                  <?= nl2br(htmlspecialchars($review->comment)) ?>
+                <div class="stars"><?= $stars ?></div>
+                <p class="review-body<?= $isLong ? ' clamped' : '' ?>" id="body-<?= $cardId ?>">
+                  <?= nl2br(htmlspecialchars($commentText)) ?>
                 </p>
+                <?php if ($isLong): ?>
+                <button class="review-expand-btn" id="btn-<?= $cardId ?>"
+                  onclick="event.stopPropagation();toggleReview('<?= $cardId ?>')">Read more</button>
+                <?php endif; ?>
                 <?php if (!empty($review->reply)): ?>
-                <div style="margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-size:.82rem;line-height:1.6;">
-                  <strong style="display:block;margin-bottom:6px;color:#d4e4d4;">Admin reply:</strong>
-                  <?= nl2br(htmlspecialchars($review->reply)) ?>
+                <div class="review-reply-box">
+                  <span class="review-reply-label"><i class="fas fa-reply" style="margin-right:5px;font-size:.7rem;"></i>Admin reply</span>
+                  <p class="review-reply-text"><?= nl2br(htmlspecialchars($review->reply)) ?></p>
                 </div>
                 <?php endif; ?>
               </div>
@@ -1025,9 +1397,62 @@ $reviews = loadReviews();
     </div>
   </section>
 
-  <footer class="footer">
-    <img src="pci/Group_15.png" class="footer-logo">
-    <div class="brand"><span style="font-family: 'Playfair Display', serif; color: var(--deep); font-weight: 700;"> ZYTHERA </span></div>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="row gy-4">
+        <!-- Brand col -->
+        <div class="col-12 col-md-4 footer-col">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <img src="pci/Group_15.png" class="footer-logo-img" alt="Zythera logo">
+            <span class="footer-brand-name">ZYTHERA</span>
+          </div>
+          <p class="footer-tagline">Furniture crafted for lives that deserve stillness, beauty, and meaning.</p>
+          <div class="footer-social mt-3">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+        <!-- Navigate col -->
+        <div class="col-6 col-md-2 footer-col">
+          <p class="footer-col-title">Navigate</p>
+          <a href="website.php" class="footer-link">Home</a>
+          <a href="website.php#products" class="footer-link">Products</a>
+          <a href="about.php" class="footer-link">About</a>
+          <a href="website.php#contact" class="footer-link">Contact</a>
+          <?php if ($userEmail): ?>
+          <a href="profile.php" class="footer-link">My Profile</a>
+          <?php else: ?>
+          <a href="logsign.php" class="footer-link">Log In</a>
+          <?php endif; ?>
+        </div>
+        <!-- Contact col -->
+        <div class="col-6 col-md-3 footer-col">
+          <p class="footer-col-title">Contact Us</p>
+          <a href="tel:+639123456789" class="footer-link"><i class="fas fa-phone"></i>+63 912 345 6789</a>
+          <a href="mailto:zythera@gmail.com" class="footer-link"><i class="fas fa-envelope"></i>zythera@gmail.com</a>
+          <span class="footer-link" style="cursor:default;"><i class="fas fa-map-marker-alt"></i>123 Furniture St, Philippines</span>
+          <span class="footer-link" style="cursor:default;"><i class="fas fa-clock"></i>Mon–Sat, 9 AM – 6 PM</span>
+        </div>
+        <!-- Reviews anchor col -->
+        <div class="col-6 col-md-3 footer-col">
+          <p class="footer-col-title">More</p>
+          <a href="website.php#reviews" class="footer-link">Customer Reviews</a>
+          <a href="website.php#contact" class="footer-link">Send a Message</a>
+          <?php if ($userEmail && $userRole !== 'admin'): ?>
+          <a href="orders.php" class="footer-link">My Orders</a>
+          <?php endif; ?>
+          <?php if ($userRole === 'admin'): ?>
+          <a href="admin.php" class="footer-link">Admin Panel</a>
+          <?php endif; ?>
+        </div>
+      </div>
+      <hr class="footer-divider">
+      <div class="footer-bottom">
+        <span class="footer-bottom-text">&copy; <?= date('Y') ?> ZYTHERA. All rights reserved.</span>
+        <span class="footer-bottom-text">Crafted with care in the Philippines.</span>
+      </div>
+    </div>
   </footer>
   <!-- ── CART SLIDE-OUT PANEL — hidden for admin ── -->
   <?php if ($userRole !== 'admin'): ?>
@@ -1155,6 +1580,28 @@ $reviews = loadReviews();
     $toastType = 'success';
     include __DIR__ . '/includes/_toast.php';
   endif; ?>
+
+  <!-- Edit Review Modal -->
+  <div class="review-edit-modal-bg" id="editReviewModalBg" onclick="closeEditReview()">
+    <div class="review-edit-modal" onclick="event.stopPropagation()">
+      <h5><i class="fas fa-pencil-alt me-2" style="font-size:.9rem;"></i>Edit Your Review</h5>
+      <div class="review-edit-stars" id="editStars">
+        <span data-val="1">★</span>
+        <span data-val="2">★</span>
+        <span data-val="3">★</span>
+        <span data-val="4">★</span>
+        <span data-val="5">★</span>
+      </div>
+      <textarea id="editReviewText" maxlength="500"
+        placeholder="Share your experience with this furniture..." rows="4"
+        oninput="updateEditCharCount()"></textarea>
+      <div class="review-char-count" id="editCharCount">0 / 500</div>
+      <div class="review-edit-modal-actions">
+        <button class="btn-cancel-review" onclick="closeEditReview()">Cancel</button>
+        <button class="btn-save-review" id="saveReviewBtn" onclick="saveEditReview()">Save Changes</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -1469,9 +1916,30 @@ $reviews = loadReviews();
       });
     });
 
+  // ── Three-dot menu toggle ──
+  function toggleReviewMenu(cardId) {
+    var menu = document.getElementById('menu-' + cardId);
+    if (!menu) return;
+    var isOpen = menu.classList.contains('open');
+    // Close all open menus first
+    document.querySelectorAll('.review-dropdown.open').forEach(function(m) {
+      m.classList.remove('open');
+    });
+    if (!isOpen) menu.classList.add('open');
+  }
+
+  // Close menus when clicking outside
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.review-dropdown.open').forEach(function(m) {
+      m.classList.remove('open');
+    });
+  });
+
   // ── Delete own review ──
   function deleteMyReview(reviewId) {
     if (!reviewId) return;
+    // Close any open dropdown
+    document.querySelectorAll('.review-dropdown.open').forEach(function(m) { m.classList.remove('open'); });
     if (!confirm('Delete your review? This cannot be undone.')) return;
     fetch('admin_action.php?delete_review=' + encodeURIComponent(reviewId))
       .then(r => r.json())
@@ -1485,7 +1953,110 @@ $reviews = loadReviews();
       }).catch(() => alert('Network error. Please try again.'));
   }
 
-  </script>
+  // ── Edit review modal ──
+  var _editReviewId   = 0;
+  var _editRating     = 5;
+
+  function openEditReview(reviewId, currentRating, currentComment) {
+    document.querySelectorAll('.review-dropdown.open').forEach(function(m) { m.classList.remove('open'); });
+    _editReviewId = reviewId;
+    _editRating   = currentRating || 5;
+
+    var ta = document.getElementById('editReviewText');
+    if (ta) {
+      ta.value = currentComment || '';
+      updateEditCharCount();
+    }
+    setEditStars(_editRating);
+    document.getElementById('editReviewModalBg').classList.add('open');
+    if (ta) setTimeout(function() { ta.focus(); }, 80);
+  }
+
+  function closeEditReview() {
+    document.getElementById('editReviewModalBg').classList.remove('open');
+  }
+
+  function setEditStars(val) {
+    _editRating = val;
+    document.querySelectorAll('#editStars span').forEach(function(s) {
+      s.classList.toggle('lit', parseInt(s.dataset.val) <= val);
+    });
+  }
+
+  document.querySelectorAll('#editStars span').forEach(function(s) {
+    s.addEventListener('click', function() { setEditStars(parseInt(this.dataset.val)); });
+    s.addEventListener('mouseover', function() {
+      document.querySelectorAll('#editStars span').forEach(function(x) {
+        x.classList.toggle('lit', parseInt(x.dataset.val) <= parseInt(s.dataset.val));
+      });
+    });
+  });
+  var editStarsEl = document.getElementById('editStars');
+  if (editStarsEl) {
+    editStarsEl.addEventListener('mouseleave', function() { setEditStars(_editRating); });
+  }
+
+  function updateEditCharCount() {
+    var ta    = document.getElementById('editReviewText');
+    var cc    = document.getElementById('editCharCount');
+    if (!ta || !cc) return;
+    var len   = ta.value.length;
+    cc.textContent = len + ' / 500';
+    cc.classList.toggle('over', len > 500);
+  }
+
+  function saveEditReview() {
+    var ta  = document.getElementById('editReviewText');
+    var btn = document.getElementById('saveReviewBtn');
+    if (!ta) return;
+    var comment = ta.value.trim();
+    if (!comment) { showToast('Review text cannot be empty.', 'error'); return; }
+    if (comment.length > 500) { showToast('Review must be 500 characters or fewer.', 'error'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    var body = 'edit_review=1&review_id=' + encodeURIComponent(_editReviewId) +
+               '&rating='    + encodeURIComponent(_editRating) +
+               '&comment='   + encodeURIComponent(comment);
+
+    fetch('admin_action.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body
+    }).then(r => r.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+        if (data.success) {
+          showToast('Review updated!');
+          closeEditReview();
+          setTimeout(() => location.reload(), 900);
+        } else {
+          showToast(data.message || 'Could not save review.', 'error');
+        }
+      }).catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+        showToast('Network error. Try again.', 'error');
+      });
+  }
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeEditReview();
+  });
+
+  // ── Expand / collapse long review text ──
+  function toggleReview(cardId) {
+    var body = document.getElementById('body-' + cardId);
+    var btn  = document.getElementById('btn-'  + cardId);
+    if (!body || !btn) return;
+    var isCollapsed = body.classList.contains('clamped');
+    body.classList.toggle('clamped', !isCollapsed);
+    btn.textContent = isCollapsed ? 'Show less' : 'Read more';
+  }</script>
 </body>
 
 </html>

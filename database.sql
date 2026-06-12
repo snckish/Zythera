@@ -11,20 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE DATABASE IF NOT EXISTS system_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE system_db;
-
--- USERS TABLE
-CREATE TABLE IF NOT EXISTS users (
-    email VARCHAR(191) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('user', 'admin') DEFAULT 'user',
-    profile_pic LONGTEXT DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- INVENTORY TABLE (moved up before carts and order_items)
+-- INVENTORY TABLE
 CREATE TABLE IF NOT EXISTS inventory (
     inv_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -224,20 +211,6 @@ CREATE TABLE IF NOT EXISTS inventory (
     category VARCHAR(50) DEFAULT 'Sofa',
     image VARCHAR(255) DEFAULT ''
 ) ENGINE=InnoDB;
-INSERT INTO inventory (name, size, color, price, description, stock, category, image) VALUES
--- INVENTORY TABLE
-CREATE TABLE IF NOT EXISTS inventory (
-    inv_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    size VARCHAR(100) DEFAULT '',
-    color VARCHAR(100) DEFAULT '',
-    price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    description TEXT DEFAULT NULL,
-    stock INT NOT NULL DEFAULT 0,
-    category VARCHAR(50) DEFAULT 'Sofa',
-    image VARCHAR(255) DEFAULT ''
-) ENGINE=InnoDB;
-
 
 INSERT INTO inventory (name, size, color, price, description, stock, category, image) VALUES
 

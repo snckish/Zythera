@@ -321,11 +321,35 @@ body.dark .stock-badge   { background: #2d5a2d !important; color: #d4e4d4 !impor
 /* ── 12. Reviews ── */
 body.dark .review-item {
   background: #1a3a1a !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,.35) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.45) !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
 }
-body.dark .review-item p { color: #b0ccb0 !important; }
+body.dark .review-item.own-review {
+  outline-color: rgba(168,212,168,.45) !important;
+}
+body.dark .review-body { color: #c8dfc8 !important; }
+body.dark .review-expand-btn { color: rgba(200,230,200,.6) !important; }
+body.dark .review-expand-btn:hover { color: #fff !important; }
+body.dark .review-reply-box {
+  background: rgba(255,255,255,.07) !important;
+  border-left-color: rgba(168,212,168,.3) !important;
+}
+body.dark .review-reply-label { color: #a8d4a8 !important; }
+body.dark .review-reply-text  { color: rgba(255,255,255,.8) !important; }
 body.dark .scroll-btn    { background: #1e3a1e !important; color: #a8d4a8 !important; }
 body.dark .scroll-btn:hover { background: #2d5a2d !important; color: #fff !important; }
+
+/* ── Dark toggle button on website.php ── */
+body.dark .dark-toggle-btn {
+  border-color: rgba(168,212,168,.4) !important;
+  color: #a8d4a8 !important;
+  background: transparent !important;
+}
+body.dark .dark-toggle-btn:hover {
+  background: rgba(168,212,168,.12) !important;
+  color: #fff !important;
+  border-color: rgba(168,212,168,.65) !important;
+}
 
 /* ── 13. Contact ── */
 body.dark .contact-card { background: #1e3a1e !important; }
@@ -550,3 +574,75 @@ body.dark #darkToggle:hover { background: rgba(255,255,255,.1) !important; }
 
 /* ── Anti-flash: applied to <html> immediately via inline script before CSS loads ── */
 html.zd body { background: #111e11 !important; }
+/* ── ZYTHERA dark-mode additions (UI/UX overhaul) ── */
+
+/* New navbar user capsule */
+body.dark .nav-user-capsule {
+  background: rgba(168,212,168,.12) !important;
+  border-color: rgba(168,212,168,.2) !important;
+}
+
+/* New site-footer (website.php) */
+body.dark .site-footer {
+  background: #080f08 !important;
+}
+body.dark .site-footer .footer-brand-name { color: #fff !important; }
+body.dark .site-footer .footer-tagline    { color: rgba(168,212,168,.5) !important; }
+body.dark .site-footer .footer-col-title  { color: rgba(168,212,168,.35) !important; }
+body.dark .site-footer .footer-link       { color: rgba(168,212,168,.6) !important; }
+body.dark .site-footer .footer-link:hover { color: #fff !important; }
+body.dark .site-footer .footer-divider    { border-color: rgba(255,255,255,.06) !important; }
+body.dark .site-footer .footer-bottom-text { color: rgba(168,212,168,.3) !important; }
+body.dark .site-footer .footer-social a   { background: rgba(255,255,255,.06) !important; color: rgba(168,212,168,.6) !important; }
+body.dark .site-footer .footer-social a:hover { background: #2d5a2d !important; color: #fff !important; }
+
+/* About-footer (about.php) */
+body.dark .about-footer { background: #080f08 !important; }
+
+/* Product card inner text in dark mode */
+body.dark .product-card .p-4 .small.text-muted { color: #a8c8a8 !important; }
+body.dark .product-card .p-4 .small.text-dark  { color: #c8e0c8 !important; }
+
+/* Input floating label background fix in dark mode */
+body.dark .input-box input:focus ~ label,
+body.dark .input-box input:not(:placeholder-shown) ~ label,
+body.dark .input-box textarea:focus ~ label,
+body.dark .input-box textarea:not(:placeholder-shown) ~ label {
+  background: #1e3a1e !important;
+  color: #a8d4a8 !important;
+}
+
+/* Review edit modal dark mode */
+body.dark .review-edit-modal {
+  background: #1e3a1e !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+}
+body.dark .review-edit-modal h5         { color: #a8d4a8 !important; }
+body.dark .review-edit-modal textarea   { background: rgba(255,255,255,.07) !important; border-color: rgba(168,212,168,.25) !important; color: #f5fbf5 !important; }
+body.dark .review-edit-modal textarea:focus { border-color: #6db86d !important; }
+body.dark .review-char-count            { color: rgba(168,212,168,.55) !important; }
+body.dark .review-char-count.over       { color: #fca5a5 !important; }
+body.dark .btn-cancel-review            { background: #2a4a2a !important; color: #c8e0c8 !important; }
+body.dark .btn-save-review              { background: #2d5a2d !important; color: #fff !important; }
+body.dark .review-edit-modal-bg         { background: rgba(0,0,0,.65) !important; }
+
+/* Review three-dot menu dropdown in dark mode */
+body.dark .review-dropdown {
+  background: #1e3a1e !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,.5) !important;
+}
+body.dark .review-dropdown button       { color: #c8e0c8 !important; }
+body.dark .review-dropdown button:hover { background: rgba(255,255,255,.06) !important; }
+body.dark .review-dropdown button.danger       { color: #fca5a5 !important; }
+body.dark .review-dropdown button.danger:hover { background: rgba(220,38,38,.15) !important; }
+
+/* Dropdown menu border-radius override */
+body.dark .dropdown-menu { border-radius: 14px !important; }
+
+/* Nav underline indicator off in dark */
+body.dark .nav-link::after { background: #a8d4a8 !important; }
+
+/* Ensure toast stays readable */
+body.dark .toast-fixed       { background: #2d5a2d !important; color: #fff !important; }
+body.dark .toast-fixed.error { background: #7a1a1a !important; }

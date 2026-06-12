@@ -144,6 +144,49 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
       .metric-item h3 { font-size: 1.9rem; }
       .team-photo-card img { height: 240px; }
     }
+
+    /* ── FOOTER ── */
+    .about-footer {
+      background: var(--deep);
+      padding: 56px 0 0;
+      margin-top: 0;
+    }
+    .about-footer-col-title {
+      font-size: .7rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(212,228,212,.4);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+    .about-footer-link {
+      display: block;
+      color: rgba(212,228,212,.65);
+      text-decoration: none;
+      font-size: .84rem;
+      padding: 5px 0;
+      transition: color .15s;
+    }
+    .about-footer-link:hover { color: #fff; }
+    .about-footer-social {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.07);
+      color: rgba(212,228,212,.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .82rem;
+      text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .about-footer-social:hover { background: var(--green); color: #fff; }
+
+    /* ── Dark mode footer ── */
+    body.dark .about-footer { background: #0a140a !important; }
+    body.dark .about-footer * { color: rgba(212,228,212,.65) !important; }
+    body.dark .about-footer .about-footer-link:hover,
+    body.dark .about-footer .about-footer-social:hover { color: #fff !important; }
   </style>
 <script>
 /* ZYTHERA dark mode — apply before paint to prevent flash */
@@ -375,5 +418,57 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   </section>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <footer class="about-footer">
+    <div class="container">
+      <div class="row gy-4">
+        <div class="col-12 col-md-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <img src="pci/Group_15.png" style="width:26px;opacity:.75;" alt="Zythera logo">
+            <span style="font-family:'Playfair Display',serif;font-size:1.35rem;color:#fff;letter-spacing:2px;font-weight:700;">ZYTHERA</span>
+          </div>
+          <p style="font-size:.82rem;color:rgba(212,228,212,.55);line-height:1.75;max-width:210px;margin-top:8px;">Furniture crafted for lives that deserve stillness, beauty, and meaning.</p>
+          <div class="d-flex gap-2 mt-3">
+            <a href="#" class="about-footer-social" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="about-footer-social" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="about-footer-social" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+        <div class="col-6 col-md-2">
+          <p class="about-footer-col-title">Navigate</p>
+          <a href="website.php" class="about-footer-link">Home</a>
+          <a href="website.php#products" class="about-footer-link">Products</a>
+          <a href="about.php" class="about-footer-link">About</a>
+          <a href="website.php#contact" class="about-footer-link">Contact</a>
+        </div>
+        <div class="col-6 col-md-3">
+          <p class="about-footer-col-title">Contact Us</p>
+          <a href="tel:+639123456789" class="about-footer-link"><i class="fas fa-phone me-2" style="font-size:.75rem;opacity:.55;"></i>+63 912 345 6789</a>
+          <a href="mailto:zythera@gmail.com" class="about-footer-link"><i class="fas fa-envelope me-2" style="font-size:.75rem;opacity:.55;"></i>zythera@gmail.com</a>
+          <span class="about-footer-link" style="cursor:default;"><i class="fas fa-map-marker-alt me-2" style="font-size:.75rem;opacity:.55;"></i>123 Furniture St, Philippines</span>
+        </div>
+        <div class="col-6 col-md-3">
+          <p class="about-footer-col-title">Account</p>
+          <?php if ($userEmail): ?>
+          <a href="profile.php" class="about-footer-link">My Profile</a>
+          <?php if ($userRole !== 'admin'): ?>
+          <a href="orders.php" class="about-footer-link">My Orders</a>
+          <?php endif; ?>
+          <?php if ($userRole === 'admin'): ?>
+          <a href="admin.php" class="about-footer-link">Admin Panel</a>
+          <?php endif; ?>
+          <?php else: ?>
+          <a href="logsign.php" class="about-footer-link">Log In</a>
+          <a href="logsign.php" class="about-footer-link">Sign Up</a>
+          <?php endif; ?>
+        </div>
+      </div>
+      <hr style="border-color:rgba(255,255,255,.08);margin:40px 0 0;">
+      <div style="padding:18px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <span style="font-size:.77rem;color:rgba(212,228,212,.35);">&copy; <?= date('Y') ?> ZYTHERA. All rights reserved.</span>
+        <span style="font-size:.77rem;color:rgba(212,228,212,.35);">Crafted with care in the Philippines.</span>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
