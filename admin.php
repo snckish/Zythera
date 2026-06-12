@@ -652,112 +652,83 @@ if ($adminRole !== 'admin') {
             background: #1e3a1e !important;
         }
 
-        /* ── LOGOUT MODAL STYLES ── */
-.logout-modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.6);
-  z-index: 10000;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-}
+  /* ── LOGOUT CONFIRMATION MODAL ── */   /* ── LOGOUT CONFIRMATION MODAL ── */
+    .logout-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(3px);
+    }
+    .logout-modal-overlay.active { display: flex; }
 
-.logout-modal-overlay.active { 
-  display: flex; 
-}
+    .logout-modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 28px;
+      width: min(420px, calc(100vw - 32px));
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      text-align: center;
+      animation: slideDown .3s ease-out;
+    }
 
-.logout-modal {
-  background: #fff;
-  border-radius: 20px;
-  padding: 40px 32px;
-  width: min(420px, calc(100vw - 32px));
-  box-shadow: 0 20px 60px rgba(0,0,0,.3), 0 0 1px rgba(0,0,0,.1);
-  text-align: center;
-  animation: slideDown .35s cubic-bezier(.34,1.56,.64,1);
-  transform-origin: top center;
-}
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+    .logout-modal h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--deep);
+      font-size: 1.3rem;
+      margin: 0 0 12px 0;
+      font-weight: 700;
+    }
 
-.logout-modal-icon {
-  font-size: 2.8rem;
-  color: var(--green);
-  margin-bottom: 20px;
-  display: block;
-  animation: iconPulse .5s ease-out;
-}
+    .logout-modal p {
+      color: #666;
+      font-size: .95rem;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
 
-@keyframes iconPulse {
-  from { transform: scale(.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
+    .logout-modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
 
-.logout-modal h3 {
-  font-family: 'Playfair Display', serif;
-  color: var(--deep);
-  font-size: 1.5rem;
-  margin: 0 0 12px 0;
-  font-weight: 700;
-  letter-spacing: .5px;
-}
+    .logout-modal-buttons button {
+      padding: 12px 28px;
+      border-radius: 50px;
+      border: none;
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: .2s ease;
+      font-family: var(--ui-font);
+    }
 
-.logout-modal p {
-  color: #666;
-  font-size: .95rem;
-  margin: 0 0 28px 0;
-  line-height: 1.6;
-}
-
-.logout-modal-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.logout-modal-buttons button {
-  padding: 12px 32px;
-  border-radius: 50px;
-  border: none;
-  font-weight: 600;
-  font-size: .9rem;
-  cursor: pointer;
-  transition: all .2s ease;
-  font-family: var(--ui-font);
-  min-width: 110px;
-}
-
-.logout-cancel-btn {
-  background: #f0ece4;
-  color: #555;
-  border: 1px solid #e8e4dc;
-}
-
-.logout-cancel-btn:hover {
-  background: var(--green);
-  border-color: #ddd3c8;
-  transform: translateY(-1px);
-}
-
-.logout-cancel-btn:active {
-  transform: translateY(0);
-}
+    .logout-cancel-btn {
+      background: #f0ece4;
+      color: #555;
+    }
+    .logout-cancel-btn:hover {
+      background: #e2ddd4;
+    }
 
     .logout-confirm-btn {
-      background: var(--dark--green);
-      color: #555;
+      background: var(--green);
+      color: #fff;
       min-width: 120px;
     }
     .logout-confirm-btn:hover {
@@ -766,39 +737,6 @@ if ($adminRole !== 'admin') {
     .logout-confirm-btn:active {
       transform: scale(0.98);
     }
-
-/* Dark Mode Support */
-body.dark .logout-modal {
-  background: #1f2937;
-  box-shadow: 0 20px 60px rgba(0,0,0,.7);
-}
-
-body.dark .logout-modal h3 {
-  color: #ffffff;
-}
-
-body.dark .logout-modal p {
-  color: #d1d5db;
-}
-
-body.dark .logout-cancel-btn {
-  background: #374151;
-  color: #e5e7eb;
-  border-color: #4b5563;
-}
-
-body.dark .logout-cancel-btn:hover {
-  background: #4b5563;
-  border-color: #6b7280;
-}
-
-body.dark .logout-confirm-btn {
-  background: var(--green);
-}
-
-body.dark .logout-confirm-btn:hover {
-  background: var(--deep);
-}
     </style>
 <script>
 /* ZYTHERA dark mode — apply before paint to prevent flash */
@@ -816,9 +754,10 @@ body.dark .logout-confirm-btn:hover {
 <body>
 
 <!-- ── LOGOUT MODAL ── -->
+
 <div id="logoutModalOverlay" class="logout-modal-overlay">
     <div class="logout-modal">
-        <h3>Confirm Logout</h3>
+        <h2>Confirm Log Out</h2>
         <p>Are you sure you want to logout from your admin account? You'll need to log in again to access the admin panel.</p>
         <div class="logout-modal-buttons">
             <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">

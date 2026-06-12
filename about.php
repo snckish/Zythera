@@ -76,8 +76,27 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
 
     .navbar { background: #fff !important; box-shadow: 0 1px 12px rgba(0,0,0,.07); }
     .navbar-brand { font-family: var(--logo-font); color: var(--green) !important; font-size: 1.55rem; letter-spacing: 2px; }
-    .nav-link { font-weight: 500; color: #444 !important; font-size: .9rem; }
+    .nav-link {
+      font-weight: 500;
+      color: #555 !important;
+      font-size: .875rem;
+      letter-spacing: .2px;
+      padding: 6px 4px !important;
+      position: relative;
+      transition: color var(--transition);
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--green);
+      border-radius: 2px;
+      transform: scaleX(0);
+      transition: transform var(--transition);
+    }
     .nav-link:hover { color: var(--green) !important; }
+    .nav-link:hover::after { transform: scaleX(1); }
 
     /* User capsule in nav */
     .nav-user-capsule {
@@ -135,8 +154,14 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
     }
 
     @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .logout-modal h2 {
@@ -154,19 +179,13 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
       line-height: 1.5;
     }
 
-    body.dark .logout-modal { background: #1f2937; }
-    body.dark .logout-modal h2 { color: #a8d4a8; }
-    body.dark .logout-modal p { color: #cbd5e1; }
-    body.dark .logout-btn-cancel { background: #2d3748; color: #cbd5e1; }
-    body.dark .logout-btn-cancel:hover { background: #374151; }
-
-    .logout-modal-actions {
+    .logout-modal-buttons {
       display: flex;
       gap: 12px;
       justify-content: center;
     }
 
-    .logout-modal-actions button {
+    .logout-modal-buttons button {
       padding: 12px 28px;
       border-radius: 50px;
       border: none;
@@ -177,12 +196,25 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
       font-family: var(--ui-font);
     }
 
-    .logout-btn-cancel { background: #f0ece4; color: #555; }
-    .logout-btn-cancel:hover { background: #e2ddd4; }
+    .logout-cancel-btn {
+      background: #f0ece4;
+      color: #555;
+    }
+    .logout-cancel-btn:hover {
+      background: #e2ddd4;
+    }
 
-    .logout-btn-confirm { background: var(--green); color: #fff; min-width: 120px; }
-    .logout-btn-confirm:hover { background: var(--deep); }
-    .logout-btn-confirm:active { transform: scale(0.98); }
+    .logout-confirm-btn {
+      background: var(--green);
+      color: #fff;
+      min-width: 120px;
+    }
+    .logout-confirm-btn:hover {
+      background: var(--deep);
+    }
+    .logout-confirm-btn:active {
+      transform: scale(0.98);
+    }
 
     .about-hero { background: var(--deep); color: #fff; padding: 5rem 0 4rem; position: relative; overflow: hidden; }
     .about-hero::after { content: ''; position: absolute; inset: 0; background: url('pci/download_(4).jpeg') center/cover no-repeat; opacity: .18; z-index: 0; }
@@ -558,6 +590,21 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
       const overlay = document.getElementById('logoutModalOverlay');
       if (overlay && e.target === overlay) closeLogoutModal(e);
     });
+
+    // ── Live time update for nav-user-capsule ──
+    function updateTime() {
+      const el = document.getElementById('liveTime');
+      if (el) el.textContent = new Date().toLocaleString('en-PH', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
   </script>
 
   <footer class="about-footer">

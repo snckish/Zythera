@@ -200,7 +200,7 @@ function getStepIndex(string $status): int {
   <div class="ms-auto d-flex gap-2 align-items-center">
     <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
     <a href="profile.php" class="btn btn-sm btn-light rounded-pill">My Profile</a>
-    <a href="logout.php" class="btn btn-sm btn-danger rounded-pill">Logout</a>
+    <a href="javascript:void(0)" onclick="openLogoutModal()" class="btn btn-sm btn-danger rounded-pill">Logout</a>
   </div>
 </nav>
 <div style="height:60px;"></div>
