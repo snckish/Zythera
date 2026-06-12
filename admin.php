@@ -651,6 +651,154 @@ if ($adminRole !== 'admin') {
         body.dark div[style*="background: var(--sage-light)"] {
             background: #1e3a1e !important;
         }
+
+        /* ── LOGOUT MODAL STYLES ── */
+.logout-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.logout-modal-overlay.active { 
+  display: flex; 
+}
+
+.logout-modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 32px;
+  width: min(420px, calc(100vw - 32px));
+  box-shadow: 0 20px 60px rgba(0,0,0,.3), 0 0 1px rgba(0,0,0,.1);
+  text-align: center;
+  animation: slideDown .35s cubic-bezier(.34,1.56,.64,1);
+  transform-origin: top center;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.logout-modal-icon {
+  font-size: 2.8rem;
+  color: var(--green);
+  margin-bottom: 20px;
+  display: block;
+  animation: iconPulse .5s ease-out;
+}
+
+@keyframes iconPulse {
+  from { transform: scale(.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.logout-modal h3 {
+  font-family: 'Playfair Display', serif;
+  color: var(--deep);
+  font-size: 1.5rem;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+.logout-modal p {
+  color: #666;
+  font-size: .95rem;
+  margin: 0 0 28px 0;
+  line-height: 1.6;
+}
+
+.logout-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.logout-modal-buttons button {
+  padding: 12px 32px;
+  border-radius: 50px;
+  border: none;
+  font-weight: 600;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: all .2s ease;
+  font-family: var(--ui-font);
+  min-width: 110px;
+}
+
+.logout-cancel-btn {
+  background: #f0ece4;
+  color: #555;
+  border: 1px solid #e8e4dc;
+}
+
+.logout-cancel-btn:hover {
+  background: var(--green);
+  border-color: #ddd3c8;
+  transform: translateY(-1px);
+}
+
+.logout-cancel-btn:active {
+  transform: translateY(0);
+}
+
+    .logout-confirm-btn {
+      background: var(--dark--green);
+      color: #555;
+      min-width: 120px;
+    }
+    .logout-confirm-btn:hover {
+      background: var(--deep);
+    }
+    .logout-confirm-btn:active {
+      transform: scale(0.98);
+    }
+
+/* Dark Mode Support */
+body.dark .logout-modal {
+  background: #1f2937;
+  box-shadow: 0 20px 60px rgba(0,0,0,.7);
+}
+
+body.dark .logout-modal h3 {
+  color: #ffffff;
+}
+
+body.dark .logout-modal p {
+  color: #d1d5db;
+}
+
+body.dark .logout-cancel-btn {
+  background: #374151;
+  color: #e5e7eb;
+  border-color: #4b5563;
+}
+
+body.dark .logout-cancel-btn:hover {
+  background: #4b5563;
+  border-color: #6b7280;
+}
+
+body.dark .logout-confirm-btn {
+  background: var(--green);
+}
+
+body.dark .logout-confirm-btn:hover {
+  background: var(--deep);
+}
     </style>
 <script>
 /* ZYTHERA dark mode — apply before paint to prevent flash */
@@ -666,6 +814,22 @@ if ($adminRole !== 'admin') {
 </script>
 </head>
 <body>
+
+<!-- ── LOGOUT MODAL ── -->
+<div id="logoutModalOverlay" class="logout-modal-overlay">
+    <div class="logout-modal">
+        <h3>Confirm Logout</h3>
+        <p>Are you sure you want to logout from your admin account? You'll need to log in again to access the admin panel.</p>
+        <div class="logout-modal-buttons">
+            <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">
+                Stay
+            </button>
+            <button type="button" class="logout-confirm-btn" onclick="performLogout()">
+                Logout
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- ── SIDEBAR ── -->
 <div class="sidebar" id="adminSidebar">
@@ -734,7 +898,7 @@ $adminPic = getAvatarURL($adminData->profile_pic ?? null, $adminEmail ?? null, $
         <div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-bottom:10px;">
             <i class="fas fa-user-shield me-2"></i><?= htmlspecialchars($adminName) ?>
         </div>
-        <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <a href="javascript:void(0)" onclick="openLogoutModal()"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 </div>
 
@@ -1721,6 +1885,48 @@ window.addEventListener('DOMContentLoaded', () => {
     const countEl = document.getElementById('result-count');
     if (countEl) countEl.textContent = `(${total} total)`;
 });
+
+// ── Logout modal functions ──
+function openLogoutModal() {
+  const overlay = document.getElementById('logoutModalOverlay');
+  if (overlay) {
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeLogoutModal(event) {
+  const overlay = document.getElementById('logoutModalOverlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+function performLogout() {
+  const confirmBtn = document.querySelector('.logout-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Logging out...';
+  }
+  window.location.href = 'logout.php';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeLogoutModal();
+  }
+});
+
+// Close modal on outside click
+document.addEventListener('click', function(e) {
+  const overlay = document.getElementById('logoutModalOverlay');
+  if (overlay && e.target === overlay) {
+    closeLogoutModal(e);
+  }
+});
+
 </script>
 
 </body>

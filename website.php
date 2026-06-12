@@ -202,15 +202,42 @@ $reviews = loadReviews();
     .nav-link:hover::after { transform: scaleX(1); }
 
     /* User capsule in nav */
-    .nav-user-capsule {
-      display: flex;
-      align-items: center;
-      background: var(--sage);
-      border-radius: 50px;
-      padding: 4px 14px 4px 8px;
-      gap: 8px;
-      border: 1px solid rgba(45,90,45,.12);
-    }
+   .nav-user-capsule {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 50px;
+  padding: 6px 12px 6px 6px;
+  gap: 8px;
+  border: 1px solid rgba(45,90,45,.12);
+  transition: all var(--transition);
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+
+.nav-user-capsule:hover {
+  border-color: rgba(45,90,45,.25);
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.nav-user-capsule img {
+  border: 2.5px solid rgba(45,90,45,.15);
+  transition: border-color var(--transition);
+}
+
+.nav-user-capsule:hover img {
+  border-color: rgba(45,90,45,.3);
+}
+
+/* Dark Mode Support */
+body.dark .nav-user-capsule {
+  background: #1f2937;
+  border-color: rgba(168,212,168,.15);
+}
+
+body.dark .nav-user-capsule:hover {
+  background: #2d3748;
+  border-color: rgba(168,212,168,.3);
+}
 
     /* ── DARK MODE TOGGLE ── */
     .dark-toggle-btn {
@@ -612,89 +639,235 @@ $reviews = loadReviews();
     }
 
     /* Edit review modal */
-    .review-edit-modal-bg {
+/* ── Review Edit Modal ── */
+.review-edit-modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 5000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.review-edit-modal-bg.active {
+  display: flex;
+}
+
+.review-edit-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  width: min(480px, calc(100vw - 32px));
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  animation: slideDown .35s cubic-bezier(.34,1.56,.64,1);
+}
+
+.review-edit-modal h5 {
+  color: var(--deep);
+  font-weight: 700;
+  margin-bottom: 18px;
+  font-size: 1.1rem;
+}
+
+.review-edit-stars {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.review-edit-stars span {
+  font-size: 1.8rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.review-edit-stars span:hover,
+.review-edit-stars span.selected {
+  color: #fbbf24;
+  transform: scale(1.15);
+}
+
+.review-edit-modal textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: var(--text-font);
+  font-size: .9rem;
+  resize: vertical;
+  margin-bottom: 6px;
+}
+
+.review-edit-modal textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(45,90,45,.1);
+}
+
+.review-char-count {
+  font-size: .8rem;
+  color: #999;
+  margin-bottom: 16px;
+  text-align: right;
+}
+
+.review-edit-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.review-edit-modal-actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.btn-cancel-review {
+  background: #f0ece4;
+  color: #555;
+}
+
+.btn-cancel-review:hover {
+  background: #e8ddd4;
+}
+
+.btn-save-review {
+  background: var(--green);
+  color: white;
+}
+
+.btn-save-review:hover {
+  background: #1e4d1e;
+}
+
+/* Dark Mode */
+body.dark .review-edit-modal {
+  background: #1f2937;
+}
+
+body.dark .review-edit-modal h5 {
+  color: #ffffff;
+}
+
+body.dark .review-edit-modal textarea {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+body.dark .review-edit-modal textarea:focus {
+  border-color: var(--green);
+}
+    /* ── LOGOUT CONFIRMATION MODAL ── */
+    .logout-modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.5);
-      z-index: 9998;
+      background: rgba(0,0,0,.6);
+      z-index: 10000;
       align-items: center;
       justify-content: center;
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(3px);
     }
-    .review-edit-modal-bg.open { display: flex; }
+    .logout-modal-overlay.active { display: flex; }
 
-    .review-edit-modal {
+    .logout-modal {
       background: #fff;
       border-radius: 20px;
-      padding: 28px 26px 22px;
-      width: min(440px, calc(100vw - 32px));
-      box-shadow: 0 16px 48px rgba(0,0,0,.22);
-      position: relative;
+      padding: 32px 28px;
+      width: min(420px, calc(100vw - 32px));
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      text-align: center;
+      animation: slideDown .3s ease-out;
     }
-    .review-edit-modal h5 {
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logout-modal h2 {
       font-family: 'Playfair Display', serif;
-      color: var(--green);
-      margin-bottom: 18px;
-      font-size: 1.1rem;
+      color: var(--deep);
+      font-size: 1.3rem;
+      margin: 0 0 12px 0;
+      font-weight: 700;
     }
-    .review-edit-modal textarea {
-      width: 100%;
-      border: 2px solid var(--sage);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: .88rem;
-      font-family: var(--ui-font);
-      resize: vertical;
-      min-height: 110px;
-      max-height: 260px;
-      outline: none;
-      transition: border-color .2s;
-      box-sizing: border-box;
+
+    .logout-modal p {
+      color: #666;
+      font-size: .95rem;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
     }
-    .review-edit-modal textarea:focus { border-color: var(--green); }
-    .review-char-count {
-      font-size: .72rem;
-      color: #999;
-      text-align: right;
-      margin-top: 4px;
+
+    body.dark .logout-modal {
+      background: #1f2937;
     }
-    .review-char-count.over { color: #dc2626; font-weight: 600; }
-    .review-edit-stars { display: flex; gap: 6px; margin-bottom: 14px; }
-    .review-edit-stars span {
-      font-size: 1.4rem;
-      cursor: pointer;
-      color: #ddd;
-      transition: color .12s;
-      line-height: 1;
-      user-select: none;
+    body.dark .logout-modal h2 {
+      color: #a8d4a8;
     }
-    .review-edit-stars span.lit { color: #f5c842; }
-    .review-edit-modal-actions {
+    body.dark .logout-modal p {
+      color: #cbd5e1;
+    }
+    body.dark .logout-cancel-btn {
+      background: #2d3748;
+      color: #cbd5e1;
+    }
+    body.dark .logout-cancel-btn:hover {
+      background: #374151;
+    }
+
+    .logout-modal-buttons {
       display: flex;
-      gap: 10px;
-      margin-top: 16px;
-      justify-content: flex-end;
+      gap: 12px;
+      justify-content: center;
     }
-    .review-edit-modal-actions button {
-      padding: 9px 22px;
+
+    .logout-modal-buttons button {
+      padding: 12px 28px;
       border-radius: 50px;
       border: none;
       font-weight: 600;
-      font-size: .85rem;
+      font-size: .9rem;
       cursor: pointer;
-      transition: .2s;
+      transition: .2s ease;
+      font-family: var(--ui-font);
     }
-    .btn-save-review {
-      background: var(--green);
-      color: #fff;
-    }
-    .btn-save-review:hover { background: var(--deep); }
-    .btn-cancel-review {
+
+    .logout-cancel-btn {
       background: #f0ece4;
       color: #555;
     }
-    .btn-cancel-review:hover { background: #e2ddd4; }
+    .logout-cancel-btn:hover {
+      background: #e2ddd4;
+    }
+
+    .logout-confirm-btn {
+      background: var(--green);
+      color: #fff;
+      min-width: 120px;
+    }
+    .logout-confirm-btn:hover {
+      background: var(--deep);
+    }
+    .logout-confirm-btn:active {
+      transform: scale(0.98);
+    }
 
     .review-header {
       display: flex;
@@ -761,27 +934,28 @@ $reviews = loadReviews();
     .contact-card {
       background: #fff;
       border-radius: var(--radius-card);
-      padding: 36px;
+      padding: 48px;
       box-shadow: var(--shadow-card);
     }
 
     .input-box {
       position: relative;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .input-box input,
     .input-box textarea {
       width: 100%;
-      padding: 14px 16px;
+      padding: 16px 18px;
       border: 2px solid var(--sage);
       border-radius: 12px;
-      font-size: .875rem;
+      font-size: .95rem;
       background: var(--cream);
       outline: none;
       font-family: var(--ui-font);
       transition: border-color var(--transition), background var(--transition);
       color: #333;
+      letter-spacing: 0.3px;
     }
 
     .input-box input:focus,
@@ -792,13 +966,14 @@ $reviews = loadReviews();
 
     .input-box label {
       position: absolute;
-      top: 15px;
-      left: 16px;
-      font-size: .84rem;
+      top: 17px;
+      left: 18px;
+      font-size: .88rem;
       color: #999;
       pointer-events: none;
       transition: .2s;
       background: transparent;
+      font-weight: 500;
     }
 
     .input-box input:focus ~ label,
@@ -814,8 +989,9 @@ $reviews = loadReviews();
     }
 
     .input-box textarea {
-      min-height: 100px;
+      min-height: 140px;
       resize: none;
+      line-height: 1.6;
     }
 
     .social-icon {
@@ -987,13 +1163,6 @@ $reviews = loadReviews();
           <a href="#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
           <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
-          <button id="darkToggle" onclick="toggleDark()" class="dark-toggle-btn" title="Toggle dark mode" aria-label="Toggle dark mode">
-            <span class="dark-toggle-icon">
-              <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-              <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            </span>
-            <span class="dark-toggle-label" id="darkToggleLabel">Dark</span>
-          </button>
           <?php if ($userEmail): ?>
             <div class="nav-user-capsule">
               <div class="text-end d-none d-md-block">
@@ -1013,7 +1182,7 @@ $reviews = loadReviews();
                     <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2 text-muted" style="font-size:.85rem;"></i>Admin Panel</a></li>
                   <?php endif; ?>
                   <li><hr class="dropdown-divider my-1"></li>
-                  <li><a class="dropdown-item py-2 text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
+                  <li><a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="openLogoutModal()"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
                 </ul>
               </div>
             </div>
@@ -1348,10 +1517,10 @@ $reviews = loadReviews();
   <section class="section" id="contact">
     <div class="container">
       <h2 class="section-title text-center">Get in Touch</h2>
-      <div class="row g-4">
-        <div class="col-md-6">
+      <div class="row g-4 justify-content-center">
+        <div class="col-lg-8">
           <div class="contact-card">
-            <h5 class="fw-bold mb-4" style="font-family:'Playfair Display',serif;color:var(--green);">Message Us</h5>
+            <h5 class="fw-bold mb-5" style="font-family:'Playfair Display',serif;color:var(--green);font-size:1.5rem;">Message Us</h5>
             <?php if ($contactSuccess): ?>
             <?php elseif ($contactError): ?>
               <div style="background:#fee2e2;color:#b91c1c;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
@@ -1359,38 +1528,19 @@ $reviews = loadReviews();
               </div>
             <?php endif; ?>
             <form id="contactForm" method="POST" action="website.php#contact">
-              <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
-              <div class="input-box"><input type="email" name="c_email" placeholder=" " value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>" required><label>Email Address</label></div>
-              <div class="input-box"><input type="text" name="c_subject" placeholder=" " value="<?= htmlspecialchars($_POST['c_subject'] ?? '') ?>"><label>Subject</label></div>
-              <div class="input-box"><textarea name="c_message" placeholder=" " required><?= htmlspecialchars($_POST['c_message'] ?? '') ?></textarea><label>Your Message</label></div>
-              <button type="submit" name="send_message" class="btn w-100 fw-bold text-white rounded-pill py-2" style="background:var(--green);">Send Message</button>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
+                </div>
+                <div class="col-md-6">
+                  <div class="input-box"><input type="email" name="c_email" placeholder=" " value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>" required><label>Email Address</label></div>
+                </div>
+              </div>
+              <div class="input-box mt-3"><input type="text" name="c_subject" placeholder=" " value="<?= htmlspecialchars($_POST['c_subject'] ?? '') ?>"><label>Subject</label></div>
+              <div class="input-box mt-3"><textarea name="c_message" placeholder=" " required style="min-height:180px;"><?= htmlspecialchars($_POST['c_message'] ?? '') ?></textarea><label>Your Message</label></div>
+              <button type="submit" name="send_message" class="btn w-100 fw-bold text-white rounded-pill py-3 mt-4" style="background:var(--green);font-size:1rem;letter-spacing:0.5px;">Send Message</button>
             </form>
             <div id="contactToast" class="toast-fixed" aria-live="polite" aria-atomic="true"></div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="contact-card h-100 d-flex flex-column justify-content-center">
-            <h5 class="fw-bold mb-4" style="font-family:'Playfair Display',serif;color:var(--green);">Contact Info</h5>
-            <div class="mb-4">
-              <p class="text-uppercase small text-muted mb-1" style="letter-spacing:2px;font-size:.72rem;">Visit Us</p>
-              <p class="mb-0">123 Furniture Street, Modern City, Philippines</p>
-            </div>
-            <div class="mb-4">
-              <p class="text-uppercase small text-muted mb-1" style="letter-spacing:2px;font-size:.72rem;">Call Us</p>
-              <p class="mb-0">+63 912 345 6789 &nbsp;·&nbsp; +63 2 888 0000</p>
-            </div>
-            <div class="mb-4">
-              <p class="text-uppercase small text-muted mb-1" style="letter-spacing:2px;font-size:.72rem;">Email Us</p>
-              <p class="mb-0">zythera@gmail.com</p>
-            </div>
-
-            <p class="text-uppercase small text-muted mb-2" style="letter-spacing:2px;font-size:.72rem;">Follow Us</p>
-            <div class="d-flex gap-2">
-              <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
-              <div class="social-icon"><i class="fab fa-instagram"></i></div>
-              <div class="social-icon"><i class="fab fa-tiktok"></i></div>
-
-            </div>
           </div>
         </div>
       </div>
@@ -1580,6 +1730,22 @@ $reviews = loadReviews();
     $toastType = 'success';
     include __DIR__ . '/includes/_toast.php';
   endif; ?>
+
+  <!-- Logout Confirmation Modal -->
+<div id="logoutModalOverlay" class="logout-modal-overlay">
+    <div class="logout-modal">
+        <h2>Confirm Log Out</h2>
+        <p>Are you sure you want to log out of your account?</p>
+        <div class="logout-modal-buttons">
+            <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">
+                Stay
+            </button>
+            <button type="button" class="logout-confirm-btn" onclick="performLogout()">
+                Logout
+            </button>
+        </div>
+    </div>
+</div>
 
   <!-- Edit Review Modal -->
   <div class="review-edit-modal-bg" id="editReviewModalBg" onclick="closeEditReview()">
@@ -2056,7 +2222,199 @@ $reviews = loadReviews();
     var isCollapsed = body.classList.contains('clamped');
     body.classList.toggle('clamped', !isCollapsed);
     btn.textContent = isCollapsed ? 'Show less' : 'Read more';
-  }</script>
+  }
+
+  // ── Logout modal functions ──
+ function openLogoutModal() {
+  const overlay = document.getElementById('logoutModalOverlay');
+  if (overlay) {
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeLogoutModal(event) {
+  const overlay = document.getElementById('logoutModalOverlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+function performLogout() {
+  const confirmBtn = document.querySelector('.logout-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Logging out...';
+  }
+  window.location.href = 'logout.php';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeLogoutModal();
+  }
+});
+
+// Close modal on outside click
+document.addEventListener('click', function(e) {
+  const overlay = document.getElementById('logoutModalOverlay');
+  if (overlay && e.target === overlay) {
+    closeLogoutModal(e);
+  }
+});
+
+// ── Review Edit Functions ──
+let currentEditingReviewId = null;
+let currentEditingRating = 0;
+
+function openEditReview(reviewId, currentRating, currentComment) {
+  currentEditingReviewId = reviewId;
+  currentEditingRating = parseInt(currentRating) || 5;
+  
+  const modal = document.getElementById('editReviewModalBg');
+  const textarea = document.getElementById('editReviewText');
+  
+  if (modal && textarea) {
+    textarea.value = currentComment || '';
+    updateEditStars(currentEditingRating);
+    updateEditCharCount();
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+      textarea.focus();
+      textarea.select();
+    }, 100);
+  }
+}
+
+function closeEditReview() {
+  const modal = document.getElementById('editReviewModalBg');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    currentEditingReviewId = null;
+    currentEditingRating = 0;
+  }
+}
+
+function updateEditStars(rating) {
+  currentEditingRating = rating;
+  const stars = document.querySelectorAll('.review-edit-stars span');
+  stars.forEach((star, index) => {
+    if (index < rating) {
+      star.classList.add('selected');
+    } else {
+      star.classList.remove('selected');
+    }
+  });
+}
+
+function updateEditCharCount() {
+  const textarea = document.getElementById('editReviewText');
+  const charCount = document.getElementById('editCharCount');
+  
+  if (textarea && charCount) {
+    const length = textarea.value.length;
+    charCount.textContent = length + ' / 500';
+    
+    if (length > 450) {
+      charCount.style.color = '#dc2626';
+    } else if (length > 400) {
+      charCount.style.color = '#f59e0b';
+    } else {
+      charCount.style.color = '#999';
+    }
+  }
+}
+
+function saveEditReview() {
+  if (!currentEditingReviewId) {
+    alert('Error: No review selected');
+    return;
+  }
+  
+  const textarea = document.getElementById('editReviewText');
+  const comment = textarea.value.trim();
+  
+  if (!comment || comment.length < 1 || comment.length > 500) {
+    alert('Comment must be between 1 and 500 characters');
+    return;
+  }
+  
+  if (currentEditingRating < 1 || currentEditingRating > 5) {
+    alert('Please select a rating between 1 and 5 stars');
+    return;
+  }
+  
+  const saveBtn = document.getElementById('saveReviewBtn');
+  const originalText = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+  
+  fetch('admin_action.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      edit_review: '1',
+      review_id: currentEditingReviewId,
+      rating: currentEditingRating,
+      comment: comment
+    }),
+    credentials: 'same-origin'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Review updated successfully');
+      closeEditReview();
+      location.reload();
+    } else {
+      alert('Error: ' + (data.message || 'Could not update review'));
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error updating review. Please try again.');
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
+  });
+}
+
+// Setup edit stars click handlers
+document.addEventListener('DOMContentLoaded', function() {
+  const editStars = document.querySelectorAll('.review-edit-stars span');
+  editStars.forEach(star => {
+    star.addEventListener('click', function() {
+      const rating = this.getAttribute('data-val');
+      updateEditStars(rating);
+    });
+  });
+  
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeEditReview();
+    }
+  });
+  
+  const editModalBg = document.getElementById('editReviewModalBg');
+  if (editModalBg) {
+    editModalBg.addEventListener('click', function(e) {
+      if (e.target === editModalBg) {
+        closeEditReview();
+      }
+    });
+  }
+});
+
+</script>
 </body>
 
 </html>

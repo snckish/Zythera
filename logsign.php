@@ -527,7 +527,6 @@ function toggleDark(){
 <!-- TOP BAR -->
 <div class="top-bar">
   <a href="website.php" class="top-btn">Back to Home</a>
-  <button class="top-btn" id="darkToggle" onclick="toggleDark()">Dark Mode</button>
 </div>
 
 <!-- Session timer progress bar -->

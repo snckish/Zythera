@@ -4,6 +4,60 @@ ini_set('display_errors', 0); // Changed to 0 to prevent output in API responses
 
 include 'config.php';
 
+// ── Edit review (customer editing their own) ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_review'])) {
+    header('Content-Type: application/json');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+
+    try {
+        $reviewId = (int)($_POST['review_id'] ?? 0);
+        $rating   = (int)($_POST['rating'] ?? 5);
+        $comment  = trim($_POST['comment'] ?? '');
+        $userEmail = $_SESSION['logged_in_user'] ?? '';
+
+        if ($reviewId <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid review ID.']);
+            exit;
+        }
+
+        if ($rating < 1 || $rating > 5) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Rating must be between 1 and 5.']);
+            exit;
+        }
+
+        if ($comment === '' || strlen($comment) > 500) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Comment must be between 1 and 500 characters.']);
+            exit;
+        }
+
+        // Verify the review belongs to the current user
+        $db = getDBConnection();
+        $verifyStmt = $db->prepare("SELECT email FROM reviews WHERE review_id = ? LIMIT 1");
+        $verifyStmt->execute([$reviewId]);
+        $reviewRecord = $verifyStmt->fetch();
+
+        if (!$reviewRecord || $reviewRecord->email !== $userEmail) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'You can only edit your own reviews.']);
+            exit;
+        }
+
+        // Update the review
+        $updateStmt = $db->prepare("UPDATE reviews SET rating = ?, comment = ? WHERE review_id = ?");
+        $updateStmt->execute([$rating, $comment, $reviewId]);
+
+        http_response_code(200);
+        echo json_encode(['success' => true, 'message' => 'Review updated successfully.']);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
 // ── Reply to review (POST) — must be checked BEFORE the generic POST block ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply_review'])) {
     header('Content-Type: application/json');
@@ -160,8 +214,6 @@ if (isset($_GET['delete_review'])) {
     echo json_encode(['success' => false, 'message' => 'Review deletion is not allowed.']);
     exit;
 }
-
-
 
 if (isset($_GET['restock_id'], $_GET['amount'])) {
     $inv_id = (int)$_GET['restock_id'];

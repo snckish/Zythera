@@ -766,19 +766,22 @@ function downloadReceipt() {
   if (window.jspdf && window.html2canvas) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const contentWidthPt = 750 * 0.75; // px -> pt approx at scale 1.2
+    const xOffset = Math.max(20, (pageWidth - contentWidthPt) / 2);
     doc.html(container, {
       callback: function (doc) {
         doc.save('ZYTHERA_receipt_' + (data.orderId || 'order') + '.pdf');
         if (container.parentNode) container.parentNode.removeChild(container);
       },
-      x: 20,
+      x: xOffset,
       y: 20,
       html2canvas: { scale: 1.2 }
     });
   } else {
-    // fallback: open printable window (user can Save as PDF)
+    // fallback: open printable window (user can Save as PDF), centered on screen
     const w = window.open('', '_blank');
-    w.document.write('<html><head><title>Receipt</title></head><body>' + receiptHTML + '</body></html>');
+    w.document.write('<html><head><title>Receipt</title><style>body{margin:0;padding:24px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;background:#f0f0f0;box-sizing:border-box;}</style></head><body>' + receiptHTML + '</body></html>');
     w.document.close();
     w.focus();
     w.print();

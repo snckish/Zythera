@@ -69,6 +69,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
       --cream: #f5f2ec;
       --terra: #bc8a7b;
       --deep:  #1a2e1a;
+      --transition: .22s ease;
     }
     * { font-family: var(--ui-font); }
     body { background: var(--cream); padding-top: 70px; }
@@ -77,6 +78,111 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
     .navbar-brand { font-family: var(--logo-font); color: var(--green) !important; font-size: 1.55rem; letter-spacing: 2px; }
     .nav-link { font-weight: 500; color: #444 !important; font-size: .9rem; }
     .nav-link:hover { color: var(--green) !important; }
+
+    /* User capsule in nav */
+    .nav-user-capsule {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 50px;
+      padding: 6px 12px 6px 6px;
+      gap: 8px;
+      border: 1px solid rgba(45,90,45,.12);
+      transition: all var(--transition);
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-user-capsule:hover {
+      border-color: rgba(45,90,45,.25);
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+    .nav-user-capsule img {
+      border: 2.5px solid rgba(45,90,45,.15);
+      transition: border-color var(--transition);
+    }
+    .nav-user-capsule:hover img {
+      border-color: rgba(45,90,45,.3);
+    }
+    body.dark .nav-user-capsule {
+      background: #1f2937;
+      border-color: rgba(168,212,168,.15);
+    }
+    body.dark .nav-user-capsule:hover {
+      background: #2d3748;
+      border-color: rgba(168,212,168,.3);
+    }
+
+    /* ── LOGOUT CONFIRMATION MODAL ── */
+    .logout-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(3px);
+    }
+    .logout-modal-overlay.active { display: flex; }
+
+    .logout-modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 28px;
+      width: min(420px, calc(100vw - 32px));
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      text-align: center;
+      animation: slideDown .3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logout-modal h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--deep);
+      font-size: 1.3rem;
+      margin: 0 0 12px 0;
+      font-weight: 700;
+    }
+
+    .logout-modal p {
+      color: #666;
+      font-size: .95rem;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
+
+    body.dark .logout-modal { background: #1f2937; }
+    body.dark .logout-modal h2 { color: #a8d4a8; }
+    body.dark .logout-modal p { color: #cbd5e1; }
+    body.dark .logout-btn-cancel { background: #2d3748; color: #cbd5e1; }
+    body.dark .logout-btn-cancel:hover { background: #374151; }
+
+    .logout-modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .logout-modal-actions button {
+      padding: 12px 28px;
+      border-radius: 50px;
+      border: none;
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: .2s ease;
+      font-family: var(--ui-font);
+    }
+
+    .logout-btn-cancel { background: #f0ece4; color: #555; }
+    .logout-btn-cancel:hover { background: #e2ddd4; }
+
+    .logout-btn-confirm { background: var(--green); color: #fff; min-width: 120px; }
+    .logout-btn-confirm:hover { background: var(--deep); }
+    .logout-btn-confirm:active { transform: scale(0.98); }
 
     .about-hero { background: var(--deep); color: #fff; padding: 5rem 0 4rem; position: relative; overflow: hidden; }
     .about-hero::after { content: ''; position: absolute; inset: 0; background: url('pci/download_(4).jpeg') center/cover no-repeat; opacity: .18; z-index: 0; }
@@ -203,9 +309,10 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
 </head>
 <body>
 
+  <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-     <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
+      <a class="navbar-brand fw-bold" href="website.php"><span style="font-family: 'Playfair Display', serif; color: var(--deep); font-weight: 700;"> ZYTHERA </span></a>
 
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
@@ -216,54 +323,52 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
           <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
           <?php if ($userEmail): ?>
-
-            <div class="d-flex align-items-center bg-light rounded-pill px-3 py-1 border shadow-sm gap-2">
+            <div class="nav-user-capsule">
               <div class="text-end d-none d-md-block">
-                <p class="mb-0 fw-bold" style="font-size:.8rem;color:var(--green);"><?= htmlspecialchars($userName) ?></p>
+                <p class="mb-0 fw-bold" style="font-size:.78rem;color:var(--green);"><?= htmlspecialchars($userName) ?></p>
                 <?php if ($loginTime): ?>
-                  <small class="text-muted" style="font-size:.6rem;">Logged in</small>
+                  <small class="text-muted" style="font-size:.6rem;"><span id="liveTime"></span></small>
                 <?php endif; ?>
               </div>
               <div class="dropdown">
-                <img src="https://ui-avatars.com/api/?name=<?= urlencode($userName) ?>&background=2d5a2d&color=fff"
-                  class="rounded-circle" width="34" style="cursor:pointer;" data-bs-toggle="dropdown"
-                  alt="<?= htmlspecialchars($userName) ?>">
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                  <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2"></i>My Profile</a></li>
+                <?php
+                    $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34);
+                ?>
+                <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="32" height="32" style="cursor:pointer;border:2px solid rgba(45,90,45,.2);object-fit:cover;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius:14px;min-width:190px;">
+                  <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2 text-muted" style="font-size:.85rem;"></i>My Profile</a></li>
                   <?php if ($userRole === 'admin'): ?>
-                    <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2"></i>Admin Panel</a></li>
+                    <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2 text-muted" style="font-size:.85rem;"></i>Admin Panel</a></li>
                   <?php endif; ?>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item py-2 text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                  <li><hr class="dropdown-divider my-1"></li>
+                  <li><a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="openLogoutModal()"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
                 </ul>
               </div>
             </div>
-            
-            <?php if ($userRole !== 'admin'): ?>
-            <a href="javascript:void(0)" onclick="openCart()" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-              </svg>
-              <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                style="font-size:.55rem;background:var(--green);color:#fff;<?= $cartCount == 0 ? 'display:none;' : '' ?>">
-                <?= $cartCount ?>
-              </span>
-            </a>
-            <?php endif; ?>
           <?php else: ?>
             <a href="logsign.php" class="btn btn-success btn-sm rounded-pill px-4 fw-semibold">Log In</a>
-            <a href="logsign.php" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-              </svg>
-            </a>
           <?php endif; ?>
         </div>
       </div>
     </div>
   </nav>
+
+  <!-- Logout Confirmation Modal -->
+<div id="logoutModalOverlay" class="logout-modal-overlay">
+    <div class="logout-modal">
+        <h2>Confirm Log Out</h2>
+        <p>Are you sure you want to log out of your account?</p>
+        <div class="logout-modal-buttons">
+            <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">
+                Stay
+            </button>
+            <button type="button" class="logout-confirm-btn" onclick="performLogout()">
+                Logout
+            </button>
+        </div>
+    </div>
+</div>
+
 
   <!-- ── HERO ── -->
   <section class="about-hero">
@@ -418,6 +523,42 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   </section>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function openLogoutModal() {
+      const overlay = document.getElementById('logoutModalOverlay');
+      if (overlay) {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeLogoutModal(event) {
+      if (event && event.target.id !== 'logoutModalOverlay') return;
+      const overlay = document.getElementById('logoutModalOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function performLogout() {
+      const confirmBtn = document.querySelector('.logout-btn-confirm');
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Logging out...';
+      }
+      window.location.href = 'logout.php';
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeLogoutModal();
+    });
+
+    document.addEventListener('click', function(e) {
+      const overlay = document.getElementById('logoutModalOverlay');
+      if (overlay && e.target === overlay) closeLogoutModal(e);
+    });
+  </script>
 
   <footer class="about-footer">
     <div class="container">
