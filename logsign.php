@@ -108,8 +108,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $hashedPassword
                 ]);
 
-                $message = 'Account created successfully!';
-                $msgType = 'success';
+                // Auto-login: set session and cookies identical to the login flow
+                $fullName = trim("$fname $lname");
+                $exp = time() + 43200;
+
+                $_SESSION['logged_in_user'] = $email;
+                $_SESSION['role']           = 'user';
+                $_SESSION['login_time']     = date('h:i A');
+                $_SESSION['session_start']  = time();
+
+                setcookie('zythera_user',  $email,         $exp, '/');
+                setcookie('zythera_role',  'user',         $exp, '/');
+                setcookie('zythera_name',  $fullName,      $exp, '/');
+                setcookie('zythera_login', date('h:i A'),  $exp, '/');
+
+                if (!isset($_SESSION['cart'][$email]))        $_SESSION['cart'][$email]        = [];
+                if (!isset($_SESSION['orders'][$email]))      $_SESSION['orders'][$email]      = [];
+                if (!isset($_SESSION['profile_pic'][$email])) $_SESSION['profile_pic'][$email] = null;
+
+                header('Location: website.php');
+                exit;
             }
         }
     }

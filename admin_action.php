@@ -255,4 +255,41 @@ if (isset($_GET['delete'])) {
     header('Location: admin.php');
     exit;
 }
-?>
+
+// ── Update Payment Status + Reference No ─────────────────────
+if (isset($_POST['update_payment'])) {
+    header('Content-Type: application/json');
+    $orderId    = trim($_POST['order_id']     ?? '');
+    $payStatus  = trim($_POST['pay_status']   ?? '');
+    $refNo      = trim($_POST['reference_no'] ?? '');
+
+    $allowed = ['pending', 'verified', 'rejected'];
+    if ($orderId === '' || !in_array($payStatus, $allowed, true)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid parameters.']);
+        exit;
+    }
+
+    try {
+        $db = getDBConnection();
+        // Get the payment_id for this order
+        $row = $db->prepare("SELECT payment_id FROM orders WHERE order_id = ? LIMIT 1");
+        $row->execute([$orderId]);
+        $pRow = $row->fetch();
+        if (!$pRow) {
+            echo json_encode(['success' => false, 'message' => 'Order not found.']);
+            exit;
+        }
+        $stmt = $db->prepare("
+            UPDATE payment
+            SET payment_status = ?,
+                reference_no   = ?,
+                payment_date   = CASE WHEN payment_date IS NULL THEN NOW() ELSE payment_date END
+            WHERE payment_id = ?
+        ");
+        $stmt->execute([$payStatus, $refNo !== '' ? $refNo : null, $pRow->payment_id]);
+        echo json_encode(['success' => true, 'pay_status' => $payStatus, 'reference_no' => $refNo]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}

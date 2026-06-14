@@ -2,13 +2,13 @@
 
 -- Drop and recreate database if you want a fresh start (optional)
 
--- DROP DATABASE IF EXISTS system_db;
+-- DROP DATABASE IF EXISTS zythera_db;
 
 
 
-CREATE DATABASE IF NOT EXISTS system_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS zythera_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE system_db;
+USE zythera_db;
 
 
 

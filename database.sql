@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS system_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE system_db;
+CREATE DATABASE IF NOT EXISTS zythera_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE zythera_db;
 
 -- ============================================
 -- 1. USERS TABLE

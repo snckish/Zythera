@@ -287,7 +287,7 @@ function getStepIndex(string $status): int {
   <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
   <div class="ms-auto d-flex gap-2 align-items-center">
     <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
-    <a href="javascript:void(0)" onclick="openLogoutModal()" class="btn btn-sm btn-danger rounded-pill">Logout</a>
+
   </div>
 </nav>
 <div style="height:60px;"></div>

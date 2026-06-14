@@ -638,7 +638,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             <?php else: ?>
                 <a href="admin.php" class="btn btn-sm btn-dark rounded-pill">Admin Panel</a>
             <?php endif; ?>
-            <a href="javascript:void(0)" onclick="openLogoutModal()" class="btn btn-sm btn-danger rounded-pill">Logout</a>
+
         </div>
     </nav>
 

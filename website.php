@@ -1911,7 +1911,7 @@ body.dark .review-edit-modal textarea:focus {
       }
     }
 
-    // ── Qty stepper in cart sidebar (calls profile.php POST via fetch) ──
+    // ── Qty stepper in cart sidebar → update_cart.php ────────────
     function cartQty(itemId, action) {
       // Client-side stock cap before even hitting server
       if (action === 'plus') {
@@ -1923,27 +1923,29 @@ body.dark .review-edit-modal textarea:focus {
         }
       }
 
-      fetch('profile.php', {
+      fetch('update_cart.php', {
         method: 'POST',
         credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: 'update_qty=1&item_id=' + itemId + '&qty_action=' + action
-      }).then(r => {
-        if (!r.ok) return;
-        if (action === 'remove') {
-          cartItemsJS = cartItemsJS.filter(i => String(i.inv_id) !== String(itemId));
-        } else {
-          const item = cartItemsJS.find(i => String(i.inv_id) === String(itemId));
-          if (item) {
-            const max = stockMap[itemId] ?? 9999;
-            if (action === 'plus') item.qty = Math.min(max, Number(item.qty) + 1);
-            if (action === 'minus') item.qty = Math.max(1, Number(item.qty) - 1);
-          }
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'item_id=' + encodeURIComponent(itemId) + '&qty_action=' + encodeURIComponent(action)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) {
+          showToast(data.message || 'Could not update cart.', 'error');
+          return;
         }
+        // Replace local cart state with authoritative server response
+        cartItemsJS = data.cart || [];
         renderCart();
-      }).catch(() => showToast('Could not update cart. Try again.', 'error'));
+        // If checkout is open in another tab/frame, notify it via BroadcastChannel
+        try {
+          const bc = new BroadcastChannel('zythera_cart');
+          bc.postMessage({ type: 'cart_updated', cart: cartItemsJS });
+          bc.close();
+        } catch (e) { /* BroadcastChannel not supported — no-op */ }
+      })
+      .catch(() => showToast('Could not update cart. Try again.', 'error'));
     }
 
     // ── Add item to local JS state then re-render ─────────────────

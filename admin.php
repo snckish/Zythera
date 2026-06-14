@@ -1103,7 +1103,10 @@ if ($searchQuery !== '') {
         $orderItems  = $order->items ?? [];
         $orderShipping = (float)($order->shipping ?? 0);
         $orderDate   = $order->date ?? '';
-        $orderPayMethod = $order->pay_method ?? '';
+        $orderPayMethod  = $order->pay_method    ?? '';
+        $orderPayStatus  = $order->pay_status    ?? 'pending';
+        $orderPayRef     = $order->pay_reference ?? '';
+        $orderPayId      = $order->payment_id    ?? '';
         // Use flat columns directly from schema
         $shippingInfo = [
             'full_name' => $order->full_name ?? '',
@@ -1220,9 +1223,53 @@ if ($searchQuery !== '') {
                 <div style="font-weight:600;font-size:.84rem;color:#1a2e1a;"><?= htmlspecialchars($shippingInfo['full_name'] ?? '—') ?></div>
                 <div style="font-size:.78rem;color:#666;"><?= htmlspecialchars($shippingInfo['phone'] ?? '') ?></div>
               </div>
-              <div style="background:#f9f9f6;border-radius:10px;padding:10px;">
-                <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px;">Payment</div>
-                <div style="font-weight:600;font-size:.84rem;color:#1a2e1a;"><?= htmlspecialchars($orderPayMethod ?: '—') ?></div>
+              <div style="background:#f9f9f6;border-radius:10px;padding:10px;" id="pay-box-<?= htmlspecialchars($orderId) ?>">
+                <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;">Payment</div>
+                <div style="font-weight:600;font-size:.84rem;color:#1a2e1a;margin-bottom:4px;"><?= htmlspecialchars($orderPayMethod ?: '—') ?></div>
+                <?php
+                $psColors = [
+                    'pending'  => ['bg'=>'#fff7ed','color'=>'#c2410c','border'=>'#fed7aa'],
+                    'verified' => ['bg'=>'#f0fdf4','color'=>'#15803d','border'=>'#bbf7d0'],
+                    'rejected' => ['bg'=>'#fef2f2','color'=>'#b91c1c','border'=>'#fecaca'],
+                ];
+                $psc = $psColors[$orderPayStatus] ?? $psColors['pending'];
+                ?>
+                <span id="pay-status-badge-<?= htmlspecialchars($orderId) ?>"
+                  style="display:inline-block;background:<?= $psc['bg'] ?>;color:<?= $psc['color'] ?>;border:1px solid <?= $psc['border'] ?>;border-radius:50px;padding:1px 9px;font-size:.68rem;font-weight:700;text-transform:capitalize;margin-bottom:8px;">
+                  <?= htmlspecialchars($orderPayStatus) ?>
+                </span>
+                <?php if ($orderPayRef): ?>
+                <div style="font-size:.72rem;color:#666;" id="pay-ref-display-<?= htmlspecialchars($orderId) ?>">
+                  Ref: <span id="pay-ref-text-<?= htmlspecialchars($orderId) ?>"><?= htmlspecialchars($orderPayRef) ?></span>
+                </div>
+                <?php else: ?>
+                <div style="font-size:.72rem;color:#aaa;" id="pay-ref-display-<?= htmlspecialchars($orderId) ?>">
+                  Ref: <span id="pay-ref-text-<?= htmlspecialchars($orderId) ?>">—</span>
+                </div>
+                <?php endif; ?>
+
+                <!-- Payment Verification Controls -->
+                <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
+                  <input type="text"
+                    id="pay-ref-input-<?= htmlspecialchars($orderId) ?>"
+                    placeholder="Reference / Transaction No."
+                    value="<?= htmlspecialchars($orderPayRef) ?>"
+                    style="width:100%;padding:5px 9px;font-size:.75rem;border-radius:8px;border:1.5px solid #d4e4d4;background:#fff;outline:none;font-family:inherit;">
+                  <div style="display:flex;gap:5px;">
+                    <button onclick="updatePayment('<?= htmlspecialchars($orderId, ENT_QUOTES) ?>','verified')"
+                      style="flex:1;padding:5px 0;font-size:.72rem;font-weight:700;border:none;border-radius:8px;background:#dcfce7;color:#15803d;cursor:pointer;">
+                      <i class="fas fa-check me-1"></i>Verify
+                    </button>
+                    <button onclick="updatePayment('<?= htmlspecialchars($orderId, ENT_QUOTES) ?>','rejected')"
+                      style="flex:1;padding:5px 0;font-size:.72rem;font-weight:700;border:none;border-radius:8px;background:#fee2e2;color:#b91c1c;cursor:pointer;">
+                      <i class="fas fa-times me-1"></i>Reject
+                    </button>
+                    <button onclick="updatePayment('<?= htmlspecialchars($orderId, ENT_QUOTES) ?>','pending')"
+                      style="flex:1;padding:5px 0;font-size:.72rem;font-weight:700;border:none;border-radius:8px;background:#fff7ed;color:#c2410c;cursor:pointer;">
+                      <i class="fas fa-clock me-1"></i>Pending
+                    </button>
+                  </div>
+                </div>
               </div>
               <div style="background:#f9f9f6;border-radius:10px;padding:10px;grid-column:1/-1;">
                 <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px;">Delivery Address</div>
@@ -1622,6 +1669,54 @@ function updateOrderStatus(email, orderId, newStatus) {
         } else {
             alert(data.message || 'Could not update status.');
         }
+    })
+    .catch(() => alert('Request failed.'));
+}
+
+// ── Update Payment Status ─────────────────────────────────────
+function updatePayment(orderId, payStatus) {
+    const refInput = document.getElementById('pay-ref-input-' + orderId);
+    const refNo    = refInput ? refInput.value.trim() : '';
+
+    const body = new URLSearchParams({
+        update_payment: '1',
+        order_id:       orderId,
+        pay_status:     payStatus,
+        reference_no:   refNo,
+    });
+
+    fetch('admin_action.php', {
+        method:      'POST',
+        credentials: 'same-origin',
+        headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body:        body.toString(),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            alert(data.message || 'Could not update payment.');
+            return;
+        }
+        // Update status badge colour
+        const badge = document.getElementById('pay-status-badge-' + orderId);
+        const refText = document.getElementById('pay-ref-text-' + orderId);
+        const statusColors = {
+            pending:  { bg:'#fff7ed', color:'#c2410c', border:'#fed7aa' },
+            verified: { bg:'#f0fdf4', color:'#15803d', border:'#bbf7d0' },
+            rejected: { bg:'#fef2f2', color:'#b91c1c', border:'#fecaca' },
+        };
+        const sc = statusColors[payStatus] || statusColors['pending'];
+        if (badge) {
+            badge.textContent     = payStatus;
+            badge.style.background = sc.bg;
+            badge.style.color      = sc.color;
+            badge.style.border     = '1px solid ' + sc.border;
+        }
+        if (refText) {
+            refText.textContent = data.reference_no || '—';
+        }
+        const labels = { verified: '✓ Payment verified', rejected: '✗ Payment rejected', pending: 'Payment set to pending' };
+        showToast(labels[payStatus] || 'Payment updated');
     })
     .catch(() => alert('Request failed.'));
 }

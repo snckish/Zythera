@@ -29,6 +29,10 @@ if (!$dbUser) {
 $userName = $dbUser->name ?? '';
 
 // ── Load cart from DB ─────────────────────────────────────────
+// Always reload cart from session to avoid stale data from cart sidebar changes
+session_write_close();
+session_start();
+
 $cart = loadCartForUser($userEmail);
 $_SESSION['cart'][$userEmail] = $cart;
 
@@ -215,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 2. Insert order (normalized schema)
             $oStmt = $db->prepare("
                 INSERT INTO orders
-                (order_id, user_id, address_id, payment_id, total_ammount, user_note, order_date, order_status)
+                (order_id, user_id, address_id, payment_id, total_ammount, shipping_fee, user_note, order_date, order_status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
             ");
             $oStmt->execute([
@@ -478,7 +482,7 @@ footer .footer-brand{
         <i class="fas fa-arrow-left me-1"></i> Keep Shopping
       </a>
       <a href="profile.php" class="btn btn-sm btn-light rounded-pill px-3">My Profile</a>
-      <a href="javascript:void(0)" onclick="openLogoutModal()" class="btn btn-sm btn-danger rounded-pill px-3">Logout</a>
+
     </div>
   </div>
 </nav>
@@ -1017,6 +1021,123 @@ if (logoutOverlay) {
     }
   });
 }
+</script>
+
+<script>
+// ── Cart ↔ Checkout live synchronisation ──────────────────────
+// Seed initial cart from PHP (authoritative at page render time)
+let checkoutCart = <?= json_encode(array_values(array_map(function($i){
+    return [
+        'inv_id' => (string)($i['inv_id'] ?? ''),
+        'name'   => $i['name']  ?? '',
+        'price'  => (float)($i['price'] ?? 0),
+        'qty'    => (int)($i['qty']   ?? 1),
+        'image'  => $i['image'] ?? '',
+    ];
+}, $cart))) ?>;
+
+const SHIPPING_FEE = 150;
+
+/**
+ * Re-render the Order Summary panel from checkoutCart.
+ * If the cart becomes empty, redirect back to the shop.
+ */
+function rebuildOrderSummary(cart) {
+  const container = document.querySelector('.checkout-card div[style*="overflow-y:auto"]');
+  const subtotalEl = document.querySelector('.order-total-row:nth-child(1) span:last-child');
+  const shippingEl = document.querySelector('.order-total-row:nth-child(2) span:last-child');
+  const totalEl    = document.querySelector('.order-total-row.grand span:last-child');
+
+  if (!container) return;
+
+  // If cart emptied, bounce back to shop
+  if (!cart || cart.length === 0) {
+    window.location.href = 'website.php';
+    return;
+  }
+
+  // Rebuild items HTML
+  let html = '';
+  let subtotal = 0;
+  cart.forEach(item => {
+    const qty   = Number(item.qty)   || 1;
+    const price = Number(item.price) || 0;
+    const line  = price * qty;
+    subtotal   += line;
+    const imgSrc = item.image
+      ? item.image
+      : 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop';
+    html += `
+      <div class="order-item">
+        <img src="${escapeHtml(imgSrc)}" alt=""
+          onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:.85rem;color:var(--deep);
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            ${escapeHtml(item.name || '')}
+          </div>
+          <div style="font-size:.76rem;color:#999;">
+            ₱${numFmt(price)} × ${qty}
+          </div>
+        </div>
+        <div style="font-weight:700;color:var(--green);font-size:.88rem;white-space:nowrap;">
+          ₱${numFmt(line)}
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html;
+
+  const shipping = subtotal > 0 ? SHIPPING_FEE : 0;
+  const total    = subtotal + shipping;
+
+  if (subtotalEl) subtotalEl.textContent = '₱' + numFmt(subtotal);
+  if (shippingEl) shippingEl.textContent = '₱' + numFmt(shipping);
+  if (totalEl)    totalEl.textContent    = '₱' + numFmt(total);
+}
+
+function numFmt(n) {
+  return Number(n).toLocaleString('en-PH', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── BroadcastChannel: listen for cart changes from website.php ─
+try {
+  const bc = new BroadcastChannel('zythera_cart');
+  bc.addEventListener('message', e => {
+    if (e.data && e.data.type === 'cart_updated' && Array.isArray(e.data.cart)) {
+      checkoutCart = e.data.cart;
+      rebuildOrderSummary(checkoutCart);
+    }
+  });
+} catch(_) { /* BroadcastChannel not supported */ }
+
+// ── Polling fallback: re-fetch cart every 5 s while tab is visible
+// This covers the case where the user edits the cart in the same tab
+// (website.php embedded iframe or navigates back).
+let _pollTimer = null;
+function startCartPoll() {
+  if (_pollTimer) return;
+  _pollTimer = setInterval(() => {
+    if (document.hidden) return;
+    fetch('getcart.php', { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.cart)) {
+          // Only re-render if something actually changed
+          const sig = a => a.map(i => i.inv_id + ':' + i.qty).join(',');
+          if (sig(data.cart) !== sig(checkoutCart)) {
+            checkoutCart = data.cart;
+            rebuildOrderSummary(checkoutCart);
+          }
+        }
+      })
+      .catch(() => {});
+  }, 5000);
+}
+startCartPoll();
 </script>
 <!-- Logout Confirmation Modal -->
 <div id="logoutModalOverlay" class="logout-modal-overlay">

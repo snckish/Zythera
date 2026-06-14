@@ -13,7 +13,7 @@ if (session_status() === PHP_SESSION_NONE) {
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'system_db');
+define('DB_NAME', 'zythera_db');
 
 // ── CONNECT DATABASE ──────────────────────────────────────────
 function getDBConnection() {
@@ -622,7 +622,10 @@ const ORDER_SELECT_SQL = "
         o.total_ammount                        AS total,
         o.order_date                           AS date,
         o.order_status                         AS status,
+        pay.payment_id                         AS payment_id,
         pay.payment_method                     AS pay_method,
+        pay.payment_status                     AS pay_status,
+        pay.reference_no                       AS pay_reference,
         CONCAT_WS(' ', u.fname, NULLIF(u.mname,''), u.lname) AS full_name,
         ua.phone_num                           AS phone,
         ua.st_address                          AS address,
