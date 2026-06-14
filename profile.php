@@ -75,62 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: profile.php');
         exit;
     }
-
-    // ── Handle cart quantity updates from navbar ───────────────────
-    // When user adds/removes items from cart in navigation bar (website.php)
-    if (isset($_POST['update_qty'])) {
-        header('Content-Type: application/json');
-        
-        $itemId = (int)($_POST['item_id'] ?? 0);
-        $action = trim($_POST['qty_action'] ?? '');
-        
-        if (!$itemId || !in_array($action, ['plus', 'minus', 'remove'], true)) {
-            echo json_encode(['success' => false, 'error' => 'Invalid request']);
-            exit;
-        }
-        
-        // Initialize cart in session if not exists
-        if (!isset($_SESSION['cart'][$userEmail])) {
-            $_SESSION['cart'][$userEmail] = [];
-        }
-        
-        $cart = &$_SESSION['cart'][$userEmail];
-        $found = false;
-        
-        // Find the item in the cart
-        foreach ($cart as $key => $item) {
-            if ((int)$item['inv_id'] === $itemId) {
-                $found = true;
-                
-                if ($action === 'remove') {
-                    // Remove item from session cart
-                    unset($cart[$key]);
-                    
-                    // Also remove from database if cart table exists
-                    // Assuming you have a user_cart table: email, inv_id, qty, etc.
-                    try {
-                        $delStmt = $db->prepare("DELETE FROM user_cart WHERE email = ? AND inv_id = ?");
-                        $delStmt->execute([$userEmail, $itemId]);
-                    } catch (Exception $e) {
-                        // If table doesn't exist or error, just continue
-                        // The session update is sufficient
-                    }
-                } elseif ($action === 'plus') {
-                    $item['qty'] = min((int)$item['qty'] + 1, 9999);
-                } elseif ($action === 'minus') {
-                    $item['qty'] = max(1, (int)$item['qty'] - 1);
-                }
-                
-                break;
-            }
-        }
-        
-        // Re-index array to avoid gaps
-        $_SESSION['cart'][$userEmail] = array_values($cart);
-        
-        echo json_encode(['success' => $found, 'cart_count' => count($_SESSION['cart'][$userEmail])]);
-        exit;
-    }
 }
 
 // ── Data for rendering ─────────────────────────────────────────
@@ -204,110 +148,83 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
         * {
             font-family: var(--ui-font);
+            box-sizing: border-box;
         }
 
         body {
             background: var(--cream);
-            color: var(--deep);
-            transition: background .15s, color .15s;
-        }
-
-        body.dark {
-            background: #111e11;
-            color: #e8e8e0;
-        }
-
-        .navbar {
-            background: linear-gradient(to right, var(--deep), var(--green));
-            box-shadow: 0 2px 8px rgba(26, 46, 26, 0.1);
-            z-index: 999;
-        }
-
-        body.dark .navbar {
-            background: linear-gradient(to right, #0a150a, #1a3a1a);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        }
-
-        .navbar-brand {
-            color: #fff !important;
-            font-size: 1.6rem;
-            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
         }
 
         .page-wrapper {
-            min-height: 100vh;
-            background: var(--cream);
-            margin-top: 56px;
-            padding: 32px 16px;
+            flex: 1;
         }
 
-        body.dark .page-wrapper {
-            background: #111e11;
+        .navbar {
+            background: #fff;
+            box-shadow: 0 1px 12px rgba(0, 0, 0, .07);
         }
+
+        .navbar-brand {
+            font-family: 'Playfair Display', serif;
+            color: var(--green) !important;
+            letter-spacing: 4px;
+            font-size: 1.5rem;
+.navbar-brand span { font-family: 'Playfair Display', serif; }
+    }
 
         .profile-card {
-            background: #fff;
+            border: none;
             border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 6px 28px rgba(0, 0, 0, .08);
+            margin-bottom: 22px;
             overflow: hidden;
-            margin-bottom: 32px;
-            transition: box-shadow .3s;
-        }
-
-        body.dark .profile-card {
-            background: #1a2e1a;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .profile-card:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-        }
-
-        body.dark .profile-card:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
         }
 
         .profile-header {
-            background: linear-gradient(135deg, var(--green) 0%, var(--mid) 100%);
+            background: linear-gradient(135deg, var(--deep), var(--green));
             color: #fff;
-            padding: 48px 32px;
+            padding: 36px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
         }
 
-        .profile-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            z-index: 0;
+        .section-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .05);
         }
 
-        .profile-header > * {
-            position: relative;
-            z-index: 1;
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            color: var(--deep);
+            font-size: 1.05rem;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .avatar-ring {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, .15);
+            border: 3px solid rgba(255, 255, 255, .5);
+            margin: 0 auto 14px;
             overflow: hidden;
-            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #fff;
             cursor: pointer;
             position: relative;
-            transition: transform .3s, border-color .3s;
-        }
-
-        .avatar-ring:hover {
-            transform: scale(1.05);
-            border-color: rgba(255, 255, 255, 0.6);
         }
 
         .avatar-ring img {
@@ -318,463 +235,396 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
         .avatar-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            inset: 0;
+            background: rgba(0, 0, 0, .42);
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transition: opacity .2s;
+            transition: .2s;
+            border-radius: 50%;
         }
 
         .avatar-ring:hover .avatar-overlay {
             opacity: 1;
         }
 
-        .profile-header h4 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .profile-header p {
-            font-size: 0.95rem;
-            opacity: 0.9;
-            margin: 8px 0;
-        }
-
         .badge-role {
             display: inline-block;
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 0.75rem;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: .72rem;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            margin-top: 12px;
-        }
-
-        .badge-admin {
-            background: rgba(255, 255, 255, 0.2);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 6px;
         }
 
         .badge-user {
-            background: rgba(212, 228, 212, 0.3);
+            background: rgba(255, 255, 255, .2);
             color: #fff;
-            border: 1px solid rgba(212, 228, 212, 0.5);
         }
 
-        .section-card {
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-            overflow: hidden;
-            margin-bottom: 32px;
-            transition: box-shadow .3s;
+        .badge-admin {
+            background: #fee2e2;
+            color: #b91c1c;
         }
 
-        body.dark .section-card {
-            background: #1a2e1a;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .section-card:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-        }
-
-        body.dark .section-card:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-        }
-
-        .section-card > .section-title {
-            background: #f9f6f1;
-            padding: 20px 28px;
-            border-bottom: 1px solid #e8e0d5;
-        }
-
-        body.dark .section-card > .section-title {
-            background: #0f230f;
-            border-bottom: 1px solid #2a3a2a;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--deep);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 0;
-        }
-
-        body.dark .section-title {
-            color: #e8e8e0;
-        }
-
-        .section-card > div:not(.section-title):not(style) {
-            padding: 28px;
-        }
-
-        .form-control {
-            border: 1.5px solid #e0e0e0;
+        .form-control,
+        .form-select {
+            background: var(--sage);
+            border: 2px solid transparent;
             border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 0.95rem;
-            transition: border-color .3s, box-shadow .3s;
+            padding: .75rem 1rem;
+            color: var(--deep);
+            transition: .2s;
         }
 
-        body.dark .form-control {
-            background: #0f230f;
-            border-color: #3a4a3a;
-            color: #e8e8e0;
-        }
-
-        .form-control:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--green);
-            box-shadow: 0 0 0 3px rgba(45, 90, 45, 0.1);
-        }
-
-        body.dark .form-control:focus {
-            box-shadow: 0 0 0 3px rgba(45, 90, 45, 0.3);
-        }
-
-        .form-label {
-            color: var(--green) !important;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        body.dark .form-label {
-            color: #7aab7a !important;
+            background: #fff;
+            box-shadow: none;
+            color: var(--deep);
         }
 
         .btn-green {
-            background: linear-gradient(135deg, var(--green) 0%, var(--mid) 100%);
+            background: var(--green);
             color: #fff;
             border: none;
-            border-radius: 12px;
-            padding: 12px 28px;
-            font-weight: 700;
-            transition: all .3s;
+            border-radius: 50px;
+            padding: .65rem 1.8rem;
+            font-weight: 600;
+            transition: .2s;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-green:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(45, 90, 45, 0.3);
+            background: var(--deep);
+            color: #fff;
         }
 
-        .order-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            transition: all .2s;
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: var(--cream);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: .15s;
         }
 
-        .order-link:hover {
-            transform: translateY(-2px);
+        .cart-item:hover {
+            background: #ede9e0;
+        }
+
+        .cart-thumb {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border-radius: 10px;
+            background: var(--sage);
+        }
+
+        .qty-stepper {
+            display: inline-flex;
+            align-items: center;
+            border: 2px solid var(--sage);
+            border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .qty-stepper button {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: var(--sage);
+            color: var(--green);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: .15s;
+            line-height: 1;
+        }
+
+        .qty-stepper button:hover {
+            background: var(--mid);
+            color: #fff;
+        }
+
+        .qty-stepper button:disabled {
+            opacity: .3;
+            cursor: not-allowed;
+        }
+
+        .qty-stepper .qty-val {
+            width: 34px;
+            text-align: center;
+            font-weight: 700;
+            font-size: .9rem;
+            color: var(--deep);
+            background: #fff;
+        }
+
+        .stock-chip {
+            display: inline-block;
+            font-size: .65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            letter-spacing: .5px;
+        }
+
+        .sc-ok {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .sc-low {
+            background: #fef9c3;
+            color: #b45309;
+        }
+
+        .sc-out {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .totals-box {
+            background: var(--cream);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-top: 14px;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: .85rem;
+            color: #777;
+            padding: 3px 0;
+        }
+
+        .totals-row.grand {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--green);
+            border-top: 2px solid var(--sage);
+            padding-top: 10px;
+            margin-top: 6px;
         }
 
         .order-box {
-            border: 1.5px solid #e8e0d5;
+            border: 2px solid var(--sage);
             border-radius: 14px;
             padding: 16px;
-            margin-bottom: 12px;
-            transition: all .2s;
+            margin-bottom: 14px;
+            transition: .2s ease, transform .2s ease;
         }
 
-        body.dark .order-box {
-            border-color: #3a4a3a;
-            background: #0f230f;
+        .order-box:hover {
+            border-color: var(--mid);
+        }
+
+        .order-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
         }
 
         .order-link:hover .order-box {
-            border-color: var(--green);
-            box-shadow: 0 4px 12px rgba(45, 90, 45, 0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, .08);
         }
 
-        body.dark .order-link:hover .order-box {
-            box-shadow: 0 4px 12px rgba(45, 90, 45, 0.3);
+        .order-list {
+            display: grid;
+            gap: 14px;
         }
 
         .order-summary {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .order-summary-left {
+            min-width: 0;
         }
 
         .order-summary-title {
+            font-size: .95rem;
             font-weight: 700;
-            font-size: 1rem;
             color: var(--deep);
-        }
-
-        body.dark .order-summary-title {
-            color: #e8e8e0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .order-summary-meta {
-            font-size: 0.85rem;
-            color: #999;
-            margin-top: 4px;
+            font-size: .82rem;
+            color: #777;
+            margin-top: 6px;
         }
 
-        body.dark .order-summary-meta {
-            color: #aaa;
+        .order-summary-right {
+            text-align: right;
+            min-width: 120px;
         }
 
         .order-total {
-            font-weight: 800;
-            font-size: 1.1rem;
+            font-size: .95rem;
+            font-weight: 700;
             color: var(--green);
+        }
+
+        .order-link .order-box {
+            border-color: rgba(212, 212, 212, .7);
+        }
+
+        .order-link:hover .order-box {
+            border-color: var(--mid);
         }
 
         .order-status {
             display: inline-block;
-            padding: 6px 12px;
-            border-radius: 50px;
-            font-size: 0.75rem;
+            font-size: .68rem;
             font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: .5px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .st-pending {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ff9800;
+            background: #fef9c3;
+            color: #b45309;
         }
 
         .st-processing {
-            background: rgba(33, 150, 243, 0.15);
-            color: #2196f3;
+            background: #dbeafe;
+            color: #1d4ed8;
         }
 
         .st-shipped {
-            background: rgba(76, 175, 80, 0.15);
-            color: #4caf50;
+            background: #e0f2fe;
+            color: #0369a1;
         }
 
+        .st-completed,
         .st-delivered {
-            background: rgba(76, 175, 80, 0.15);
-            color: #4caf50;
+            background: #dcfce7;
+            color: #16a34a;
         }
 
         .st-cancelled {
-            background: rgba(244, 67, 54, 0.15);
-            color: #f44336;
+            background: #fee2e2;
+            color: #b91c1c;
         }
 
         .empty-state {
             text-align: center;
-            padding: 48px 28px;
-            color: #999;
-        }
-
-        body.dark .empty-state {
-            color: #aaa;
+            padding: 36px 20px;
+            color: #bbb;
         }
 
         .empty-state i {
-            font-size: 3rem;
-            color: #d4e4d4;
-            margin-bottom: 16px;
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
         }
 
-        body.dark .empty-state i {
-            color: #3a4a3a;
+        .empty-state p {
+            font-size: .88rem;
+            margin: 0;
         }
 
-        footer {
+        .p-toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
             background: var(--deep);
             color: #fff;
-            text-align: center;
-            padding: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.95rem;
+            padding: 12px 22px;
+            border-radius: 50px;
+            font-size: .85rem;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: .3s;
+            pointer-events: none;
+            z-index: 9999;
         }
 
-        body.dark footer {
-            background: #0a150a;
+        .p-toast.show {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .footer-brand {
-            color: #fff;
-            font-weight: 700;
+        .p-toast.err {
+            background: #b91c1c;
         }
 
         .alert-banner {
-            position: fixed;
-            top: 56px;
-            left: 0;
-            right: 0;
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-            color: #fff;
-            text-align: center;
-            font-size: 0.95rem;
+            padding: 12px 20px;
+            font-size: .88rem;
             font-weight: 600;
-            z-index: 998;
-            animation: slideDown .3s ease-out;
+            text-align: center;
         }
 
-        @keyframes slideDown {
-            from {
-                transform: translateY(-100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .alert-banner.success {
+            background: #dcfce7;
+            color: #166534;
         }
 
-        /* ────────────────────────────────────────── */
-        /* LOGOUT MODAL STYLES                        */
-        /* ────────────────────────────────────────── */
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+        footer {
+            background: #f5f2ec;
+            padding: 22px 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
-            animation: fadeInBg 0.25s ease-out;
-        }
-
-        .modal-content-box {
-            background: #fff;
-            border-radius: 16px;
-            padding: 32px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease-out;
-            text-align: center;
-        }
-
-        body.dark .modal-content-box {
-            background: #1a2e1a;
-            color: #e8e8e0;
-        }
-
-        .modal-content-box i {
-            font-size: 2.5rem;
-            color: #ff9800;
-            margin-bottom: 16px;
-        }
-
-        .modal-content-box h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--deep);
-            margin-bottom: 12px;
-        }
-
-        body.dark .modal-content-box h3 {
-            color: #e8e8e0;
-        }
-
-        .modal-content-box p {
-            font-size: 0.95rem;
-            color: #666;
-            margin-bottom: 24px;
-        }
-
-        body.dark .modal-content-box p {
-            color: #aaa;
-        }
-
-        .modal-buttons {
-            display: flex;
             gap: 12px;
-            justify-content: center;
+            border-top: 1px solid #e8e4dc;
         }
 
-        .btn-modal {
-            flex: 1;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-modal-cancel {
-            background: #e8e8e8;
-            color: #333;
-        }
-
-        body.dark .btn-modal-cancel {
-            background: #3a4a3a;
-            color: #e8e8e0;
-        }
-
-        .btn-modal-cancel:hover {
-            background: #d0d0d0;
-        }
-
-        body.dark .btn-modal-cancel:hover {
-            background: #4a5a4a;
-        }
-
-        .btn-modal-logout {
-            background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
-            color: #fff;
-        }
-
-        .btn-modal-logout:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.3);
-        }
-
-        @keyframes fadeInBg {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(60px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        footer .footer-brand {
+            font-family: 'Playfair Display', serif;
+            color: var(--green);
+            font-size: 1rem;
+            letter-spacing: 4px;
         }
     </style>
+<script>
+/* ZYTHERA dark mode — apply before paint to prevent flash */
+(function(){
+  if(localStorage.getItem('zythera_dark')==='1'){
+    document.documentElement.classList.add('zd');
+    if (document.body) document.body.classList.add('dark');
+    document.documentElement.style.background='#111e11';
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('dark');
+      document.documentElement.style.background='';
+    });
+  }
+})();
+</script>
 </head>
 
 <body>
 
     <nav class="navbar navbar-light px-4 py-2 fixed-top">
-        <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#fff;font-weight:700;"> ZYTHERA </span></a>
+        <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
         <div class="ms-auto d-flex gap-2 align-items-center">
             <?php if ($userRole !== 'admin'): ?>
-                <a href="website.php" class="btn btn-sm btn-outline-light rounded-pill">Shop</a>
+                <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
             <?php else: ?>
-                <a href="admin.php" class="btn btn-sm btn-light rounded-pill">Admin Panel</a>
+                <a href="admin.php" class="btn btn-sm btn-dark rounded-pill">Admin Panel</a>
             <?php endif; ?>
             <a href="javascript:void(0)" onclick="openLogoutModal()" class="btn btn-sm btn-danger rounded-pill">Logout</a>
         </div>
@@ -913,84 +763,154 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
         <footer>
             <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-            <span class="footer-brand"><span style="font-family:'Playfair Display',serif;color:#fff;font-weight:700;"> ZYTHERA </span></span>
+            <span class="footer-brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
         </footer>
 
         <!-- FIX: Bootstrap JS was missing -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            /* ZYTHERA dark mode — apply before paint to prevent flash */
-            (function(){
-              if(localStorage.getItem('zythera_dark')==='1'){
-                document.documentElement.classList.add('zd');
-                if (document.body) document.body.classList.add('dark');
-                document.documentElement.style.background='#111e11';
-                document.addEventListener('DOMContentLoaded',function(){
-                  document.body.classList.add('dark');
-                  document.documentElement.style.background='';
-                });
-              }
-            })();
 
-            /**
-             * FIX: Added missing openLogoutModal() function
-             * This function displays a confirmation modal before logging out
-             */
-            function openLogoutModal() {
-                const backdrop = document.createElement('div');
-                backdrop.className = 'modal-backdrop';
-                backdrop.id = 'logoutModalBackdrop';
+        <?php
+        $flash = null;
+        if (isset($_GET['order_placed']) && !empty($_SESSION['order_flash'])) {
+            $flash = $_SESSION['order_flash'];
+            unset($_SESSION['order_flash']);
+        }
+        ?>
 
-                backdrop.innerHTML = `
-                    <div class="modal-content-box">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <h3>Confirm Logout</h3>
-                        <p>Are you sure you want to log out? You'll need to log in again to access your account.</p>
-                        <div class="modal-buttons">
-                            <button class="btn-modal btn-modal-cancel" onclick="closeLogoutModal()">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </button>
-                            <button class="btn-modal btn-modal-logout" onclick="performLogout()">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout
-                            </button>
+        <?php if ($flash): ?>
+            <?php
+            $fItems = $flash['items']    ?? [];
+            $fSub   = (float)($flash['subtotal']  ?? 0);
+            $fShip  = (float)($flash['shipping']  ?? 0);
+            $fTotal = (float)($flash['total']     ?? 0);
+            $fPay   = $flash['pay_method'] ?? '';
+            $fId    = $flash['order_id']   ?? '';
+            $fDate  = $flash['date']       ?? '';
+            $fInfo  = $flash['shipping_info'] ?? [];
+            ?>
+            <div id="orderModal" style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(26,46,26,.55);backdrop-filter:blur(4px);padding:16px;animation:fadeInBg .3s ease;">
+                <div style="background:#fff;border-radius:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25);animation:slideUp .4s cubic-bezier(.34,1.56,.64,1);">
+                    <div style="background:linear-gradient(135deg,#1a2e1a,#2d5a2d);border-radius:24px 24px 0 0;padding:36px 28px 28px;text-align:center;">
+                        <div style="width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;animation:popIn .5s .2s both cubic-bezier(.34,1.56,.64,1);">
+                            <i class="fas fa-check" style="color:#fff;font-size:2rem;"></i>
+                        </div>
+                        <h4 style="font-family:'Playfair Display',serif;color:#fff;margin-bottom:6px;font-size:1.6rem;">Order Placed!</h4>
+                        <p style="color:rgba(255,255,255,.72);font-size:.88rem;margin-bottom:16px;">
+                            Salamat, <strong style="color:#fff;"><?= htmlspecialchars($user['name'] ?? '') ?></strong>! Confirmed and being processed.
+                        </p>
+                        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:50px;padding:8px 20px;">
+                            <i class="fas fa-tag" style="color:rgba(255,255,255,.65);font-size:.8rem;"></i>
+                            <span style="font-weight:800;color:#fff;letter-spacing:2px;font-size:.92rem;"><?= htmlspecialchars($fId) ?></span>
+                        </div>
+                        <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:12px;">
+                            <span style="color:rgba(255,255,255,.6);font-size:.74rem;"><i class="fas fa-clock me-1"></i><?= date('M d, Y · h:i A', strtotime($fDate)) ?></span>
+                            <span style="color:rgba(255,255,255,.6);font-size:.74rem;"><i class="fas fa-credit-card me-1"></i><?= htmlspecialchars($fPay) ?></span>
                         </div>
                     </div>
-                `;
+                    <div style="padding:24px 28px;">
+                        <p style="font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2d5a2d;margin-bottom:12px;">Items Ordered</p>
+                        <div style="border:2px solid #d4e4d4;border-radius:14px;overflow:hidden;margin-bottom:18px;">
+                            <?php foreach ($fItems as $idx => $oi):
+                                $oiName  = htmlspecialchars($oi['name']  ?? '');
+                                $oiQty   = (int)($oi['qty']   ?? 1);
+                                $oiPrice = (float)($oi['price'] ?? 0);
+                                $oiImg   = $oi['image'] ?? '';
+                                $oiLine  = $oiPrice * $oiQty;
+                            ?>
+                                <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;<?= $idx > 0 ? 'border-top:1px solid #d4e4d4;' : '' ?>background:<?= $idx % 2 === 0 ? '#fff' : '#fafdf8' ?>;">
+                                    <img src="<?= htmlspecialchars($oiImg) ?>" alt=""
+                                        style="width:48px;height:48px;object-fit:cover;border-radius:10px;background:#d4e4d4;flex-shrink:0;"
+                                        onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-weight:700;font-size:.86rem;color:#1a2e1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= $oiName ?></div>
+                                        <div style="font-size:.74rem;color:#999;">₱<?= number_format($oiPrice, 2) ?> × <?= $oiQty ?></div>
+                                    </div>
+                                    <span style="font-weight:800;color:#2d5a2d;font-size:.9rem;white-space:nowrap;">₱<?= number_format($oiLine, 2) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div style="background:#f5f2ec;border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+                            <div style="display:flex;justify-content:space-between;font-size:.82rem;color:#888;padding:3px 0;"><span>Subtotal</span><span>₱<?= number_format($fSub, 2) ?></span></div>
+                            <div style="display:flex;justify-content:space-between;font-size:.82rem;color:#888;padding:3px 0;"><span><i class="fas fa-truck me-1"></i>Shipping</span><span>₱<?= number_format($fShip, 2) ?></span></div>
+                            <div style="display:flex;justify-content:space-between;font-weight:800;color:#2d5a2d;font-size:.95rem;border-top:2px solid #d4e4d4;padding-top:10px;margin-top:6px;"><span>Total Paid</span><span>₱<?= number_format($fTotal, 2) ?></span></div>
+                        </div>
+                        <p style="font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2d5a2d;margin-bottom:10px;">Delivery To</p>
+                        <div style="background:#f5f2ec;border-radius:12px;padding:12px 16px;font-size:.84rem;color:#1a2e1a;margin-bottom:22px;">
+                            <strong><?= htmlspecialchars($fInfo['full_name'] ?? '') ?></strong> &nbsp;·&nbsp; <?= htmlspecialchars($fInfo['phone'] ?? '') ?><br>
+                            <span style="color:#777;">
+                                <?= htmlspecialchars($fInfo['address'] ?? '') ?>,
+                                <?= htmlspecialchars($fInfo['city']    ?? '') ?>,
+                                <?= htmlspecialchars($fInfo['province'] ?? '') ?>
+                                <?= htmlspecialchars($fInfo['zip'] ?? '') ?>
+                            </span>
+                            <?php if (!empty($fInfo['notes'])): ?>
+                                <br><span style="color:#aaa;font-size:.78rem;"><i class="fas fa-sticky-note me-1"></i><?= htmlspecialchars($fInfo['notes']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <button onclick="closeOrderModal()"
+                            style="width:100%;padding:14px;background:#2d5a2d;color:#fff;border:none;border-radius:50px;font-weight:700;font-size:.95rem;cursor:pointer;transition:.2s;letter-spacing:.5px;">
+                            <i class="fas fa-check me-2"></i>Got it — View My Orders
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @keyframes fadeInBg {
+                    from {
+                        opacity: 0;
+                    }
 
-                document.body.appendChild(backdrop);
-                backdrop.addEventListener('click', function(e) {
-                    if (e.target === this) closeLogoutModal();
-                });
-            }
-
-            /**
-             * Close the logout modal without logging out
-             */
-            function closeLogoutModal() {
-                const backdrop = document.getElementById('logoutModalBackdrop');
-                if (backdrop) {
-                    backdrop.style.animation = 'fadeInBg 0.25s ease reverse forwards';
-                    setTimeout(() => backdrop.remove(), 280);
+                    to {
+                        opacity: 1;
+                    }
                 }
-            }
 
-            /**
-             * Perform the actual logout by redirecting to logout.php
-             */
-            function performLogout() {
-                window.location.href = 'logout.php';
-            }
+                @keyframes slideUp {
+                    from {
+                        transform: translateY(60px);
+                        opacity: 0;
+                    }
 
-            function togglePw() {
-                const input = document.getElementById('pwField');
-                if (!input) return;
-                const show = input.type === 'password';
-                input.type = show ? 'text' : 'password';
-                const icon = document.querySelector('.fa-eye, .fa-eye-slash');
-                if (icon) icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
-            }
-        </script>
-    </div>
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes popIn {
+                    from {
+                        transform: scale(.3);
+                        opacity: 0;
+                    }
+
+                    to {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                }
+            </style>
+            <script>
+                function closeOrderModal() {
+                    const modal = document.getElementById('orderModal');
+                    modal.style.animation = 'fadeInBg .25s ease reverse forwards';
+                    setTimeout(() => modal.remove(), 280);
+                    const hist = document.querySelector('.section-card:last-of-type');
+                    if (hist) setTimeout(() => hist.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    }), 300);
+                }
+
+                function togglePw() {
+                    const input = document.getElementById('pwField');
+                    if (!input) return;
+                    const show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    const icon = document.querySelector('.fa-eye, .fa-eye-slash');
+                    if (icon) icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+                }
+            </script>
+        <?php endif; ?>
 
 </body>
 
