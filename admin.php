@@ -15,10 +15,7 @@ if (!$loggedIn) {
 $adminRole = $_SESSION['role'] ?? '';
 if ($adminRole !== 'admin') {
     // Double-check from DB in case session was tampered
-    $dbCheck = getDBConnection()->prepare("SELECT role FROM users WHERE email = ? LIMIT 1");
-    $dbCheck->execute([$loggedIn]);
-    $dbRow = $dbCheck->fetch();
-    if (!$dbRow || $dbRow->role !== 'admin') {
+    if (!isAdminEmail($loggedIn)) {
         header('Location: website.php');
         exit;
     }
@@ -824,15 +821,11 @@ if ($adminRole !== 'admin') {
     <div class="sidebar-footer">
         <?php
         $adminEmail = $_SESSION['logged_in_user'] ?? 'Admin';
-        $db = getDBConnection();
 
-$stmt = $db->prepare("SELECT name, profile_pic FROM users WHERE email = ?");
-$stmt->execute([$adminEmail]);
+        $adminData = findAccountByEmail($adminEmail);
 
-$adminData = $stmt->fetch();
-
-$adminName = $adminData ? $adminData->name : 'Admin';
-$adminPic = getAvatarURL($adminData->profile_pic ?? null, $adminEmail ?? null, $adminName ?? null, 40);
+        $adminName = $adminData ? $adminData->name : 'Admin';
+        $adminPic = getAvatarURL($adminData->profile_pic ?? null, $adminEmail ?? null, $adminName ?? null, 40);
         ?>
         <div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-bottom:10px;">
             <i class="fas fa-user-shield me-2"></i><?= htmlspecialchars($adminName) ?>

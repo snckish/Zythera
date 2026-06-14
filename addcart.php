@@ -26,7 +26,7 @@ if ($productId <= 0) {
 }
 
 $db   = getDBConnection();
-$stmt = $db->prepare("SELECT stock, name, price, image FROM inventory WHERE inv_id = ? LIMIT 1");
+$stmt = $db->prepare("SELECT prod_stock AS stock, prod_name AS name, unit_price AS price, img_url AS image FROM product_inv WHERE prod_id = ? LIMIT 1");
 $stmt->execute([$productId]);
 $invItem = $stmt->fetch();
 

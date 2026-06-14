@@ -10,17 +10,7 @@ if (empty($_SESSION['logged_in_user']) && !empty($_COOKIE['zythera_user'])) {
     $cEmail = $_COOKIE['zythera_user'];
     $cRole  = $_COOKIE['zythera_role'] ?? '';
 
-    $db = getDBConnection();
-
-    $stmt = $db->prepare("
-        SELECT * FROM users
-        WHERE email = ?
-        LIMIT 1
-    ");
-
-    $stmt->execute([$cEmail]);
-
-    $checkUser = $stmt->fetch(PDO::FETCH_OBJ);
+    $checkUser = findAccountByEmail($cEmail);
 
     if ($checkUser && $checkUser->role === $cRole) {
 
@@ -55,19 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    $adminEmails = [
-        'zythera@gmail.com',
-        'admin@gmail.com'
-    ];
-
     // ── SIGNUP ────────────────────────────────────────────────
     if (isset($_POST['signup'])) {
 
         $name = trim($_POST['name'] ?? '');
-
-        $role = in_array($email, $adminEmails, true)
-            ? 'admin'
-            : 'user';
 
         if (!$name || !$email || !$password) {
 
@@ -86,7 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $check->execute([$email]);
 
-            if ($check->fetch()) {
+            $adminCheck = $db->prepare("SELECT email FROM admins WHERE email = ?");
+            $adminCheck->execute([$email]);
+
+            if ($check->fetch() || $adminCheck->fetch()) {
 
                 $message = 'Email already registered!';
                 $msgType = 'error';
@@ -98,22 +82,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     PASSWORD_DEFAULT
                 );
 
+                $nameParts = splitName($name);
+
                 $stmt = $db->prepare("
                     INSERT INTO users
                     (
+                        fname,
+                        mname,
+                        lname,
                         email,
-                        name,
-                        password,
-                        role
+                        password
                     )
-                    VALUES (?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?)
                 ");
 
                 $stmt->execute([
+                    $nameParts['fname'],
+                    $nameParts['mname'],
+                    $nameParts['lname'],
                     $email,
-                    $name,
-                    $hashedPassword,
-                    $role
+                    $hashedPassword
                 ]);
 
                 $message = 'Account created successfully!';
@@ -127,18 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
 
-            $db = getDBConnection();
-
-            $stmt = $db->prepare("
-                SELECT *
-                FROM users
-                WHERE email = ?
-                LIMIT 1
-            ");
-
-            $stmt->execute([$email]);
-
-            $user = $stmt->fetch(PDO::FETCH_OBJ);
+            $user = findAccountByEmail($email);
 
             if (!$user) {
 
@@ -199,11 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header(
                         'Location: ' .
                         (
-                            in_array(
-                                $user->email,
-                                $adminEmails,
-                                true
-                            )
+                            $user->role === 'admin'
                             ? 'admin.php'
                             : 'website.php'
                         )
@@ -229,19 +202,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── AUTO REDIRECT IF LOGGED IN ───────────────────────────────
 if (!empty($_SESSION['logged_in_user'])) {
 
-    $adminEmails2 = [
-        'zythera@gmail.com',
-        'admin@gmail.com'
-    ];
+    $loggedInRole = $_SESSION['role'] ?? (isAdminEmail($_SESSION['logged_in_user']) ? 'admin' : 'user');
 
     header(
         'Location: ' .
         (
-            in_array(
-                $_SESSION['logged_in_user'],
-                $adminEmails2,
-                true
-            )
+            $loggedInRole === 'admin'
             ? 'admin.php'
             : 'website.php'
         )

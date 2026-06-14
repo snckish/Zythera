@@ -2,15 +2,9 @@
 require 'config.php';
 $userEmail  = $_SESSION['logged_in_user'] ?? null;
 $userName = null;
+$uObj = null;
 if ($userEmail) {
-
-  $db = getDBConnection();
-
-  $stmt = $db->prepare("SELECT * FROM users WHERE email = ?");
-  $stmt->execute([$userEmail]);
-
-  $uObj = $stmt->fetch();
-
+  $uObj = findAccountByEmail($userEmail);
   if ($uObj) {
     $userName = $uObj->name;
   }
@@ -30,11 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
   if ($cName && $cEmail && $cMsg) {
     try {
       $db2 = getDBConnection();
+      $msgUserId = null;
+      if ($userEmail) {
+        $msgUser = findUserByEmail($userEmail);
+        $msgUserId = $msgUser ? (int)$msgUser->user_id : null;
+      }
       $ins = $db2->prepare("
-                INSERT INTO messages (full_name, email, subject, message)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO messages (user_id, full_name, email, subject, msg_content)
+                VALUES (?, ?, ?, ?, ?)
             ");
-      $ins->execute([$cName, $cEmail, $cSubject, $cMsg]);
+      $ins->execute([$msgUserId, $cName, $cEmail, $cSubject, $cMsg]);
       // If request is AJAX, return JSON so client can clear only the message field
       $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
       if ($isAjax) {

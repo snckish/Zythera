@@ -18,9 +18,7 @@ if ($userRole === 'admin') {
 
 // ── Load user from DB ─────────────────────────────────────────
 $db    = getDBConnection();
-$uStmt = $db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-$uStmt->execute([$userEmail]);
-$dbUser = $uStmt->fetch();
+$dbUser = findUserByEmail($userEmail);
 
 if (!$dbUser) {
     foreach (['logged_in_user','role','login_time','session_start'] as $_k) unset($_SESSION[$_k]);
@@ -209,23 +207,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $db->beginTransaction();
 
-            // 1. Insert order with correct schema columns
+            // 1. Resolve/create address and payment records
+            $userId    = (int)$dbUser->user_id;
+            $addressId = findOrCreateAddress($userId, $phone, $address, $city, $province, $zip);
+            $paymentId = createPayment($payMethod, 'pending');
+
+            // 2. Insert order (normalized schema)
             $oStmt = $db->prepare("
                 INSERT INTO orders
-                (order_id, email, subtotal, shipping, total, date, status, pay_method,
-                 full_name, phone, address, city, province, zip, notes)
-                VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (order_ref, user_id, address_id, payment_id, total_ammount, shipping_fee, user_note, order_date, order_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
             ");
             $oStmt->execute([
-                $orderId, $userEmail, $subtotal, $shipping, $total,
-                'Pending', $payMethod,
-                $fullName, $phone, $address, $city, $province, $zip, $notes
+                $orderId, $userId, $addressId, $paymentId, $total, $shipping, $notes, 'Pending'
             ]);
             $dbOrdNo = $db->lastInsertId();
 
-            // 2. Insert order items with correct schema columns
+            // 3. Insert order items with correct schema columns
             $oiStmt = $db->prepare("
-                INSERT INTO order_items (ord_no, inv_id, product_name, price, qty)
+                INSERT INTO order_items (order_id, prod_id, prod_name, quantity, unit_price)
                 VALUES (?, ?, ?, ?, ?)
             ");
             foreach ($cart as $ci) {
@@ -233,15 +233,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $dbOrdNo,
                     (int)($ci['inv_id'] ?? 0),
                     trim($ci['name']   ?? ''),
-                    (float)($ci['price'] ?? 0),
                     (int)($ci['qty']   ?? 1),
+                    (float)($ci['price'] ?? 0),
                 ]);
             }
 
-            // 3. Deduct inventory safely
+            // 4. Deduct inventory safely
             $deductStmt = $db->prepare("
-                UPDATE inventory SET stock = stock - ?
-                WHERE inv_id = ? AND stock >= ?
+                UPDATE product_inv SET prod_stock = prod_stock - ?
+                WHERE prod_id = ? AND prod_stock >= ?
             ");
             foreach ($cart as $ci) {
                 $qty = (int)($ci['qty'] ?? 1);
@@ -252,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // 4. Clear cart
+            // 5. Clear cart
             clearCartForUser($userEmail);
 
             $db->commit();

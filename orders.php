@@ -15,9 +15,7 @@ if ($userRole === 'admin') {
 }
 
 $db    = getDBConnection();
-$uStmt = $db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-$uStmt->execute([$userEmail]);
-$dbUser = $uStmt->fetch();
+$dbUser = findUserByEmail($userEmail);
 
 if (!$dbUser) {
     header('Location: logsign.php');
@@ -47,7 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_order_id'])) {
     }
 
     if (empty($reviewErrors)) {
-        $checkStmt = $db->prepare("SELECT status FROM orders WHERE order_id = ? AND email = ? LIMIT 1");
+        $checkStmt = $db->prepare("
+            SELECT o.order_status AS status
+            FROM orders o
+            JOIN users u ON u.user_id = o.user_id
+            WHERE o.order_ref = ? AND u.email = ?
+            LIMIT 1
+        ");
         $checkStmt->execute([$reviewOrderId, $userEmail]);
         $orderCheck = $checkStmt->fetch();
 
@@ -63,16 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_order_id'])) {
 }
 
 // FIX: Load orders then attach items from order_items table
-$orders = [];
-$oStmt  = $db->prepare("SELECT * FROM orders WHERE email = ? ORDER BY date DESC");
-$oStmt->execute([$userEmail]);
-$rawOrders = $oStmt->fetchAll();
-foreach ($rawOrders as $ord) {
-    $iStmt = $db->prepare("SELECT * FROM order_items WHERE ord_no = ?");
-    $iStmt->execute([$ord->ord_no ?? $ord->id ?? 0]);
-    $ord->items = $iStmt->fetchAll();
-    $orders[] = $ord;
-}
+$orders = loadUserOrders($userEmail);
 
 $orderPlacedFlash = '';
 $orderPlacedId    = '';

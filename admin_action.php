@@ -35,7 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_review'])) {
 
         // Verify the review belongs to the current user
         $db = getDBConnection();
-        $verifyStmt = $db->prepare("SELECT email FROM reviews WHERE review_id = ? LIMIT 1");
+        $verifyStmt = $db->prepare("
+            SELECT u.email
+            FROM reviews r
+            JOIN users u ON u.user_id = r.user_id
+            WHERE r.review_id = ?
+            LIMIT 1
+        ");
         $verifyStmt->execute([$reviewId]);
         $reviewRecord = $verifyStmt->fetch();
 
@@ -46,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_review'])) {
         }
 
         // Update the review
-        $updateStmt = $db->prepare("UPDATE reviews SET rating = ?, comment = ? WHERE review_id = ?");
+        $updateStmt = $db->prepare("UPDATE reviews SET user_rating = ?, user_review = ? WHERE review_id = ?");
         $updateStmt->execute([$rating, $comment, $reviewId]);
 
         http_response_code(200);
@@ -121,21 +127,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $imagePath = 'pci/' . ltrim($imagePath, '/');
     }
 
+    $categoryId = getCategoryId($category);
+
     try {
         $db = getDBConnection();
 
         if ($inv_id !== '') {
             $stmt = $db->prepare("
-                UPDATE inventory SET
-                    name = ?,
-                    size = ?,
-                    color = ?,
-                    price = ?,
-                    description = ?,
-                    stock = ?,
-                    category = ?,
-                    image = ?
-                WHERE inv_id = ?
+                UPDATE product_inv SET
+                    prod_name   = ?,
+                    prod_size   = ?,
+                    prod_color  = ?,
+                    unit_price  = ?,
+                    prod_desc   = ?,
+                    prod_stock  = ?,
+                    category_id = ?,
+                    img_url     = ?
+                WHERE prod_id = ?
             ");
             $stmt->execute([
                 sanitize($_POST['name'] ?? ''),
@@ -144,13 +152,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 (float)$cleanPrice,
                 sanitize($description),
                 (int)($_POST['stock'] ?? 0),
-                $category,
+                $categoryId,
                 $imagePath,
                 (int)$inv_id
             ]);
         } else {
             $stmt = $db->prepare("
-                INSERT INTO inventory (name, size, color, price, description, stock, category, image)
+                INSERT INTO product_inv (prod_name, prod_size, prod_color, unit_price, prod_desc, prod_stock, category_id, img_url)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
@@ -160,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 (float)$cleanPrice,
                 sanitize($description),
                 (int)($_POST['stock'] ?? 0),
-                $category,
+                $categoryId,
                 $imagePath
             ]);
         }
@@ -179,7 +187,7 @@ if (isset($_GET['update_status'], $_GET['order_id'], $_GET['status'])) {
 
     try {
         $db = getDBConnection();
-        $stmt = $db->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
+        $stmt = $db->prepare("UPDATE orders SET order_status = ? WHERE order_ref = ?");
         $stmt->execute([$status, $orderId]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
@@ -221,7 +229,7 @@ if (isset($_GET['restock_id'], $_GET['amount'])) {
 
     try {
         $db = getDBConnection();
-        $stmt = $db->prepare("UPDATE inventory SET stock = stock + ? WHERE inv_id = ?");
+        $stmt = $db->prepare("UPDATE product_inv SET prod_stock = prod_stock + ? WHERE prod_id = ?");
         $stmt->execute([$amount, $inv_id]);
     } catch (PDOException $e) {
         die("Restock Error: " . $e->getMessage());
@@ -236,7 +244,7 @@ if (isset($_GET['delete'])) {
 
     try {
         $db = getDBConnection();
-        $stmt = $db->prepare("DELETE FROM inventory WHERE inv_id = ?");
+        $stmt = $db->prepare("DELETE FROM product_inv WHERE prod_id = ?");
         $stmt->execute([$inv_id]);
     } catch (PDOException $e) {
         die("Delete Error: " . $e->getMessage());

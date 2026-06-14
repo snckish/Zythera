@@ -2,11 +2,9 @@
 require 'config.php';
 $userEmail = $_SESSION['logged_in_user'] ?? null;
 $userName = null;
+$uObj = null;
 if ($userEmail) {
-    $db = getDBConnection();
-    $stmt = $db->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$userEmail]);
-    $uObj = $stmt->fetch();
+    $uObj = findAccountByEmail($userEmail);
     if ($uObj) {
         $userName = $uObj->name;
     }

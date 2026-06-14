@@ -15,9 +15,7 @@ if ($userRole === 'admin') {
 }
 
 $db    = getDBConnection();
-$uStmt = $db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-$uStmt->execute([$userEmail]);
-$dbUser = $uStmt->fetch();
+$dbUser = findUserByEmail($userEmail);
 
 if (!$dbUser) {
     header('Location: logsign.php');
@@ -44,7 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_order_id'])) {
     }
 
     if (empty($reviewErrors)) {
-        $checkStmt = $db->prepare("SELECT status FROM orders WHERE order_id = ? AND email = ? LIMIT 1");
+        $checkStmt = $db->prepare("
+            SELECT o.order_status AS status
+            FROM orders o
+            JOIN users u ON u.user_id = o.user_id
+            WHERE o.order_ref = ? AND u.email = ?
+            LIMIT 1
+        ");
         $checkStmt->execute([$reviewOrderId, $userEmail]);
         $reviewOrder = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -67,16 +71,7 @@ if (!empty($_GET['review_success'])) {
 }
 
 // Load all orders with their items
-$allOrders = [];
-$oStmt = $db->prepare("SELECT * FROM orders WHERE email = ? ORDER BY date DESC");
-$oStmt->execute([$userEmail]);
-$rawOrders = $oStmt->fetchAll();
-foreach ($rawOrders as $ord) {
-    $iStmt = $db->prepare("SELECT oi.*, inv.image AS image FROM order_items oi LEFT JOIN inventory inv ON inv.inv_id = oi.inv_id WHERE oi.ord_no = ?");
-    $iStmt->execute([$ord->ord_no ?? $ord->id ?? 0]);
-    $ord->items = $iStmt->fetchAll();
-    $allOrders[] = $ord;
-}
+$allOrders = loadUserOrders($userEmail);
 
 $orderId       = trim($_GET['order_id'] ?? '');
 $returnTarget  = trim($_GET['return'] ?? '');

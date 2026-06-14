@@ -9,9 +9,7 @@ if (empty($_SESSION['logged_in_user'])) {
 $userEmail = $_SESSION['logged_in_user'];
 $db        = getDBConnection();
 
-$uStmt = $db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-$uStmt->execute([$userEmail]);
-$dbUser = $uStmt->fetch();
+$dbUser = findAccountByEmail($userEmail);
 
 if (!$dbUser) {
     foreach (['logged_in_user', 'role', 'login_time', 'session_start'] as $_k) unset($_SESSION[$_k]);
@@ -27,6 +25,7 @@ $user = [
     'created_at'  => $dbUser->created_at ?? '',
 ];
 $userRole = $_SESSION['role'] ?? $user['role'];
+$isAdminAccount = ($userRole === 'admin');
 
 if ($userRole !== 'admin') {
     if (!isset($_SESSION['orders'][$userEmail])) $_SESSION['orders'][$userEmail] = [];
@@ -38,12 +37,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newName = trim($_POST['name'] ?? '');
         $newPass = trim($_POST['password'] ?? '');
         if ($newName === '') $newName = $user['name'];
-        if (!empty($newPass)) {
-            if (strlen($newPass) < 6) die('Password must be at least 6 characters.');
-            $hashed = password_hash($newPass, PASSWORD_DEFAULT);
-            $db->prepare("UPDATE users SET name=?, password=? WHERE email=?")->execute([$newName, $hashed, $userEmail]);
+
+        if ($isAdminAccount) {
+            if (!empty($newPass)) {
+                if (strlen($newPass) < 6) die('Password must be at least 6 characters.');
+                $hashed = password_hash($newPass, PASSWORD_DEFAULT);
+                $db->prepare("UPDATE admins SET admin_fname=?, password=? WHERE email=?")->execute([$newName, $hashed, $userEmail]);
+            } else {
+                $db->prepare("UPDATE admins SET admin_fname=? WHERE email=?")->execute([$newName, $userEmail]);
+            }
         } else {
-            $db->prepare("UPDATE users SET name=? WHERE email=?")->execute([$newName, $userEmail]);
+            $nameParts = splitName($newName);
+            if (!empty($newPass)) {
+                if (strlen($newPass) < 6) die('Password must be at least 6 characters.');
+                $hashed = password_hash($newPass, PASSWORD_DEFAULT);
+                $db->prepare("UPDATE users SET fname=?, mname=?, lname=?, password=? WHERE email=?")
+                   ->execute([$nameParts['fname'], $nameParts['mname'], $nameParts['lname'], $hashed, $userEmail]);
+            } else {
+                $db->prepare("UPDATE users SET fname=?, mname=?, lname=? WHERE email=?")
+                   ->execute([$nameParts['fname'], $nameParts['mname'], $nameParts['lname'], $userEmail]);
+            }
         }
         header('Location: profile.php?updated=1');
         exit;
@@ -59,7 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newName = uniqid('profile_', true) . '.' . $ext;
                 $target  = 'uploads/profile_pics/' . $newName;
                 if (move_uploaded_file($file['tmp_name'], $target)) {
-                    $db->prepare("UPDATE users SET profile_pic=? WHERE email=?")->execute([$target, $userEmail]);
+                    if ($isAdminAccount) {
+                        $db->prepare("UPDATE admins SET admin_pfp=? WHERE email=?")->execute([$target, $userEmail]);
+                    } else {
+                        $db->prepare("UPDATE users SET user_pfp=? WHERE email=?")->execute([$target, $userEmail]);
+                    }
                     header('Location: profile.php?updated=1');
                     exit;
                 }
@@ -71,7 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($user['profile_pic']) && file_exists($user['profile_pic'])) {
             unlink($user['profile_pic']);
         }
-        $db->prepare("UPDATE users SET profile_pic=NULL WHERE email=?")->execute([$userEmail]);
+        if ($isAdminAccount) {
+            $db->prepare("UPDATE admins SET admin_pfp=NULL WHERE email=?")->execute([$userEmail]);
+        } else {
+            $db->prepare("UPDATE users SET user_pfp=NULL WHERE email=?")->execute([$userEmail]);
+        }
         header('Location: profile.php');
         exit;
     }
@@ -81,16 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // FIX: Load orders with their items properly joined
 $orders = [];
 if ($userRole !== 'admin') {
-    $oStmt = $db->prepare("SELECT * FROM orders WHERE email=? ORDER BY date DESC");
-    $oStmt->execute([$userEmail]);
-    $rawOrders = $oStmt->fetchAll();
-
-    foreach ($rawOrders as $ord) {
-        $iStmt = $db->prepare("SELECT * FROM order_items WHERE ord_no=?");
-        $iStmt->execute([$ord->ord_no ?? $ord->id ?? 0]);
-        $ord->items = $iStmt->fetchAll();
-        $orders[] = $ord;
-    }
+    $orders = loadUserOrders($userEmail);
 }
 
 $pic = $dbUser->profile_pic ?? null;
