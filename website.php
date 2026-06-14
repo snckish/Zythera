@@ -27,13 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
       $msgUserId = null;
       if ($userEmail) {
         $msgUser = findUserByEmail($userEmail);
-        $msgUserId = $msgUser ? (int)$msgUser->user_id : null;
+        $msgUserId = $msgUser ? (string)$msgUser->user_id : null;
       }
+      $newMsgId = generateCustomId('MSG');
       $ins = $db2->prepare("
-                INSERT INTO messages (user_id, full_name, email, subject, msg_content)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO messages (msg_id, user_id, full_name, email, subject, msg_content)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
-      $ins->execute([$msgUserId, $cName, $cEmail, $cSubject, $cMsg]);
+      $ins->execute([$newMsgId, $msgUserId, $cName, $cEmail, $cSubject, $cMsg]);
       // If request is AJAX, return JSON so client can clear only the message field
       $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
       if ($isAjax) {
@@ -84,8 +85,8 @@ foreach ($rawInventory as $item) {
 
 // Sort inventory by ID accurately
 usort($inventory, function ($a, $b) {
-  $ia = is_object($a) ? (int)$a->inv_id : (int)($a['inv_id'] ?? 0);
-  $ib = is_object($b) ? (int)$b->inv_id : (int)($b['inv_id'] ?? 0);
+  $ia = is_object($a) ? (string)$a->inv_id : (string)($a['inv_id'] ?? '');
+  $ib = is_object($b) ? (string)$b->inv_id : (string)($b['inv_id'] ?? '');
   return $ia <=> $ib;
 });
 
@@ -1274,7 +1275,7 @@ body.dark .review-edit-modal textarea:focus {
                   </div>
 
                   <button class="btn-cart" id="btn-<?= $item->inv_id ?>"
-                    onclick='addToCart(<?= $item->inv_id ?>, <?= json_encode($item->name) ?>, <?= $cleanPrice ?>, <?= json_encode($item->image ?? '') ?>)'
+                    onclick='addToCart(<?= json_encode((string)$item->inv_id) ?>, <?= json_encode($item->name) ?>, <?= $cleanPrice ?>, <?= json_encode($item->image ?? '') ?>)'
                     <?= ($outOfStock || $userRole === 'admin') ? 'disabled' : '' ?>>
                     <?php if ($userRole === 'admin'): ?>
                       Admin View Only
@@ -1648,13 +1649,13 @@ body.dark .review-edit-modal textarea:focus {
         // Build a stock lookup from session inventory
         $invStock = [];
         foreach ($_SESSION['inventory'] ?? [] as $invId => $inv) {
-          $invStock[(int)$invId] = (int)$inv->stock;
+          $invStock[$invId] = (int)$inv->stock;
         }
         if ($userEmail && !empty($_SESSION['cart'][$userEmail])):
           foreach ($_SESSION['cart'][$userEmail] as $ci):
             $ciPrice  = (float)($ci['price'] ?? 0);
             $ciQty    = (int)($ci['qty'] ?? 1);
-            $ciId     = (int)($ci['inv_id'] ?? 0);
+            $ciId     = (string)($ci['inv_id'] ?? '');
             $ciTotal  = $ciPrice * $ciQty;
             $ciStock  = $invStock[$ciId] ?? 99;
             $initSubtotal += $ciTotal;
@@ -1683,13 +1684,13 @@ body.dark .review-edit-modal textarea:focus {
               <!-- Qty stepper + remove row -->
               <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
                 <div style="display:flex;align-items:center;gap:0;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
-                  <button onclick="cartQty(<?= $ciId ?>, 'minus')"
+                  <button onclick="cartQty('<?= $ciId ?>', 'minus')"
                     style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
                   <span id="panel-qty-<?= $ciId ?>" style="width:34px;text-align:center;font-weight:700;font-size:.88rem;color:#1a2e1a;"><?= $ciQty ?></span>
-                  <button onclick="cartQty(<?= $ciId ?>, 'plus')"
+                  <button onclick="cartQty('<?= $ciId ?>', 'plus')"
                     style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">+</button>
                 </div>
-                <button onclick="cartQty(<?= $ciId ?>, 'remove')"
+                <button onclick="cartQty('<?= $ciId ?>', 'remove')"
                   style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;"
                   onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
                   <i class="fas fa-trash-alt" style="margin-right:4px;"></i>Remove
@@ -1772,7 +1773,7 @@ body.dark .review-edit-modal textarea:focus {
   <script>
     // ── Cart state seeded from PHP session + live DB via fetch ──
     let cartItemsJS = <?= json_encode(array_values(array_map(function ($i) {
-                        return ['inv_id' => (int)($i['inv_id'] ?? 0), 'name' => $i['name'] ?? '', 'price' => (float)($i['price'] ?? 0), 'qty' => (int)($i['qty'] ?? 1), 'image' => $i['image'] ?? ''];
+                        return ['inv_id' => (string)($i['inv_id'] ?? ''), 'name' => $i['name'] ?? '', 'price' => (float)($i['price'] ?? 0), 'qty' => (int)($i['qty'] ?? 1), 'image' => $i['image'] ?? ''];
                       }, $_SESSION['cart'][$userEmail] ?? []))) ?>;
     // Stock map from PHP inventory (inv_id => stock)
     const stockMap = <?= json_encode(array_combine(
@@ -1881,14 +1882,14 @@ body.dark .review-edit-modal textarea:focus {
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
               <div style="display:flex;align-items:center;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
-                <button onclick="cartQty(${item.inv_id},'minus')"
+                <button onclick="cartQty('${item.inv_id}','minus')"
                   style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
                 <span id="panel-qty-${item.inv_id}"
                   style="width:34px;text-align:center;font-weight:700;font-size:.88rem;color:#1a2e1a;">${qty}</span>
-                <button onclick="cartQty(${item.inv_id},'plus')"
+                <button onclick="cartQty('${item.inv_id}','plus')"
                   style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">+</button>
               </div>
-              <button onclick="cartQty(${item.inv_id},'remove')"
+              <button onclick="cartQty('${item.inv_id}','remove')"
                 style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;"
                 onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
                 <i class="fas fa-trash-alt" style="margin-right:4px;"></i>Remove
@@ -1914,7 +1915,7 @@ body.dark .review-edit-modal textarea:focus {
     function cartQty(itemId, action) {
       // Client-side stock cap before even hitting server
       if (action === 'plus') {
-        const item = cartItemsJS.find(i => Number(i.inv_id) === Number(itemId));
+        const item = cartItemsJS.find(i => String(i.inv_id) === String(itemId));
         const max = stockMap[itemId] ?? 9999;
         if (item && Number(item.qty) >= max) {
           showToast('Maximum stock (' + max + ') already in cart.', 'error');
@@ -1932,9 +1933,9 @@ body.dark .review-edit-modal textarea:focus {
       }).then(r => {
         if (!r.ok) return;
         if (action === 'remove') {
-          cartItemsJS = cartItemsJS.filter(i => Number(i.inv_id) !== Number(itemId));
+          cartItemsJS = cartItemsJS.filter(i => String(i.inv_id) !== String(itemId));
         } else {
-          const item = cartItemsJS.find(i => Number(i.inv_id) === Number(itemId));
+          const item = cartItemsJS.find(i => String(i.inv_id) === String(itemId));
           if (item) {
             const max = stockMap[itemId] ?? 9999;
             if (action === 'plus') item.qty = Math.min(max, Number(item.qty) + 1);
@@ -1947,7 +1948,7 @@ body.dark .review-edit-modal textarea:focus {
 
     // ── Add item to local JS state then re-render ─────────────────
     function updateCartPanel(newItem) {
-      const existing = cartItemsJS.find(i => Number(i.inv_id) === Number(newItem.inv_id));
+      const existing = cartItemsJS.find(i => String(i.inv_id) === String(newItem.inv_id));
       if (existing) {
         existing.qty = Number(existing.qty) + Number(newItem.qty);
         if (!existing.image && newItem.image) existing.image = newItem.image;

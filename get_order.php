@@ -11,7 +11,13 @@ $userEmail = $_SESSION['logged_in_user'];
 
 try {
     $db   = getDBConnection();
-    $stmt = $db->prepare("SELECT order_id, status FROM orders WHERE email = ? ORDER BY ord_no DESC");
+    $stmt = $db->prepare("
+        SELECT o.order_id AS order_id, o.order_status AS status
+        FROM orders o
+        JOIN users u ON u.user_id = o.user_id
+        WHERE u.email = ?
+        ORDER BY o.order_date DESC
+    ");
     $stmt->execute([$userEmail]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

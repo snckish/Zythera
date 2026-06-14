@@ -10,7 +10,7 @@ if ($adminRole !== 'admin') {
 
 try {
     $db    = getDBConnection();
-    $stmt  = $db->query("SELECT COUNT(*) FROM orders WHERE status = 'Pending'");
+    $stmt  = $db->query("SELECT COUNT(*) FROM orders WHERE order_status = 'Pending'");
     $count = (int)$stmt->fetchColumn();
     echo json_encode(['count' => $count]);
 } catch (PDOException $e) {

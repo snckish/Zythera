@@ -10,12 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_review'])) {
     header('Cache-Control: no-cache, no-store, must-revalidate');
 
     try {
-        $reviewId = (int)($_POST['review_id'] ?? 0);
+        $reviewId = trim($_POST['review_id'] ?? '');
         $rating   = (int)($_POST['rating'] ?? 5);
         $comment  = trim($_POST['comment'] ?? '');
         $userEmail = $_SESSION['logged_in_user'] ?? '';
 
-        if ($reviewId <= 0) {
+        if ($reviewId === '') {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid review ID.']);
             exit;
@@ -77,10 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply_review'])) {
             exit;
         }
 
-        $reviewId = (int)($_POST['review_id'] ?? 0);
+        $reviewId = trim($_POST['review_id'] ?? '');
         $reply    = trim($_POST['reply'] ?? '');
 
-        if ($reviewId <= 0 || $reply === '') {
+        if ($reviewId === '' || $reply === '') {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Review ID and reply text are required.']);
             exit;
@@ -154,14 +154,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 (int)($_POST['stock'] ?? 0),
                 $categoryId,
                 $imagePath,
-                (int)$inv_id
+                $inv_id
             ]);
         } else {
+            $newProdId = generateCustomId('PRD');
             $stmt = $db->prepare("
-                INSERT INTO product_inv (prod_name, prod_size, prod_color, unit_price, prod_desc, prod_stock, category_id, img_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO product_inv (prod_id, prod_name, prod_size, prod_color, unit_price, prod_desc, prod_stock, category_id, img_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
+                $newProdId,
                 sanitize($_POST['name'] ?? ''),
                 sanitize($_POST['size'] ?? ''),
                 sanitize($_POST['color'] ?? ''),
@@ -187,7 +189,7 @@ if (isset($_GET['update_status'], $_GET['order_id'], $_GET['status'])) {
 
     try {
         $db = getDBConnection();
-        $stmt = $db->prepare("UPDATE orders SET order_status = ? WHERE order_ref = ?");
+        $stmt = $db->prepare("UPDATE orders SET order_status = ? WHERE order_id = ?");
         $stmt->execute([$status, $orderId]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
@@ -224,7 +226,7 @@ if (isset($_GET['delete_review'])) {
 }
 
 if (isset($_GET['restock_id'], $_GET['amount'])) {
-    $inv_id = (int)$_GET['restock_id'];
+    $inv_id = trim($_GET['restock_id'] ?? '');
     $amount = max(0, (int)$_GET['amount']);
 
     try {
@@ -240,7 +242,7 @@ if (isset($_GET['restock_id'], $_GET['amount'])) {
 }
 
 if (isset($_GET['delete'])) {
-    $inv_id = (int)$_GET['delete'];
+    $inv_id = trim($_GET['delete'] ?? '');
 
     try {
         $db = getDBConnection();

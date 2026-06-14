@@ -183,8 +183,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         try {
-            // Generate unique order ID
-            $orderId = 'ORD-' . strtoupper(substr(md5(uniqid($userEmail, true)), 0, 8));
+            // Generate unique order ID using the custom ID system
+            $orderId = generateCustomId('OR');
 
             $orderData = [
                 'order_id'      => $orderId,
@@ -208,33 +208,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->beginTransaction();
 
             // 1. Resolve/create address and payment records
-            $userId    = (int)$dbUser->user_id;
+            $userId    = (string)$dbUser->user_id;
             $addressId = findOrCreateAddress($userId, $phone, $address, $city, $province, $zip);
             $paymentId = createPayment($payMethod, 'pending');
 
             // 2. Insert order (normalized schema)
             $oStmt = $db->prepare("
                 INSERT INTO orders
-                (order_ref, user_id, address_id, payment_id, total_ammount, shipping_fee, user_note, order_date, order_status)
+                (order_id, user_id, address_id, payment_id, total_ammount, user_note, order_date, order_status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
             ");
             $oStmt->execute([
                 $orderId, $userId, $addressId, $paymentId, $total, $shipping, $notes, 'Pending'
             ]);
-            $dbOrdNo = $db->lastInsertId();
+            $dbOrdNo = $orderId;   // The custom OR-ZY### id IS the primary key
 
             // 3. Insert order items with correct schema columns
             $oiStmt = $db->prepare("
-                INSERT INTO order_items (order_id, prod_id, prod_name, quantity, unit_price)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO order_items (orderitem_id, order_id, prod_id, prod_name, quantity, unit_price)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
             foreach ($cart as $ci) {
                 $oiStmt->execute([
+                    generateCustomId('ODR'),
                     $dbOrdNo,
-                    (int)($ci['inv_id'] ?? 0),
-                    trim($ci['name']   ?? ''),
-                    (int)($ci['qty']   ?? 1),
-                    (float)($ci['price'] ?? 0),
+                    (string)($ci['inv_id'] ?? ''),
+                    trim($ci['name']       ?? ''),
+                    (int)($ci['qty']       ?? 1),
+                    (float)($ci['price']   ?? 0),
                 ]);
             }
 
@@ -245,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ");
             foreach ($cart as $ci) {
                 $qty = (int)($ci['qty'] ?? 1);
-                $pid = (int)($ci['inv_id'] ?? 0);
+                $pid = (string)($ci['inv_id'] ?? '');
                 $deductStmt->execute([$qty, $pid, $qty]);
                 if ($deductStmt->rowCount() === 0) {
                     throw new Exception('Insufficient stock for product ID ' . $pid);

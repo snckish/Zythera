@@ -127,7 +127,7 @@ $_SESSION['profile_pic'][$userEmail] = $pic;
 
 $stockMap = [];
 foreach ($_SESSION['inventory'] ?? [] as $inv) {
-    $stockMap[(int)$inv->inv_id] = (int)$inv->stock;
+    $stockMap[$inv->inv_id] = (int)$inv->stock;
 }
 ?>
 <!DOCTYPE html>

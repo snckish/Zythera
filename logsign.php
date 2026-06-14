@@ -48,11 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── SIGNUP ────────────────────────────────────────────────
     if (isset($_POST['signup'])) {
 
-        $name = trim($_POST['name'] ?? '');
+        $fname = trim($_POST['fname'] ?? '');
+        $mname = trim($_POST['mname'] ?? '');
+        $lname = trim($_POST['lname'] ?? '');
 
-        if (!$name || !$email || !$password) {
+        if (!$fname || !$lname || !$email || !$password) {
 
-            $message = 'Please complete all fields.';
+            $message = 'Please complete all required fields.';
             $msgType = 'error';
 
         } else {
@@ -82,24 +84,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     PASSWORD_DEFAULT
                 );
 
-                $nameParts = splitName($name);
 
+                $newUserId = generateCustomId('U');
                 $stmt = $db->prepare("
                     INSERT INTO users
                     (
+                        user_id,
                         fname,
                         mname,
                         lname,
                         email,
                         password
                     )
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 ");
 
                 $stmt->execute([
-                    $nameParts['fname'],
-                    $nameParts['mname'],
-                    $nameParts['lname'],
+                    $newUserId,
+                    $fname,
+                    $mname !== '' ? $mname : null,
+                    $lname,
                     $email,
                     $hashedPassword
                 ]);
@@ -541,8 +545,18 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
   <form id="signupForm" class="form" method="POST" novalidate>
 
     <div class="field">
-      <input type="text" name="name" placeholder=" " required autocomplete="name">
-      <label>Full Name</label>
+      <input type="text" name="fname" placeholder=" " required autocomplete="given-name">
+      <label>First Name</label>
+    </div>
+
+    <div class="field">
+      <input type="text" name="mname" placeholder=" " autocomplete="additional-name">
+      <label>Middle Name (optional)</label>
+    </div>
+
+    <div class="field">
+      <input type="text" name="lname" placeholder=" " required autocomplete="family-name">
+      <label>Last Name</label>
     </div>
 
     <div class="field">

@@ -892,7 +892,7 @@ if ($adminRole !== 'admin') {
 <?php
 $inventory   = $_SESSION['inventory'] ?? [];
 $searchQuery = trim($_GET['search'] ?? '');
-uasort($inventory, fn($a,$b) => $a->inv_id <=> $b->inv_id);
+uasort($inventory, fn($a,$b) => strcmp((string)$a->inv_id, (string)$b->inv_id));
 if ($searchQuery !== '') {
     $needle = strtolower($searchQuery);
     $inventory = array_filter($inventory, function($item) use ($needle) {
@@ -1394,7 +1394,7 @@ if ($searchQuery !== '') {
             </thead>
             <tbody>
                 <?php foreach ($adminReviews as $review): ?>
-                <tr id="review-row-<?= (int)$review->review_id ?>">
+                <tr id="review-row-<?= htmlspecialchars($review->review_id) ?>">
                     <td style="white-space:nowrap;">
                         <div class="d-flex align-items-center gap-2 justify-content-center">
                             <img src="<?= htmlspecialchars(getAvatarURL($review->author_pic ?? null, $review->author_email ?? null, $review->author_name ?? null, 36)) ?>" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid rgba(0,0,0,.08);">
@@ -1405,7 +1405,7 @@ if ($searchQuery !== '') {
                     <td><?= htmlspecialchars($review->order_id) ?></td>
                     <td><?= htmlspecialchars($review->rating) ?>/5</td>
                     <td style="max-width:220px;white-space:pre-wrap;word-break:break-word;"><?= htmlspecialchars($review->comment) ?></td>
-                    <td id="reply-cell-<?= (int)$review->review_id ?>" style="max-width:220px;white-space:pre-wrap;word-break:break-word;">
+                    <td id="reply-cell-<?= htmlspecialchars($review->review_id) ?>" style="max-width:220px;white-space:pre-wrap;word-break:break-word;">
                         <?php if (!empty($review->reply)): ?>
                             <span class="reply-text"><?= htmlspecialchars($review->reply) ?></span>
                             <?php if (!empty($review->reply_created_at)): ?>
@@ -1418,8 +1418,8 @@ if ($searchQuery !== '') {
                     <td><?= htmlspecialchars($review->created_at) ?></td>
                     <td>
                         <button class="btn btn-edit btn-sm w-100"
-                            onclick="replyReview(<?= (int)$review->review_id ?>, '<?= addslashes($review->author_name ?: $review->author_email ?: 'Reviewer') ?>')"
-                            id="reply-btn-<?= (int)$review->review_id ?>">
+                            onclick="replyReview(<?= htmlspecialchars($review->review_id) ?>, '<?= addslashes($review->author_name ?: $review->author_email ?: 'Reviewer') ?>')"
+                            id="reply-btn-<?= htmlspecialchars($review->review_id) ?>">
                             <i class="fas fa-reply"></i>
                             <?= !empty($review->reply) ? 'Edit Reply' : 'Reply' ?>
                         </button>

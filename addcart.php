@@ -14,13 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$productId = (int)($_POST['inv_id'] ?? ($_POST['id'] ?? 0));
+$productId = trim($_POST['inv_id'] ?? ($_POST['id'] ?? ''));
 $name      = trim($_POST['name']     ?? '');
 $price     = (float)($_POST['price'] ?? 0);
 $qty       = max(1, (int)($_POST['qty'] ?? 1));
 $image     = trim($_POST['image']    ?? '');
 
-if ($productId <= 0) {
+if ($productId === '') {
     echo json_encode(['success' => false, 'message' => 'Invalid product parameters.']);
     exit;
 }
@@ -49,7 +49,7 @@ $cart = loadCartForUser($userEmail);
 
 $found = false;
 foreach ($cart as &$item) {
-    if ((int)$item['inv_id'] === $productId) {
+    if ((string)$item['inv_id'] === $productId) {
         $newQty      = (int)$item['qty'] + $qty;
         $item['qty'] = min($newQty, $availableStock);
         $found       = true;

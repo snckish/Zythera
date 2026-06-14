@@ -34,45 +34,74 @@ function getDBConnection() {
     return $pdo;
 }
 
+// ── CUSTOM ID GENERATOR ───────────────────────────────────────
+/**
+ * Calls the MySQL stored procedure generate_custom_id() and returns
+ * the next sequential ID string for the given prefix.
+ *
+ * Prefix → format examples:
+ *   OR  → OR-ZY001   (Orders)
+ *   PAY → PAY-ZY001  (Payments)
+ *   U   → U-ZY001    (Users)
+ *   AD  → AD-ZY001   (Admins)
+ *   MSG → MSG-ZY001  (Messages)
+ *   REV → REV-ZY001  (Reviews)
+ *   ODR → ODR-ZY001  (Order Items)
+ *   ADR → ADR-ZY001  (User Addresses)
+ *   CAT → CAT-ZY001  (Categories)
+ *   PRD → PRD-ZY001  (Product Inventory)
+ */
+function generateCustomId(string $prefix): string {
+    $db   = getDBConnection();
+    $stmt = $db->prepare("CALL generate_custom_id(?, @out_id)");
+    $stmt->execute([$prefix]);
+    $stmt->closeCursor();
+    $row = $db->query("SELECT @out_id AS id")->fetch();
+    if (!$row || $row->id === null) {
+        throw new RuntimeException("generateCustomId failed for prefix '$prefix' — counter row missing.");
+    }
+    return (string)$row->id;
+}
+
 // ── CATEGORY HELPERS ──────────────────────────────────────────
 /**
- * Get (or create) a category_id for a given category name.
+ * Get (or create) a category_id string for a given category name.
+ * Returns e.g. 'CAT-ZY001'.
  */
-function getCategoryId(string $categoryName): int {
-    $categoryName = $categoryName !== '' ? $categoryName : 'Sofa';
+function getCategoryId(string $categoryName): string {
+    $categoryName = ($categoryName !== '') ? $categoryName : 'Sofa';
     $db = getDBConnection();
 
     $stmt = $db->prepare("SELECT category_id FROM category WHERE category_name = ? LIMIT 1");
     $stmt->execute([$categoryName]);
     $row = $stmt->fetch();
-
     if ($row) {
-        return (int)$row->category_id;
+        return (string)$row->category_id;
     }
 
-    $ins = $db->prepare("INSERT INTO category (category_name) VALUES (?)");
-    $ins->execute([$categoryName]);
-    return (int)$db->lastInsertId();
+    $newId = generateCustomId('CAT');
+    $ins   = $db->prepare("INSERT INTO category (category_id, category_name) VALUES (?, ?)");
+    $ins->execute([$newId, $categoryName]);
+    return $newId;
 }
 
 // ── LOAD INVENTORY ────────────────────────────────────────────
-// Aliased to the legacy column names (inv_id, name, size, color, price,
-// description, stock, category, image) so existing pages keep working.
+// inv_id is now the custom VARCHAR string (e.g. 'PRD-ZY001').
 function loadInventory(): array {
     try {
-        $db = getDBConnection();
+        $db   = getDBConnection();
         $stmt = $db->query("
             SELECT
-                p.prod_id     AS inv_id,
-                p.prod_name   AS name,
-                p.prod_size   AS size,
-                p.prod_color  AS color,
-                p.unit_price  AS price,
-                p.prod_desc   AS description,
-                p.prod_stock  AS stock,
+                p.prod_id       AS inv_id,
+                p.prod_name     AS name,
+                p.prod_size     AS size,
+                p.prod_color    AS color,
+                p.unit_price    AS price,
+                p.prod_desc     AS description,
+                p.prod_stock    AS stock,
                 c.category_name AS category,
-                p.img_url     AS image,
-                p.category_id AS category_id
+                p.img_url       AS image,
+                p.category_id   AS category_id
             FROM product_inv p
             LEFT JOIN category c ON c.category_id = p.category_id
             ORDER BY p.prod_id ASC
@@ -88,16 +117,15 @@ function saveInventory(array $inventory): void {
     try {
         $db = getDBConnection();
         foreach ($inventory as $item) {
-            $obj = is_array($item) ? (object)$item : $item;
+            $obj        = is_array($item) ? (object)$item : $item;
             $categoryId = getCategoryId($obj->category ?? 'Sofa');
+            $invId      = (string)($obj->inv_id ?? '');
 
-            $check = $db->prepare("
-                SELECT prod_id FROM product_inv
-                WHERE prod_id = ?
-            ");
-            $check->execute([(int)$obj->inv_id]);
+            $check = $db->prepare("SELECT prod_id FROM product_inv WHERE prod_id = ?");
+            $check->execute([$invId]);
 
             if ($check->fetch()) {
+                // UPDATE existing product
                 $stmt = $db->prepare("
                     UPDATE product_inv SET
                         prod_name   = ?,
@@ -119,16 +147,18 @@ function saveInventory(array $inventory): void {
                     (int)$obj->stock,
                     $categoryId,
                     $obj->image,
-                    (int)$obj->inv_id
+                    $invId,
                 ]);
             } else {
-                $stmt = $db->prepare("
+                // INSERT new product — always generate a fresh PRD- id
+                $newId = generateCustomId('PRD');
+                $stmt  = $db->prepare("
                     INSERT INTO product_inv
-                    (prod_id, category_id, prod_name, prod_desc, prod_size, prod_color, prod_stock, unit_price, img_url)
+                        (prod_id, category_id, prod_name, prod_desc, prod_size, prod_color, prod_stock, unit_price, img_url)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->execute([
-                    (int)$obj->inv_id,
+                    $newId,
                     $categoryId,
                     $obj->name,
                     $obj->description,
@@ -136,7 +166,7 @@ function saveInventory(array $inventory): void {
                     $obj->color,
                     (int)$obj->stock,
                     (float)$obj->price,
-                    $obj->image
+                    $obj->image,
                 ]);
             }
         }
@@ -147,7 +177,7 @@ function saveInventory(array $inventory): void {
 
 // ── USER HELPERS ──────────────────────────────────────────────
 /**
- * Build the combined display name from fname/mname/lname.
+ * Build the combined display name from fname / mname / lname.
  */
 function combineName(?string $fname, ?string $mname, ?string $lname): string {
     $parts = array_filter([$fname, $mname, $lname], fn($p) => trim((string)$p) !== '');
@@ -155,10 +185,7 @@ function combineName(?string $fname, ?string $mname, ?string $lname): string {
 }
 
 /**
- * Split a single "full name" string into fname/mname/lname.
- * - 2 words  -> fname, lname
- * - 3+ words -> fname, middle word(s) as mname, last word as lname
- * - 1 word   -> fname only, lname = same word (lname is NOT NULL)
+ * Split a single "full name" string into fname / mname / lname.
  */
 function splitName(string $fullName): array {
     $parts = preg_split('/\s+/', trim($fullName), -1, PREG_SPLIT_NO_EMPTY);
@@ -175,13 +202,12 @@ function splitName(string $fullName): array {
 }
 
 /**
- * Look up a user by email and return an object shaped like the
- * legacy `users` row: email, name, password, role, profile_pic, created_at,
- * plus the new user_id.
+ * Look up a user by email. Returns an object with user_id (VARCHAR),
+ * name, role, profile_pic, created_at, etc.
  */
 function findUserByEmail(string $email): ?object {
     try {
-        $db = getDBConnection();
+        $db   = getDBConnection();
         $stmt = $db->prepare("
             SELECT
                 user_id,
@@ -196,9 +222,7 @@ function findUserByEmail(string $email): ?object {
         ");
         $stmt->execute([$email]);
         $row = $stmt->fetch();
-        if (!$row) {
-            return null;
-        }
+        if (!$row) return null;
         $row->name = combineName($row->fname, $row->mname, $row->lname);
         $row->role = isAdminEmail($row->email) ? 'admin' : 'user';
         return $row;
@@ -212,7 +236,7 @@ function findUserByEmail(string $email): ?object {
  */
 function isAdminEmail(string $email): bool {
     try {
-        $db = getDBConnection();
+        $db   = getDBConnection();
         $stmt = $db->prepare("SELECT admin_id FROM admins WHERE email = ? LIMIT 1");
         $stmt->execute([$email]);
         return (bool)$stmt->fetch();
@@ -222,12 +246,11 @@ function isAdminEmail(string $email): bool {
 }
 
 /**
- * Look up an admin by email and return an object shaped like the
- * legacy `users` row (email, name, password, role, profile_pic, created_at).
+ * Look up an admin by email.
  */
 function findAdminByEmail(string $email): ?object {
     try {
-        $db = getDBConnection();
+        $db   = getDBConnection();
         $stmt = $db->prepare("
             SELECT
                 admin_id,
@@ -241,9 +264,7 @@ function findAdminByEmail(string $email): ?object {
         ");
         $stmt->execute([$email]);
         $row = $stmt->fetch();
-        if (!$row) {
-            return null;
-        }
+        if (!$row) return null;
         $row->role       = 'admin';
         $row->created_at = null;
         return $row;
@@ -253,25 +274,18 @@ function findAdminByEmail(string $email): ?object {
 }
 
 /**
- * Look up either a user or an admin by email (admins take priority,
- * matching the historical behaviour where the seeded admin accounts
- * also existed as 'admin'-role rows in `users`).
- * Returns an object shaped like the legacy `users` row.
+ * Look up either a user or an admin by email (admins take priority).
  */
 function findAccountByEmail(string $email): ?object {
     $admin = findAdminByEmail($email);
-    if ($admin) {
-        return $admin;
-    }
+    if ($admin) return $admin;
     return findUserByEmail($email);
 }
 
 // ── LOAD USERS ────────────────────────────────────────────────
-// Returns regular users only (admins are managed separately),
-// shaped like the legacy `users` rows.
 function loadUsers(): array {
     try {
-        $db = getDBConnection();
+        $db   = getDBConnection();
         $stmt = $db->query("
             SELECT
                 user_id,
@@ -295,10 +309,6 @@ function loadUsers(): array {
 }
 
 // ── SESSION-BASED CART FUNCTIONS ──────────────────────────────
-/**
- * Load user's cart from session.
- * Session cart is indexed by inv_id for quick lookups.
- */
 function loadCartForUser(string $email): array {
     if (!isset($_SESSION['cart'][$email])) {
         $_SESSION['cart'][$email] = [];
@@ -310,9 +320,6 @@ function loadCart(string $email): array {
     return loadCartForUser($email);
 }
 
-/**
- * Save user's cart to session.
- */
 function saveCartForUser(string $email, array $cart): void {
     saveCart($email, $cart);
 }
@@ -321,30 +328,23 @@ function saveCart(string $email, array $cart): void {
     $_SESSION['cart'][$email] = $cart;
 }
 
-/**
- * Clear user's cart from session.
- */
 function clearCartForUser(string $email): void {
     if (isset($_SESSION['cart'][$email])) {
         unset($_SESSION['cart'][$email]);
     }
 }
 
-/**
- * Get all carts from session (for admin stats).
- * Returns array indexed by email with cart items.
- */
 function loadCarts(): array {
     $allCarts = [];
     if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
         foreach ($_SESSION['cart'] as $email => $cart) {
             foreach ($cart as $item) {
                 $allCarts[] = [
-                    'email' => $email,
-                    'inv_id' => $item['inv_id'] ?? 0,
-                    'qty' => $item['qty'] ?? 0,
-                    'name' => $item['name'] ?? '',
-                    'price' => $item['price'] ?? 0,
+                    'email'  => $email,
+                    'inv_id' => $item['inv_id'] ?? '',
+                    'qty'    => $item['qty']    ?? 0,
+                    'name'   => $item['name']   ?? '',
+                    'price'  => $item['price']  ?? 0,
                 ];
             }
         }
@@ -354,58 +354,62 @@ function loadCarts(): array {
 
 // ── ADDRESS / PAYMENT HELPERS ─────────────────────────────────
 /**
- * Find an existing address for this user matching the given details,
- * or insert a new one. Returns the address_id.
+ * Find an existing address for this user or insert a new one.
+ * Returns the custom address_id string, e.g. 'ADR-ZY001'.
  */
-function findOrCreateAddress(int $userId, string $phone, string $address, string $city, string $province, string $zip): int {
+function findOrCreateAddress(string $userId, string $phone, string $address, string $city, string $province, string $zip): string {
     $db = getDBConnection();
 
     $stmt = $db->prepare("
         SELECT address_id FROM user_address
-        WHERE user_id = ? AND phone_num = ? AND st_address = ? AND city_municipality = ? AND province = ? AND zip_code = ?
+        WHERE user_id = ? AND phone_num = ? AND st_address = ?
+          AND city_municipality = ? AND province = ? AND zip_code = ?
         LIMIT 1
     ");
     $stmt->execute([$userId, $phone, $address, $city, $province, $zip]);
     $row = $stmt->fetch();
-    if ($row) {
-        return (int)$row->address_id;
-    }
+    if ($row) return (string)$row->address_id;
 
-    $ins = $db->prepare("
-        INSERT INTO user_address (user_id, phone_num, st_address, city_municipality, province, zip_code)
-        VALUES (?, ?, ?, ?, ?, ?)
+    $newId = generateCustomId('ADR');
+    $ins   = $db->prepare("
+        INSERT INTO user_address (address_id, user_id, phone_num, st_address, city_municipality, province, zip_code)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $ins->execute([$userId, $phone, $address, $city, $province, $zip]);
-    return (int)$db->lastInsertId();
+    $ins->execute([$newId, $userId, $phone, $address, $city, $province, $zip]);
+    return $newId;
 }
 
 /**
- * Create a new payment record and return the payment_id.
+ * Create a new payment record and return the custom payment_id string.
  */
-function createPayment(string $method, string $status = 'pending'): int {
-    $db = getDBConnection();
-    $ins = $db->prepare("
-        INSERT INTO payment (payment_method, payment_status, payment_date)
-        VALUES (?, ?, NOW())
+function createPayment(string $method, string $status = 'pending'): string {
+    $db    = getDBConnection();
+    $newId = generateCustomId('PAY');
+    $ins   = $db->prepare("
+        INSERT INTO payment (payment_id, payment_method, payment_status, payment_date)
+        VALUES (?, ?, ?, NOW())
     ");
-    $ins->execute([$method, $status]);
-    return (int)$db->lastInsertId();
+    $ins->execute([$newId, $method, $status]);
+    return $newId;
 }
 
 // ── SAVE ORDER ────────────────────────────────────────────────
+/**
+ * Persist a completed checkout order to the database.
+ * $order['order_id'] must already hold a valid OR-ZY### string
+ * (generated in checkout.php before the transaction begins).
+ */
 function saveOrderToDB(string $email, array $order): void {
+    $db = getDBConnection();
     try {
-        $db = getDBConnection();
         $db->beginTransaction();
 
         $user = findUserByEmail($email);
-        if (!$user) {
-            throw new Exception('User not found for order.');
-        }
-        $userId = (int)$user->user_id;
+        if (!$user) throw new Exception('User not found for order.');
+        $userId = (string)$user->user_id;
 
         $shippingInfo = $order['shipping_info'] ?? [];
-        $addressId = findOrCreateAddress(
+        $addressId    = findOrCreateAddress(
             $userId,
             $shippingInfo['phone']    ?? '',
             $shippingInfo['address']  ?? '',
@@ -413,91 +417,85 @@ function saveOrderToDB(string $email, array $order): void {
             $shippingInfo['province'] ?? '',
             $shippingInfo['zip']      ?? ''
         );
-
         $paymentId = createPayment($order['pay_method'] ?? '', 'pending');
 
-        $orderRef = $order['order_id'] ?? ('ORD-' . strtoupper(substr(md5(uniqid($email, true)), 0, 8)));
+        // Use the pre-generated OR-ZY### id passed from the caller
+        $orderId = (string)($order['order_id'] ?? generateCustomId('OR'));
 
         $stmt = $db->prepare("
             INSERT INTO orders
-            (order_ref, user_id, address_id, payment_id, total_ammount, shipping_fee, user_note, order_date, order_status)
+                (order_id, user_id, address_id, payment_id, total_ammount, shipping_fee, user_note, order_date, order_status)
             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
         ");
         $stmt->execute([
-            $orderRef,
+            $orderId,
             $userId,
             $addressId,
             $paymentId,
             $order['total']    ?? 0,
             $order['shipping'] ?? 0,
             $shippingInfo['notes'] ?? '',
-            $order['status'] ?? 'Pending',
+            $order['status']   ?? 'Pending',
         ]);
 
-        $orderDbId = $db->lastInsertId();
-
         foreach ($order['items'] as $item) {
-            $itemStmt = $db->prepare("
-                INSERT INTO order_items
-                (order_id, prod_id, quantity, unit_price)
-                VALUES (?, ?, ?, ?)
+            $orderItemId = generateCustomId('ODR');
+            $oiStmt      = $db->prepare("
+                INSERT INTO order_items (orderitem_id, order_id, prod_id, prod_name, quantity, unit_price)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
-            $itemStmt->execute([
-                $orderDbId,
-                (int)($item['inv_id'] ?? 0),
-                (int)($item['qty'] ?? 1),
-                (float)($item['price'] ?? 0),
+            $oiStmt->execute([
+                $orderItemId,
+                $orderId,
+                (string)($item['inv_id'] ?? ''),
+                trim($item['name']        ?? ''),
+                (int)($item['qty']        ?? 1),
+                (float)($item['price']    ?? 0),
             ]);
         }
         $db->commit();
     } catch (PDOException $e) {
-        if ($db->inTransaction()) {
-            $db->rollBack();
-        }
+        if ($db->inTransaction()) $db->rollBack();
         die("saveOrderToDB ERROR: " . $e->getMessage());
     } catch (Exception $e) {
-        if ($db->inTransaction()) {
-            $db->rollBack();
-        }
+        if ($db->inTransaction()) $db->rollBack();
         die("saveOrderToDB ERROR: " . $e->getMessage());
     }
 }
 
 // ── REVIEW HELPERS ────────────────────────────────────────────
 /**
- * Resolve an order_ref (e.g. ORD-XXXXXXXX) to its internal numeric
- * order_id, scoped to the given user's email.
+ * Verify that order_id (e.g. 'OR-ZY001') belongs to the given user.
+ * Returns the order_id string on success, null on failure.
  */
-function resolveOrderDbId(string $orderRef, string $email): ?int {
-    $db = getDBConnection();
+function resolveOrderDbId(string $orderId, string $email): ?string {
+    $db   = getDBConnection();
     $stmt = $db->prepare("
         SELECT o.order_id
         FROM orders o
         JOIN users u ON u.user_id = o.user_id
-        WHERE o.order_ref = ? AND u.email = ?
+        WHERE o.order_id = ? AND u.email = ?
         LIMIT 1
     ");
-    $stmt->execute([$orderRef, $email]);
+    $stmt->execute([$orderId, $email]);
     $row = $stmt->fetch();
-    return $row ? (int)$row->order_id : null;
+    return $row ? (string)$row->order_id : null;
 }
 
 /**
- * Get the "anchor" order_items row used for a review (the first
- * item belonging to the order), since reviews are linked to a
- * single order_items row in the new schema.
+ * Return the first order_items.orderitem_id (ODR-ZY###) for an order.
  */
-function firstOrderItemId(int $orderDbId): ?int {
-    $db = getDBConnection();
+function firstOrderItemId(string $orderId): ?string {
+    $db   = getDBConnection();
     $stmt = $db->prepare("SELECT orderitem_id FROM order_items WHERE order_id = ? ORDER BY orderitem_id ASC LIMIT 1");
-    $stmt->execute([$orderDbId]);
+    $stmt->execute([$orderId]);
     $row = $stmt->fetch();
-    return $row ? (int)$row->orderitem_id : null;
+    return $row ? (string)$row->orderitem_id : null;
 }
 
 function loadReviewForOrder(string $orderId): ?object {
     try {
-        $db = getDBConnection();
+        $db   = getDBConnection();
         $stmt = $db->prepare("
             SELECT
                 r.review_id,
@@ -505,18 +503,16 @@ function loadReviewForOrder(string $orderId): ?object {
                 r.user_id,
                 r.user_rating AS rating,
                 r.user_review AS comment,
-                r.admin_reply AS reply,
-                r.reply_date  AS reply_created_at,
                 r.review_date AS created_at,
-                o.order_ref   AS order_id,
+                o.order_id    AS order_id,
                 u.email       AS author_email,
                 u.user_pfp    AS author_pic,
                 CONCAT_WS(' ', u.fname, NULLIF(u.mname,''), u.lname) AS author_name
             FROM reviews r
             JOIN order_items oi ON oi.orderitem_id = r.orderitem_id
-            JOIN orders o ON o.order_id = oi.order_id
-            JOIN users u ON u.user_id = r.user_id
-            WHERE o.order_ref = ?
+            JOIN orders o       ON o.order_id       = oi.order_id
+            JOIN users u        ON u.user_id         = r.user_id
+            WHERE o.order_id = ?
             LIMIT 1
         ");
         $stmt->execute([$orderId]);
@@ -531,32 +527,39 @@ function saveReviewForOrder(string $email, string $orderId, int $rating, string 
         $db = getDBConnection();
 
         $user = findUserByEmail($email);
-        if (!$user) {
-            throw new PDOException('User not found.');
-        }
+        if (!$user) throw new PDOException('User not found.');
 
-        $orderDbId = resolveOrderDbId($orderId, $email);
-        if (!$orderDbId) {
-            throw new PDOException('Order not found.');
-        }
+        $verifiedOrderId = resolveOrderDbId($orderId, $email);
+        if (!$verifiedOrderId) throw new PDOException('Order not found.');
 
-        $orderItemId = firstOrderItemId($orderDbId);
-        if (!$orderItemId) {
-            throw new PDOException('Order has no items to review.');
-        }
+        $orderItemId = firstOrderItemId($verifiedOrderId);
+        if (!$orderItemId) throw new PDOException('Order has no items to review.');
 
-        $insert = $db->prepare("
-            INSERT INTO reviews (orderitem_id, order_id, user_id, user_rating, user_review)
-            VALUES (?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE user_rating = VALUES(user_rating), user_review = VALUES(user_review)
-        ");
-        $insert->execute([
-            $orderItemId,
-            $orderDbId,
-            (int)$user->user_id,
-            max(1, min(5, $rating)),
-            $comment,
-        ]);
+        // Check whether a review already exists for this order
+        $existing = $db->prepare("SELECT review_id FROM reviews WHERE order_id = ? LIMIT 1");
+        $existing->execute([$verifiedOrderId]);
+        $existingRow = $existing->fetch();
+
+        if ($existingRow) {
+            // UPDATE existing review
+            $upd = $db->prepare("UPDATE reviews SET user_rating = ?, user_review = ? WHERE review_id = ?");
+            $upd->execute([max(1, min(5, $rating)), $comment, (string)$existingRow->review_id]);
+        } else {
+            // INSERT new review with a fresh REV- id
+            $newId = generateCustomId('REV');
+            $ins   = $db->prepare("
+                INSERT INTO reviews (review_id, orderitem_id, order_id, user_id, user_rating, user_review)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $ins->execute([
+                $newId,
+                $orderItemId,
+                $verifiedOrderId,
+                (string)$user->user_id,
+                max(1, min(5, $rating)),
+                $comment,
+            ]);
+        }
     } catch (PDOException $e) {
         die("saveReviewForOrder ERROR: " . $e->getMessage());
     }
@@ -564,7 +567,7 @@ function saveReviewForOrder(string $email, string $orderId, int $rating, string 
 
 function loadReviews(int $limit = 8, bool $all = false): array {
     try {
-        $db = getDBConnection();
+        $db  = getDBConnection();
         $sql = "
             SELECT
                 r.review_id,
@@ -572,26 +575,20 @@ function loadReviews(int $limit = 8, bool $all = false): array {
                 r.user_id,
                 r.user_rating AS rating,
                 r.user_review AS comment,
-                r.admin_reply AS reply,
-                r.reply_date  AS reply_created_at,
                 r.review_date AS created_at,
-                o.order_ref   AS order_id,
+                o.order_id    AS order_id,
                 u.email       AS author_email,
                 u.user_pfp    AS author_pic,
                 CONCAT_WS(' ', u.fname, NULLIF(u.mname,''), u.lname) AS author_name
             FROM reviews r
             JOIN order_items oi ON oi.orderitem_id = r.orderitem_id
-            JOIN orders o ON o.order_id = oi.order_id
-            JOIN users u ON u.user_id = r.user_id
+            JOIN orders o       ON o.order_id       = oi.order_id
+            JOIN users u        ON u.user_id         = r.user_id
             ORDER BY r.review_date DESC
         ";
-        if (!$all) {
-            $sql .= " LIMIT ?";
-        }
+        if (!$all) $sql .= " LIMIT ?";
         $stmt = $db->prepare($sql);
-        if (!$all) {
-            $stmt->bindValue(1, $limit, PDO::PARAM_INT);
-        }
+        if (!$all) $stmt->bindValue(1, $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     } catch (PDOException $e) {
@@ -599,9 +596,9 @@ function loadReviews(int $limit = 8, bool $all = false): array {
     }
 }
 
-function deleteReview(int $reviewId): void {
+function deleteReview(string $reviewId): void {
     try {
-        $db = getDBConnection();
+        $db   = getDBConnection();
         $stmt = $db->prepare("DELETE FROM reviews WHERE review_id = ?");
         $stmt->execute([$reviewId]);
     } catch (PDOException $e) {
@@ -609,42 +606,34 @@ function deleteReview(int $reviewId): void {
     }
 }
 
-function replyToReview(int $reviewId, string $reply): void {
-    try {
-        $db = getDBConnection();
-        $stmt = $db->prepare("UPDATE reviews SET admin_reply = ?, reply_date = NOW() WHERE review_id = ?");
-        $stmt->execute([$reply, $reviewId]);
-    } catch (PDOException $e) {
-        die("replyToReview ERROR: " . $e->getMessage());
-    }
-}
 
 // ── LOAD ORDERS ───────────────────────────────────────────────
-// Aliased to the legacy column names (ord_no, order_id, email, subtotal,
-// shipping, total, date, status, pay_method, full_name, phone, address,
-// city, province, zip, notes) so existing pages keep working.
+// The legacy alias 'ord_no' is kept for compatibility; it now returns
+// the same custom ID string as 'order_id' (OR-ZY###).
+// All downstream code that used the old numeric ord_no for ORDER_ITEMS_SELECT_SQL
+// now correctly passes the string primary key.
 const ORDER_SELECT_SQL = "
     SELECT
-        o.order_id      AS ord_no,
-        o.order_ref     AS order_id,
-        u.email         AS email,
-        (o.total_ammount - o.shipping_fee) AS subtotal,
-        o.shipping_fee  AS shipping,
-        o.total_ammount AS total,
-        o.order_date    AS date,
-        o.order_status  AS status,
-        pay.payment_method AS pay_method,
+        o.order_id                             AS ord_no,
+        o.order_id                             AS order_id,
+        u.email                                AS email,
+        (o.total_ammount - o.shipping_fee)     AS subtotal,
+        o.shipping_fee                         AS shipping,
+        o.total_ammount                        AS total,
+        o.order_date                           AS date,
+        o.order_status                         AS status,
+        pay.payment_method                     AS pay_method,
         CONCAT_WS(' ', u.fname, NULLIF(u.mname,''), u.lname) AS full_name,
-        ua.phone_num         AS phone,
-        ua.st_address        AS address,
-        ua.city_municipality AS city,
-        ua.province          AS province,
-        ua.zip_code          AS zip,
-        o.user_note     AS notes
+        ua.phone_num                           AS phone,
+        ua.st_address                          AS address,
+        ua.city_municipality                   AS city,
+        ua.province                            AS province,
+        ua.zip_code                            AS zip,
+        o.user_note                            AS notes
     FROM orders o
-    JOIN users u           ON u.user_id = o.user_id
-    JOIN user_address ua   ON ua.address_id = o.address_id
-    JOIN payment pay       ON pay.payment_id = o.payment_id
+    JOIN users u         ON u.user_id    = o.user_id
+    JOIN user_address ua ON ua.address_id = o.address_id
+    JOIN payment pay     ON pay.payment_id = o.payment_id
 ";
 
 const ORDER_ITEMS_SELECT_SQL = "
@@ -663,14 +652,13 @@ const ORDER_ITEMS_SELECT_SQL = "
 
 function loadOrders(): array {
     try {
-        $db = getDBConnection();
-        $stmt = $db->query(ORDER_SELECT_SQL . " ORDER BY o.order_id DESC");
+        $db     = getDBConnection();
+        $stmt   = $db->query(ORDER_SELECT_SQL . " ORDER BY o.order_date DESC");
         $orders = $stmt->fetchAll();
-
         foreach ($orders as &$order) {
             $itemStmt = $db->prepare(ORDER_ITEMS_SELECT_SQL);
-            $itemStmt->execute([$order->ord_no]);
-            $order->items = $itemStmt->fetchAll();
+            $itemStmt->execute([$order->order_id]);
+            $order->items  = $itemStmt->fetchAll();
             $order->review = loadReviewForOrder($order->order_id);
         }
         return $orders;
@@ -679,18 +667,16 @@ function loadOrders(): array {
     }
 }
 
-// ── LOAD USER ORDERS ──────────────────────────────────────────
 function loadUserOrders(string $email): array {
     try {
-        $db = getDBConnection();
-        $stmt = $db->prepare(ORDER_SELECT_SQL . " WHERE u.email = ? ORDER BY o.order_id DESC");
+        $db     = getDBConnection();
+        $stmt   = $db->prepare(ORDER_SELECT_SQL . " WHERE u.email = ? ORDER BY o.order_date DESC");
         $stmt->execute([$email]);
         $orders = $stmt->fetchAll();
-
         foreach ($orders as &$order) {
             $itemStmt = $db->prepare(ORDER_ITEMS_SELECT_SQL);
-            $itemStmt->execute([$order->ord_no]);
-            $order->items = $itemStmt->fetchAll();
+            $itemStmt->execute([$order->order_id]);
+            $order->items  = $itemStmt->fetchAll();
             $order->review = loadReviewForOrder($order->order_id);
         }
         return $orders;
@@ -700,25 +686,20 @@ function loadUserOrders(string $email): array {
 }
 
 // ── SESSION DEFAULTS ──────────────────────────────────────────
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
-}
-if (!isset($_SESSION['orders'])) {
-    $_SESSION['orders'] = [];
-}
-if (!isset($_SESSION['users'])) {
-    $_SESSION['users'] = [];
-}
+if (!isset($_SESSION['cart']))   $_SESSION['cart']   = [];
+if (!isset($_SESSION['orders'])) $_SESSION['orders'] = [];
+if (!isset($_SESSION['users']))  $_SESSION['users']  = [];
 
 // ── AUTO LOAD INVENTORY TO SESSION ───────────────────────────
 $_SESSION['inventory'] = [];
 try {
     $products = loadInventory();
     foreach ($products as $item) {
-        $_SESSION['inventory'][(int)$item->inv_id] = $item;
+        // Key by the custom string ID (e.g. 'PRD-ZY001')
+        $_SESSION['inventory'][$item->inv_id] = $item;
     }
 } catch (Exception $e) {
-    // Fail silently
+    // Fail silently — inventory loaded on demand
 }
 
 // ── COOKIE AUTO LOGIN ─────────────────────────────────────────
@@ -734,18 +715,12 @@ if (
     ) {
         unset($_SESSION['logged_in_user']);
         unset($_SESSION['role']);
-
         header('Location: logsign.php?expired=1');
         exit;
     }
 
     $exp = time() + 43200;
-    setcookie(
-        'zythera_user',
-        $_SESSION['logged_in_user'],
-        $exp,
-        '/'
-    );
+    setcookie('zythera_user', $_SESSION['logged_in_user'], $exp, '/');
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
@@ -764,23 +739,16 @@ function formatPrice(float $p): string {
 }
 
 function getStockLabel(int $s): string {
-    if ($s <= 0) {
-        return 'Out of Stock';
-    }
-    if ($s <= 5) {
-        return 'Low Stock';
-    }
+    if ($s <= 0) return 'Out of Stock';
+    if ($s <= 5) return 'Low Stock';
     return 'In Stock';
 }
 
 function getStockBadge(int $s): string {
     switch (getStockLabel($s)) {
-        case 'Out of Stock':
-            return 'bg-danger';
-        case 'Low Stock':
-            return 'bg-warning text-dark';
-        default:
-            return 'bg-success';
+        case 'Out of Stock': return 'bg-danger';
+        case 'Low Stock':    return 'bg-warning text-dark';
+        default:             return 'bg-success';
     }
 }
 
@@ -790,52 +758,43 @@ function nowFormatted(): string {
 
 // ── PRODUCT CLASS ─────────────────────────────────────────────
 class Product {
-    public int $inv_id;
+    public string $inv_id;   // custom VARCHAR, e.g. 'PRD-ZY001'
     public string $name;
     public string $size;
     public string $color;
-    public float $price;
+    public float  $price;
     public string $description;
-    public int $stock;
+    public int    $stock;
     public string $category;
     public string $image;
 
     public function __construct(
-        int $inv_id,
+        string $inv_id,
         string $name,
         string $size,
         string $color,
-        float $price,
+        float  $price,
         string $description,
-        int $stock,
+        int    $stock,
         string $category,
         string $image
     ) {
-        $this->inv_id = $inv_id;
-        $this->name = $name;
-        $this->size = $size;
-        $this->color = $color;
-        $this->price = $price;
+        $this->inv_id      = $inv_id;
+        $this->name        = $name;
+        $this->size        = $size;
+        $this->color       = $color;
+        $this->price       = $price;
         $this->description = $description;
-        $this->stock = $stock;
-        $this->category = $category;
-        $this->image = $image;
+        $this->stock       = $stock;
+        $this->category    = $category;
+        $this->image       = $image;
     }
 
-    public function getFormattedPrice(): string {
-        return formatPrice($this->price);
-    }
-
-    public function isAvailable(): bool {
-        return $this->stock > 0;
-    }
+    public function getFormattedPrice(): string { return formatPrice($this->price); }
+    public function isAvailable(): bool          { return $this->stock > 0; }
 }
 
 // ── AVATAR HELPERS ───────────────────────────────────────────
-/**
- * Resolve the best avatar URL for a user.
- * Priority: provided `profile_pic` (absolute URL or existing local file) -> known-email fallbacks -> ui-avatars
- */
 function getAvatarURL($profilePic, $email = null, $name = null, $size = 80): string {
     $pic = trim((string)($profilePic ?? ''));
     if ($pic !== '') {

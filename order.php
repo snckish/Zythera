@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_order_id'])) {
             SELECT o.order_status AS status
             FROM orders o
             JOIN users u ON u.user_id = o.user_id
-            WHERE o.order_ref = ? AND u.email = ?
+            WHERE o.order_id = ? AND u.email = ?
             LIMIT 1
         ");
         $checkStmt->execute([$reviewOrderId, $userEmail]);
