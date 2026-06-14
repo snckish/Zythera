@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($fullName && !preg_match('/^[\p{L} .\'-]{2,100}$/u', $fullName))
       $errors[] = 'Full name appears invalid.';
 
-    $allowedPay = ['Cash on Delivery (COD)','GCash','Bank Transfer','Maya'];
+    $allowedPay = ['GCash','Bank Transfer','Maya'];
     if ($payMethod && !in_array($payMethod, $allowedPay, true))
       $errors[] = 'Invalid payment method.';
 
@@ -588,23 +588,6 @@ footer .footer-brand{
       <div class="checkout-card">
         <h5><i class="fas fa-credit-card me-2" style="color:var(--green);"></i>Payment Method</h5>
 
-        <!-- ── COD ── -->
-        <label class="pay-option" id="lbl-cod" onclick="togglePay('cod')">
-          <input type="radio" name="pay_method" value="Cash on Delivery (COD)" id="radio-cod"
-            <?= ($_POST['pay_method'] ?? '') === 'Cash on Delivery (COD)' ? 'checked' : '' ?>>
-          <div class="pay-icon"><i class="fas fa-hand-holding-usd"></i></div>
-          <div style="flex:1;">
-            <div style="font-weight:600;font-size:.9rem;">Cash on Delivery</div>
-            <div style="font-size:.75rem;color:#999;">Pay when your furniture arrives</div>
-          </div>
-        </label>
-        <div class="pay-panel" id="panel-cod">
-          <div class="cod-info">
-            <i class="fas fa-truck"></i>
-            <p>No payment needed now. Our rider will collect the exact amount of <strong>₱<?= number_format($total) ?></strong> upon delivery. Please prepare the exact amount.</p>
-          </div>
-        </div>
-
         <!-- ── GCash ── -->
         <label class="pay-option" id="lbl-gcash" onclick="togglePay('gcash')">
           <input type="radio" name="pay_method" value="GCash" id="radio-gcash"
@@ -775,7 +758,7 @@ footer .footer-brand{
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // ── Payment panel toggle ──────────────────────────────────────
-const PAY_GROUPS = ['cod','gcash','maya','bank'];
+const PAY_GROUPS = ['gcash','maya','bank'];
 
 function showPay(group) {
   PAY_GROUPS.forEach(g => {

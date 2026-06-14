@@ -1,6 +1,6 @@
 <?php
 // ── logout.php ───────────────────────────────────────────────
-// Clears login session data AND deletes all zythera cookies.
+// Clears login session data, destroys session, AND deletes all zythera cookies.
 // Cart is cleared from session on logout so it won't persist
 // to the next login.
 // ─────────────────────────────────────────────────────────────
@@ -13,7 +13,7 @@ if (!empty($_SESSION['logged_in_user'])) {
 }
 
 // Clear ONLY login-related session keys
-$keysToRemove = ['logged_in_user', 'role', 'login_time', 'session_start'];
+$keysToRemove = ['logged_in_user', 'role', 'login_time', 'session_start', 'orders', 'inventory'];
 foreach ($keysToRemove as $key) {
     unset($_SESSION[$key]);
 }
@@ -24,6 +24,9 @@ foreach ($cookiesToClear as $name) {
     setcookie($name, '', time() - 60, '/', '', false, true);
     unset($_COOKIE[$name]);
 }
+
+// Completely destroy the session for extra security
+session_destroy();
 
 // Redirect to login page
 header('Location: logsign.php');
