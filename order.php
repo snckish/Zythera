@@ -334,9 +334,12 @@ function getStepIndex(string $status): int {
     $oDate       = $o->date ?? '';
     $orderId     = $o->order_id ?? '—';
     $payMethod   = $o->pay_method ?? '';
+    $payStatus   = $o->pay_status ?? 'pending';
+    $payRef      = $o->pay_reference ?? '';
     $fullName    = $o->full_name ?? '';
     $phone       = $o->phone     ?? '';
     $address     = $o->address   ?? '';
+    $barangay    = $o->barangay  ?? '';
     $city        = $o->city      ?? '';
     $province    = $o->province  ?? '';
     $zip         = $o->zip       ?? '';
@@ -377,6 +380,27 @@ function getStepIndex(string $status): int {
           <div class="fw-bold" style="color:var(--deep);font-size:.88rem;"><?= htmlspecialchars($payMethod ?: 'N/A') ?></div>
           <?php if ($payMethod === 'Cash on Delivery (COD)' && !$isDelivered): ?>
           <div style="font-size:.78rem;color:#b45309;margin-top:6px;">Cash on Delivery — payment due on delivery.</div>
+          <?php else: ?>
+          <?php
+            $psColors = [
+                'pending'  => ['bg'=>'#fff7ed','color'=>'#b45309','border'=>'#fde68a'],
+                'verified' => ['bg'=>'#f0fdf4','color'=>'#15803d','border'=>'#bbf7d0'],
+                'rejected' => ['bg'=>'#fef2f2','color'=>'#b91c1c','border'=>'#fecaca'],
+            ];
+            $psc = $psColors[$payStatus] ?? $psColors['pending'];
+          ?>
+          <span style="display:inline-block;margin-top:4px;background:<?= $psc['bg'] ?>;color:<?= $psc['color'] ?>;border:1px solid <?= $psc['border'] ?>;border-radius:50px;padding:1px 9px;font-size:.68rem;font-weight:700;text-transform:capitalize;">
+            <?php if ($payStatus === 'verified'): ?>
+              <i class="fas fa-check-circle" style="margin-right:3px;"></i>Payment Verified
+            <?php elseif ($payStatus === 'rejected'): ?>
+              <i class="fas fa-times-circle" style="margin-right:3px;"></i>Payment Rejected
+            <?php else: ?>
+              <i class="fas fa-clock" style="margin-right:3px;"></i>Awaiting Verification
+            <?php endif; ?>
+          </span>
+          <?php if ($payRef): ?>
+          <div style="font-size:.7rem;color:#888;margin-top:2px;">Ref: <?= htmlspecialchars($payRef) ?></div>
+          <?php endif; ?>
           <?php endif; ?>
         </div>
         <div class="col-6 col-md-3 text-md-end">
@@ -457,7 +481,7 @@ function getStepIndex(string $status): int {
       <div class="p-3" style="background:var(--cream);border-radius:10px;">
         <small class="d-block mb-1" style="font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mid);">Customer Details</small>
         <div class="fw-bold" style="color:var(--deep);"><?= htmlspecialchars($fullName ?: ($dbUser->name ?? '')) ?></div>
-        <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars(implode(', ', array_filter([$address, $city, $province, $zip])) ?: 'No Address Provided') ?></div>
+        <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars(implode(', ', array_filter([$address, $barangay, $city, $province, $zip])) ?: 'No Address Provided') ?></div>
         <div style="font-size:.83rem;color:#666;"><?= htmlspecialchars($phone ?: 'No Contact Number') ?></div>
         <?php if ($notes): ?>
         <div style="font-size:.82rem;color:#999;margin-top:4px;font-style:italic;"><i class="fas fa-sticky-note me-1" style="color:var(--terra);"></i><?= htmlspecialchars($notes) ?></div>
@@ -683,7 +707,7 @@ function downloadReceipt() {
         <div style="color:#2d5a2d;font-weight:700;font-size:12px;margin-bottom:10px;text-transform:uppercase;">Delivery Information</div>
         <div style="background:#fafafa;padding:12px;border-radius:6px;line-height:1.6;font-size:13px;color:#1a3a2e;">
           <div style="font-weight:600;">${data.fullName || ''}</div>
-          <div>${data.address || ''}${data.city ? ', ' + data.city : ''}${data.province ? ', ' + data.province : ''}${data.zip ? ' ' + data.zip : ''}</div>
+          <div>${data.address || ''}${data.barangay ? ', ' + data.barangay : ''}${data.city ? ', ' + data.city : ''}${data.province ? ', ' + data.province : ''}${data.zip ? ' ' + data.zip : ''}</div>
           <div style="margin-top:6px;color:#666;">${data.phone || ''}</div>
         </div>
       </div>
@@ -792,6 +816,7 @@ window.orderReceiptData = {
   fullName: <?= json_encode($fullName) ?>,
   phone: <?= json_encode($phone) ?>,
   address: <?= json_encode($address) ?>,
+  barangay: <?= json_encode($barangay) ?>,
   city: <?= json_encode($city) ?>,
   province: <?= json_encode($province) ?>,
   zip: <?= json_encode($zip) ?>,

@@ -367,6 +367,7 @@ if ($adminRole !== 'admin') {
             margin-bottom: 12px;
             border-left: 4px solid var(--sage-dark);
             box-shadow: 0 2px 10px rgba(0,0,0,.05);
+            overflow: hidden;
         }
         .order-user-tag {
             display: inline-block;
@@ -377,6 +378,51 @@ if ($adminRole !== 'admin') {
             font-weight: 600;
             padding: 2px 10px;
             margin-bottom: 6px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        /* Order header row — wraps nicely on narrow screens */
+        .order-header-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        /* Status dropdown — never overflows on mobile */
+        #section-orders select[id^="status-sel-"] {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        /* Detail panel grid — single column on small screens */
+        .order-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .order-detail-grid .full-width { grid-column: 1 / -1; }
+        /* Pay-box buttons row */
+        .pay-btn-row {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .pay-btn-row button { flex: 1; min-width: 70px; }
+        /* Responsive breakpoints */
+        @media (max-width: 768px) {
+            .order-detail-grid { grid-template-columns: 1fr; }
+            .order-detail-grid .full-width { grid-column: 1; }
+            .order-user-tag { max-width: 140px; }
+            #section-orders select[id^="status-sel-"] { min-width: unset !important; width: 100%; }
+        }
+        @media (max-width: 576px) {
+            .order-card { padding: 10px 12px; }
+            .pay-btn-row { flex-direction: column; }
+            .pay-btn-row button { width: 100%; }
         }
 
         /* ══════════════════════════════════════════
@@ -792,7 +838,7 @@ if ($adminRole !== 'admin') {
             <?php
             $pendingCount = 0;
             try {
-                $pStmt = getDBConnection()->query("SELECT COUNT(*) FROM orders WHERE status='Pending'");
+                $pStmt = getDBConnection()->query("SELECT COUNT(*) FROM orders WHERE order_status='Pending'");
                 $pendingCount = (int)$pStmt->fetchColumn();
             } catch(Exception $e) {}
             if ($pendingCount > 0): ?>
@@ -1112,6 +1158,7 @@ if ($searchQuery !== '') {
             'full_name' => $order->full_name ?? '',
             'phone'     => $order->phone     ?? '',
             'address'   => $order->address   ?? '',
+            'barangay'  => $order->barangay  ?? '',
             'city'      => $order->city       ?? '',
             'province'  => $order->province   ?? '',
             'zip'       => $order->zip        ?? '',
@@ -1164,11 +1211,11 @@ if ($searchQuery !== '') {
                 id="status-sel-<?= htmlspecialchars($orderId) ?>"
                 onchange="updateOrderStatus('<?= htmlspecialchars($oEmail, ENT_QUOTES) ?>','<?= htmlspecialchars($orderId, ENT_QUOTES) ?>',this.value)">
                 <option value=""> Update Status </option>
-                <option value="Pending">Pending</option>
-                <option value="Processing">Processing</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Cancelled">Cancelled</option>
+                <option value="Pending"    <?= $orderStatus === 'Pending'    ? 'selected' : '' ?>>Pending</option>
+                <option value="Processing" <?= $orderStatus === 'Processing' ? 'selected' : '' ?>>Processing</option>
+                <option value="Shipped"    <?= $orderStatus === 'Shipped'    ? 'selected' : '' ?>>Shipped</option>
+                <option value="Delivered"  <?= $orderStatus === 'Delivered'  ? 'selected' : '' ?>>Delivered</option>
+                <option value="Cancelled"  <?= $orderStatus === 'Cancelled'  ? 'selected' : '' ?>>Cancelled</option>
             </select>
 
         </div>
@@ -1217,7 +1264,7 @@ if ($searchQuery !== '') {
 
         <!-- ── Collapsible Order Detail Panel ─────────── -->
         <div id="detail-<?= htmlspecialchars($orderId) ?>" style="display:none;margin-top:14px;border-top:2px dashed #d4e4d4;padding-top:14px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div class="order-detail-grid">
               <div style="background:#f9f9f6;border-radius:10px;padding:10px;">
                 <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px;">Recipient</div>
                 <div style="font-weight:600;font-size:.84rem;color:#1a2e1a;"><?= htmlspecialchars($shippingInfo['full_name'] ?? '—') ?></div>
@@ -1275,6 +1322,7 @@ if ($searchQuery !== '') {
                 <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px;">Delivery Address</div>
                 <div style="font-size:.82rem;color:#444;"><?= htmlspecialchars(implode(', ', array_filter([
                     $shippingInfo['address']  ?? '',
+                    $shippingInfo['barangay'] ?? '',
                     $shippingInfo['city']     ?? '',
                     $shippingInfo['province'] ?? '',
                     $shippingInfo['zip']      ?? '',
@@ -1646,8 +1694,12 @@ function updateOrderStatus(email, orderId, newStatus) {
     if (!newStatus) return;
     fetch('admin_action.php?update_status=1&email=' + encodeURIComponent(email)
         + '&order_id=' + encodeURIComponent(orderId)
-        + '&status='   + encodeURIComponent(newStatus))
-    .then(r => r.json())
+        + '&status='   + encodeURIComponent(newStatus),
+        { credentials: 'same-origin' })
+    .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+    })
     .then(data => {
         if (data.success) {
             const badge = document.getElementById('status-badge-' + orderId);
@@ -1666,11 +1718,14 @@ function updateOrderStatus(email, orderId, newStatus) {
                 badge.style.border     = '1px solid ' + sc.border;
             }
             showToast('Order #' + orderId + ' → ' + newStatus);
+            updatePendingBadge();
+            const sel = document.getElementById('status-sel-' + orderId);
+            if (sel) sel.value = '';
         } else {
             alert(data.message || 'Could not update status.');
         }
     })
-    .catch(() => alert('Request failed.'));
+    .catch(err => alert('Request failed: ' + err.message));
 }
 
 // ── Update Payment Status ─────────────────────────────────────
@@ -1691,7 +1746,13 @@ function updatePayment(orderId, payStatus) {
         headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
         body:        body.toString(),
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) return r.text().then(t => { throw new Error('HTTP ' + r.status + ': ' + t.substring(0, 200)); });
+        return r.text().then(t => {
+            try { return JSON.parse(t); }
+            catch(e) { throw new Error('Bad JSON from server: ' + t.substring(0, 200)); }
+        });
+    })
     .then(data => {
         if (!data.success) {
             alert(data.message || 'Could not update payment.');
@@ -1717,8 +1778,9 @@ function updatePayment(orderId, payStatus) {
         }
         const labels = { verified: '✓ Payment verified', rejected: '✗ Payment rejected', pending: 'Payment set to pending' };
         showToast(labels[payStatus] || 'Payment updated');
+        updatePendingBadge();
     })
-    .catch(() => alert('Request failed.'));
+    .catch(err => alert('Request failed: ' + err.message));
 }
 
 // ── Delete User ───────────────────────────────────────────────
@@ -1859,8 +1921,12 @@ function toggleOrderDetail(orderId) {
 function quickStatus(email, orderId, newStatus) {
     fetch('admin_action.php?update_status=1&email=' + encodeURIComponent(email)
         + '&order_id=' + encodeURIComponent(orderId)
-        + '&status='   + encodeURIComponent(newStatus))
-    .then(r => r.json())
+        + '&status='   + encodeURIComponent(newStatus),
+        { credentials: 'same-origin' })
+    .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+    })
     .then(data => {
         if (data.success) {
             const badge = document.getElementById('status-badge-' + orderId);
@@ -1886,7 +1952,7 @@ function quickStatus(email, orderId, newStatus) {
         } else {
             showToast(data.message || 'Could not update status.', true);
         }
-    }).catch(() => showToast('Request failed.', true));
+    }).catch(err => showToast('Request failed: ' + err.message, true));
 }
 
 // ── Refresh pending count on sidebar ─────────────────────────
@@ -1894,13 +1960,15 @@ function updatePendingBadge() {
     fetch('get_pending.php', { credentials: 'same-origin' })
     .then(r => r.json())
     .then(d => {
+        // Order-status pending badge (next to Orders nav item)
         let badge = document.getElementById('pending-badge');
         if (d.count > 0) {
             if (!badge) {
                 badge = document.createElement('span');
                 badge.id = 'pending-badge';
                 badge.style.cssText = 'background:#dc2626;color:#fff;border-radius:50px;font-size:.6rem;font-weight:700;padding:2px 7px;';
-                document.getElementById('nav-orders').appendChild(badge);
+                const navOrders = document.getElementById('nav-orders');
+                if (navOrders) navOrders.appendChild(badge);
             }
             badge.textContent = d.count;
         } else if (badge) {

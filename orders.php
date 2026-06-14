@@ -266,6 +266,8 @@ function getStepIndex(string $status): int {
     $oDate    = $o->date ?? '';
     $orderId  = $o->order_id ?? '—';
     $payMethod = $o->pay_method ?? '';
+    $payStatus = $o->pay_status ?? 'pending';
+    $payRef    = $o->pay_reference ?? '';
     $fullName  = $o->full_name ?? '';
     $address   = $o->address   ?? '';
     $city      = $o->city      ?? '';
@@ -299,6 +301,26 @@ function getStepIndex(string $status): int {
         <div class="col-6 col-md-3">
           <small class="text-muted d-block" style="font-size:.7rem;">Payment Method</small>
           <div class="fw-bold" style="color:var(--deep);font-size:.88rem;"><?= htmlspecialchars($payMethod ?: 'N/A') ?></div>
+          <?php
+            $psColors = [
+                'pending'  => ['bg'=>'#fff7ed','color'=>'#b45309','border'=>'#fde68a'],
+                'verified' => ['bg'=>'#f0fdf4','color'=>'#15803d','border'=>'#bbf7d0'],
+                'rejected' => ['bg'=>'#fef2f2','color'=>'#b91c1c','border'=>'#fecaca'],
+            ];
+            $psc = $psColors[$payStatus] ?? $psColors['pending'];
+          ?>
+          <span style="display:inline-block;margin-top:4px;background:<?= $psc['bg'] ?>;color:<?= $psc['color'] ?>;border:1px solid <?= $psc['border'] ?>;border-radius:50px;padding:1px 9px;font-size:.68rem;font-weight:700;text-transform:capitalize;">
+            <?php if ($payStatus === 'verified'): ?>
+              <i class="fas fa-check-circle" style="margin-right:3px;"></i>Payment Verified
+            <?php elseif ($payStatus === 'rejected'): ?>
+              <i class="fas fa-times-circle" style="margin-right:3px;"></i>Payment Rejected
+            <?php else: ?>
+              <i class="fas fa-clock" style="margin-right:3px;"></i>Awaiting Verification
+            <?php endif; ?>
+          </span>
+          <?php if ($payRef): ?>
+          <div style="font-size:.7rem;color:#888;margin-top:2px;">Ref: <?= htmlspecialchars($payRef) ?></div>
+          <?php endif; ?>
         </div>
         <div class="col-6 col-md-3 text-md-end">
           <small class="text-muted d-block" style="font-size:.7rem;">Status</small>

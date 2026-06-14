@@ -96,7 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply_review'])) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST'
+    && !isset($_POST['update_payment'])
+    && !isset($_POST['edit_review'])
+    && !isset($_POST['reply_review'])
+) {
     // message-sending feature removed
 
     $inv_id = $_POST['inv_id'] ?? ($_POST['id'] ?? '');
@@ -184,8 +188,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 if (isset($_GET['update_status'], $_GET['order_id'], $_GET['status'])) {
     header('Content-Type: application/json');
+
+    if (($_SESSION['role'] ?? '') !== 'admin') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Admin access required.']);
+        exit;
+    }
+
     $orderId = trim($_GET['order_id']);
     $status  = trim($_GET['status']);
+
+    $allowedStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+    if ($orderId === '' || !in_array($status, $allowedStatuses, true)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid order ID or status.']);
+        exit;
+    }
 
     try {
         $db = getDBConnection();
@@ -259,12 +277,20 @@ if (isset($_GET['delete'])) {
 // ── Update Payment Status + Reference No ─────────────────────
 if (isset($_POST['update_payment'])) {
     header('Content-Type: application/json');
+
+    if (($_SESSION['role'] ?? '') !== 'admin') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Admin access required.']);
+        exit;
+    }
+
     $orderId    = trim($_POST['order_id']     ?? '');
     $payStatus  = trim($_POST['pay_status']   ?? '');
     $refNo      = trim($_POST['reference_no'] ?? '');
 
     $allowed = ['pending', 'verified', 'rejected'];
     if ($orderId === '' || !in_array($payStatus, $allowed, true)) {
+        http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid parameters.']);
         exit;
     }

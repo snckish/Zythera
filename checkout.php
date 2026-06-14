@@ -148,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName    = trim($_POST['full_name']    ?? '');
     $phone       = trim($_POST['phone']        ?? '');
     $address     = trim($_POST['address']      ?? '');
+    $barangay    = trim($_POST['barangay']     ?? '');
     $country     = trim($_POST['country']      ?? 'Philippines');
     $province    = trim($_POST['province']     ?? '');
     $city        = trim($_POST['city']         ?? '');
@@ -201,6 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'full_name' => $fullName,
                     'phone'     => $phone,
                     'address'   => $address,
+                    'barangay'  => $barangay,
                     'city'      => $city,
                     'province'  => $province,
                     'zip'       => $zip,
@@ -213,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // 1. Resolve/create address and payment records
             $userId    = (string)$dbUser->user_id;
-            $addressId = findOrCreateAddress($userId, $phone, $address, $city, $province, $zip);
+            $addressId = findOrCreateAddress($userId, $phone, $address, $barangay, $city, $province, $zip);
             $paymentId = createPayment($payMethod, 'pending');
 
             // 2. Insert order (normalized schema)
@@ -536,6 +538,13 @@ footer .footer-brand{
           <input type="text" name="address" placeholder=" " required
             value="<?= htmlspecialchars($_POST['address'] ?? '') ?>">
           <label>House / Unit / Street Address *</label>
+        </div>
+
+        <!-- 3b. Barangay -->
+        <div class="field">
+          <input type="text" name="barangay" placeholder=" "
+            value="<?= htmlspecialchars($_POST['barangay'] ?? '') ?>">
+          <label>Barangay (optional)</label>
         </div>
 
         <!-- 4. Country (dropdown) -->
