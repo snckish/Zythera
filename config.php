@@ -43,7 +43,6 @@ function getDBConnection() {
  *   OR  → OR-ZY001   (Orders)
  *   PAY → PAY-ZY001  (Payments)
  *   U   → U-ZY001    (Users)
- *   MSG → MSG-ZY001  (Messages)
  *   REV → REV-ZY001  (Reviews)
  *   ODR → ODR-ZY001  (Order Items)
  *   ADR → ADR-ZY001  (User Addresses)

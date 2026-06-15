@@ -353,6 +353,11 @@ body.dark .dark-toggle-btn:hover {
 
 /* ── 13. Contact ── */
 body.dark .contact-card { background: #1e3a1e !important; }
+body.dark .contact-wrapper { box-shadow: 0 4px 24px rgba(0,0,0,.45) !important; }
+body.dark .contact-info-panel { background: #1a3d1a !important; }
+body.dark .contact-detail-icon { background: rgba(255,255,255,.12) !important; }
+body.dark .contact-social-btn { background: rgba(255,255,255,.12) !important; }
+body.dark .contact-social-btn:hover { background: rgba(255,255,255,.25) !important; }
 body.dark .social-icon  { background: #2a4a2a !important; color: #a8d4a8 !important; }
 body.dark .social-icon:hover { background: #2d5a2d !important; color: #fff !important; }
 

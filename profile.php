@@ -66,21 +66,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['upload_pic']) && isset($_FILES['profile_pic'])) {
         $file = $_FILES['profile_pic'];
         if ($file['error'] === 0) {
-            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            if (in_array($ext, $allowed)) {
-                if (!is_dir('uploads/profile_pics')) mkdir('uploads/profile_pics', 0777, true);
-                $newName = uniqid('profile_', true) . '.' . $ext;
-                $target  = 'uploads/profile_pics/' . $newName;
-                if (move_uploaded_file($file['tmp_name'], $target)) {
-                    if ($isAdminAccount) {
-                        $_SESSION['admin_overrides'][$userEmail]['admin_pfp'] = $target;
-                    } else {
-                        $db->prepare("UPDATE users SET user_pfp=? WHERE email=?")->execute([$target, $userEmail]);
-                    }
-                    header('Location: profile.php?updated=1');
-                    exit;
+            $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            $allowedExts  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $mimeType     = mime_content_type($file['tmp_name']);
+            $ext          = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+            if (!in_array($mimeType, $allowedMimes, true) || !in_array($ext, $allowedExts, true)) {
+                $_SESSION['profile_error'] = 'Profile picture must be a real image (JPG, PNG, GIF, WebP).';
+                header('Location: profile.php');
+                exit;
+            }
+
+            if ($file['size'] > 5 * 1024 * 1024) {
+                $_SESSION['profile_error'] = 'Profile picture must be under 5MB.';
+                header('Location: profile.php');
+                exit;
+            }
+
+            if (!is_dir('uploads/profile_pics')) mkdir('uploads/profile_pics', 0755, true);
+            $newName = uniqid('profile_', true) . '.' . $ext;
+            $target  = 'uploads/profile_pics/' . $newName;
+            if (move_uploaded_file($file['tmp_name'], $target)) {
+                if ($isAdminAccount) {
+                    $_SESSION['admin_overrides'][$userEmail]['admin_pfp'] = $target;
+                } else {
+                    $db->prepare("UPDATE users SET user_pfp=? WHERE email=?")->execute([$target, $userEmail]);
                 }
+                header('Location: profile.php?updated=1');
+                exit;
             }
         }
     }

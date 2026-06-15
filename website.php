@@ -12,58 +12,11 @@ if ($userEmail) {
 $userRole   = $_SESSION['role'] ?? 'user';
 $loginTime  = $_SESSION['login_time'] ?? null;
 
-// ── Handle "Get in Touch" contact form ────────────────────────
+// ── "Get in Touch" contact form ────────────────────────────────
+// Messages are now sent directly to Formspree (https://formspree.io/f/mbdewazl)
+// from the browser, so there's no server-side handling needed here.
 $contactSuccess = false;
 $contactError   = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
-  $cName    = trim($_POST['c_name']    ?? '');
-  $cEmail   = trim($_POST['c_email']   ?? '');
-  $cSubject = trim($_POST['c_subject'] ?? '');
-  $cMsg     = trim($_POST['c_message'] ?? '');
-
-  if ($cName && $cEmail && $cMsg) {
-    try {
-      $db2 = getDBConnection();
-      $msgUserId = null;
-      if ($userEmail) {
-        $msgUser = findUserByEmail($userEmail);
-        $msgUserId = $msgUser ? (string)$msgUser->user_id : null;
-      }
-      $newMsgId = generateCustomId('MSG');
-      $ins = $db2->prepare("
-                INSERT INTO messages (msg_id, user_id, full_name, email, subject, msg_content)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ");
-      $ins->execute([$newMsgId, $msgUserId, $cName, $cEmail, $cSubject, $cMsg]);
-      // If request is AJAX, return JSON so client can clear only the message field
-      $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-      if ($isAjax) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true]);
-        exit;
-      }
-      // Non-AJAX fallback: PRG so the form clears and the message isn't re-submitted
-      header('Location: website.php?contact_sent=1#contact');
-      exit;
-    } catch (PDOException $e) {
-      $contactError = 'Could not send message. Please try again.';
-      $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-      if ($isAjax) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => $contactError]);
-        exit;
-      }
-    }
-  } else {
-    $contactError = 'Please fill in your name, email, and message.';
-    $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-    if ($isAjax) {
-      header('Content-Type: application/json');
-      echo json_encode(['success' => false, 'error' => $contactError]);
-      exit;
-    }
-  }
-}
 
 // If redirected after successful send, show success message
 if (!empty($_GET['contact_sent'])) {
@@ -904,11 +857,133 @@ body.dark .review-edit-modal textarea:focus {
     }
 
     /* CONTACT */
+    .contact-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      min-height: 540px;
+    }
+
+    @media (max-width: 768px) {
+      .contact-wrapper { grid-template-columns: 1fr; }
+    }
+
+    /* Left info panel */
+    .contact-info-panel {
+      background: var(--green);
+      padding: 52px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contact-info-panel::before {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      left: -60px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.07);
+    }
+
+    .contact-info-panel::after {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.05);
+    }
+
+    .contact-info-panel h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .contact-info-panel p.tagline {
+      color: rgba(255,255,255,.75);
+      font-size: .9rem;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .contact-detail {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 26px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .contact-detail-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #fff;
+      font-size: .95rem;
+    }
+
+    .contact-detail-text strong {
+      display: block;
+      color: #fff;
+      font-size: .85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 2px;
+    }
+
+    .contact-detail-text span {
+      color: rgba(255,255,255,.8);
+      font-size: .88rem;
+    }
+
+    .contact-socials {
+      display: flex;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .contact-social-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .9rem;
+      text-decoration: none;
+      transition: background .2s;
+    }
+
+    .contact-social-btn:hover {
+      background: rgba(255,255,255,.3);
+      color: #fff;
+    }
+
+    /* Right form panel */
     .contact-card {
       background: #fff;
-      border-radius: var(--radius-card);
-      padding: 48px;
-      box-shadow: var(--shadow-card);
+      padding: 52px 44px;
     }
 
     .input-box {
@@ -1136,6 +1211,9 @@ body.dark .review-edit-modal textarea:focus {
           <a href="#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
           <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
+          <?php if ($userEmail && $userRole !== 'admin'): ?>
+            <a href="orders.php" class="nav-link fw-semibold" style="color:var(--green)!important;">My Orders</a>
+          <?php endif; ?>
           <?php if ($userEmail): ?>
             <div class="nav-user-capsule">
               <div class="text-end d-none d-md-block">
@@ -1151,6 +1229,9 @@ body.dark .review-edit-modal textarea:focus {
                 <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="32" height="32" style="cursor:pointer;border:2px solid rgba(45,90,45,.2);object-fit:cover;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius:14px;min-width:190px;">
                   <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2 text-muted" style="font-size:.85rem;"></i>My Profile</a></li>
+                  <?php if ($userRole !== 'admin'): ?>
+                    <li><a class="dropdown-item py-2" href="orders.php"><i class="fas fa-box me-2 text-muted" style="font-size:.85rem;"></i>My Orders</a></li>
+                  <?php endif; ?>
                   <?php if ($userRole === 'admin'): ?>
                     <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2 text-muted" style="font-size:.85rem;"></i>Admin Panel</a></li>
                   <?php endif; ?>
@@ -1425,7 +1506,8 @@ body.dark .review-edit-modal textarea:focus {
         }, 1000);
       })();
 
-      // AJAX submit for contact form: clears only the message textarea and shows a toast
+      // AJAX submit for contact form: sends to Formspree, clears only the
+      // message textarea/subject, and shows a toast
       (function() {
         const form = document.getElementById('contactForm');
         const toast = document.getElementById('contactToast');
@@ -1446,26 +1528,29 @@ body.dark .review-edit-modal textarea:focus {
           }
 
           const data = new FormData(this);
-          if (!data.has('send_message')) data.append('send_message', '1');
+          const enteredEmail = form.querySelector('input[name=c_email]');
+          if (enteredEmail) data.set('_replyto', enteredEmail.value);
 
           try {
-            const res = await fetch('website.php', {
+            const res = await fetch(form.action, {
               method: 'POST',
               headers: {
-                'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
               },
               body: data
             });
             const json = await res.json();
-            if (json && json.success) {
+            if (res.ok) {
               const ta = form.querySelector('textarea[name=c_message]');
               const subject = form.querySelector('input[name=c_subject]');
               if (ta) ta.value = '';
               if (subject) subject.value = '';
               showToast("Message sent! We'll get back to you soon.", false);
             } else {
-              showToast(json.error || 'Could not send message. Please try again.', true);
+              const errMsg = (json && json.errors && json.errors[0] && json.errors[0].message)
+                ? json.errors[0].message
+                : 'Could not send message. Please try again.';
+              showToast(errMsg, true);
             }
           } catch (err) {
             showToast('Network error. Please try again later.', true);
@@ -1484,30 +1569,84 @@ body.dark .review-edit-modal textarea:focus {
   <section class="section" id="contact">
     <div class="container">
       <h2 class="section-title text-center">Get in Touch</h2>
-      <div class="row g-4 justify-content-center">
-        <div class="col-lg-8">
-          <div class="contact-card">
-            <h5 class="fw-bold mb-5" style="font-family:'Playfair Display',serif;color:var(--green);font-size:1.5rem;">Message Us</h5>
-            <?php if ($contactSuccess): ?>
-            <?php elseif ($contactError): ?>
-              <div style="background:#fee2e2;color:#b91c1c;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
-                <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($contactError) ?>
-              </div>
-            <?php endif; ?>
-            <form id="contactForm" method="POST" action="website.php#contact">
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="contact-wrapper">
+
+            <!-- LEFT: Info Panel -->
+            <div class="contact-info-panel">
+              <div>
+                <h3>Let's Talk</h3>
+                <p class="tagline">Have a question about an order, a product, or anything else? We're here to help and would love to hear from you.</p>
+
+                <div class="contact-detail">
+                  <div class="contact-detail-icon"><i class="fas fa-map-marker-alt"></i></div>
+                  <div class="contact-detail-text">
+                    <strong>Visit Us</strong>
+                    <span>123 Zythera Ave, Calamba City, Laguna</span>
+                  </div>
                 </div>
-                <div class="col-md-6">
-                  <div class="input-box"><input type="email" name="c_email" placeholder=" " value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>" required><label>Email Address</label></div>
+
+                <div class="contact-detail">
+                  <div class="contact-detail-icon"><i class="fas fa-envelope"></i></div>
+                  <div class="contact-detail-text">
+                    <strong>Email Us</strong>
+                    <span>hello@zythera.com</span>
+                  </div>
+                </div>
+
+                <div class="contact-detail">
+                  <div class="contact-detail-icon"><i class="fas fa-phone-alt"></i></div>
+                  <div class="contact-detail-text">
+                    <strong>Call Us</strong>
+                    <span>+63 912 345 6789</span>
+                  </div>
+                </div>
+
+                <div class="contact-detail">
+                  <div class="contact-detail-icon"><i class="fas fa-clock"></i></div>
+                  <div class="contact-detail-text">
+                    <strong>Business Hours</strong>
+                    <span>Mon–Sat &nbsp;9:00 AM – 6:00 PM</span>
+                  </div>
                 </div>
               </div>
-              <div class="input-box mt-3"><input type="text" name="c_subject" placeholder=" " value="<?= htmlspecialchars($_POST['c_subject'] ?? '') ?>"><label>Subject</label></div>
-              <div class="input-box mt-3"><textarea name="c_message" placeholder=" " required style="min-height:180px;"><?= htmlspecialchars($_POST['c_message'] ?? '') ?></textarea><label>Your Message</label></div>
-              <button type="submit" name="send_message" class="btn w-100 fw-bold text-white rounded-pill py-3 mt-4" style="background:var(--green);font-size:1rem;letter-spacing:0.5px;">Send Message</button>
-            </form>
-            <div id="contactToast" class="toast-fixed" aria-live="polite" aria-atomic="true"></div>
+
+              <div class="contact-socials">
+                <a href="#" class="contact-social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="contact-social-btn" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="contact-social-btn" title="Twitter / X"><i class="fab fa-x-twitter"></i></a>
+                <a href="#" class="contact-social-btn" title="TikTok"><i class="fab fa-tiktok"></i></a>
+              </div>
+            </div>
+
+            <!-- RIGHT: Form -->
+            <div class="contact-card">
+              <h5 class="fw-bold mb-5" style="font-family:'Playfair Display',serif;color:var(--green);font-size:1.5rem;">Message Us</h5>
+              <?php if ($contactSuccess): ?>
+              <?php elseif ($contactError): ?>
+                <div style="background:#fee2e2;color:#b91c1c;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
+                  <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($contactError) ?>
+                </div>
+              <?php endif; ?>
+              <form id="contactForm" method="POST" action="https://formspree.io/f/mbdewazl">
+                <input type="hidden" name="_subject" value="New message from Zythera contact form">
+                <input type="hidden" name="_replyto" value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="input-box"><input type="email" name="c_email" placeholder=" " value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>" required><label>Email Address</label></div>
+                  </div>
+                </div>
+                <div class="input-box mt-3"><input type="text" name="c_subject" placeholder=" " value="<?= htmlspecialchars($_POST['c_subject'] ?? '') ?>"><label>Subject</label></div>
+                <div class="input-box mt-3"><textarea name="c_message" placeholder=" " required style="min-height:180px;"><?= htmlspecialchars($_POST['c_message'] ?? '') ?></textarea><label>Your Message</label></div>
+                <button type="submit" class="btn w-100 fw-bold text-white rounded-pill py-3 mt-4" style="background:var(--green);font-size:1rem;letter-spacing:0.5px;">Send Message</button>
+              </form>
+              <div id="contactToast" class="toast-fixed" aria-live="polite" aria-atomic="true"></div>
+            </div>
+
           </div>
         </div>
       </div>
