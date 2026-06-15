@@ -15,6 +15,18 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'zythera_db');
 
+// ── HARDCODED ADMIN CREDENTIALS (never stored in the database) ────────────────
+// To generate a new password hash run:
+//   php -r "echo password_hash('123456qw', PASSWORD_DEFAULT);"
+define('ADMIN_ACCOUNTS', [
+    [
+        'email'    => 'zythera@gmail.com',
+        'password' => '$2y$10$gE1RojIVP8RIbbI5HccmIOZDcF3SdgGxdbIlIuV6EyVxQTyPrSVp2',
+        'name'     => 'ZYTHERA',
+    ],
+    // Add more admins here if needed.
+]);
+
 // ── CONNECT DATABASE ──────────────────────────────────────────
 function getDBConnection() {
     static $pdo = null;
@@ -224,7 +236,7 @@ function findUserByEmail(string $email): ?object {
         $row = $stmt->fetch();
         if (!$row) return null;
         $row->name = combineName($row->fname, $row->mname, $row->lname);
-        $row->role = isAdminEmail($row->email) ? 'admin' : 'user';
+        $row->role = 'user';
         return $row;
     } catch (PDOException $e) {
         die("findUserByEmail ERROR: " . $e->getMessage());
@@ -232,52 +244,39 @@ function findUserByEmail(string $email): ?object {
 }
 
 /**
- * Check whether the given email exists in the admins table.
+ * Return the hardcoded admin record matching $email, or null if not an admin.
+ * No database query is made — credentials live in ADMIN_ACCOUNTS above.
+ */
+function findAdminAccount(string $email): ?object {
+    foreach (ADMIN_ACCOUNTS as $admin) {
+        if (strtolower(trim($admin['email'])) === strtolower(trim($email))) {
+            $obj               = new stdClass();
+            $obj->email        = $admin['email'];
+            $obj->password     = $admin['password'];
+            $obj->name         = $admin['name'];
+            $obj->role         = 'admin';
+            $obj->profile_pic  = null;
+            $obj->created_at   = null;
+            $obj->user_id      = null;
+            return $obj;
+        }
+    }
+    return null;
+}
+
+/**
+ * Check whether the given email belongs to a hardcoded admin account.
  */
 function isAdminEmail(string $email): bool {
-    try {
-        $db   = getDBConnection();
-        $stmt = $db->prepare("SELECT admin_id FROM admins WHERE email = ? LIMIT 1");
-        $stmt->execute([$email]);
-        return (bool)$stmt->fetch();
-    } catch (PDOException $e) {
-        die("isAdminEmail ERROR: " . $e->getMessage());
-    }
+    return findAdminAccount($email) !== null;
 }
 
 /**
- * Look up an admin by email.
- */
-function findAdminByEmail(string $email): ?object {
-    try {
-        $db   = getDBConnection();
-        $stmt = $db->prepare("
-            SELECT
-                admin_id,
-                admin_fname AS name,
-                email,
-                password,
-                admin_pfp   AS profile_pic
-            FROM admins
-            WHERE email = ?
-            LIMIT 1
-        ");
-        $stmt->execute([$email]);
-        $row = $stmt->fetch();
-        if (!$row) return null;
-        $row->role       = 'admin';
-        $row->created_at = null;
-        return $row;
-    } catch (PDOException $e) {
-        die("findAdminByEmail ERROR: " . $e->getMessage());
-    }
-}
-
-/**
- * Look up either a user or an admin by email (admins take priority).
+ * Look up either a hardcoded admin or a database user by email.
+ * Admins are checked first and never hit the database.
  */
 function findAccountByEmail(string $email): ?object {
-    $admin = findAdminByEmail($email);
+    $admin = findAdminAccount($email);
     if ($admin) return $admin;
     return findUserByEmail($email);
 }
@@ -300,7 +299,7 @@ function loadUsers(): array {
         $rows = $stmt->fetchAll();
         foreach ($rows as $row) {
             $row->name = combineName($row->fname, $row->mname, $row->lname);
-            $row->role = isAdminEmail($row->email) ? 'admin' : 'user';
+            $row->role = 'user';
         }
         return $rows;
     } catch (PDOException $e) {

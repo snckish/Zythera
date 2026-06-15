@@ -71,10 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $check->execute([$email]);
 
-            $adminCheck = $db->prepare("SELECT email FROM admins WHERE email = ?");
-            $adminCheck->execute([$email]);
-
-            if ($check->fetch() || $adminCheck->fetch()) {
+            if ($check->fetch()) {
 
                 $message = 'Email already registered!';
                 $msgType = 'error';
