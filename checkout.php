@@ -29,7 +29,6 @@ if (!$dbUser) {
 $userName = $dbUser->name ?? '';
 
 // ── Load cart from DB ─────────────────────────────────────────
-// Always reload cart from session to avoid stale data from cart sidebar changes
 session_write_close();
 session_start();
 
@@ -49,12 +48,7 @@ foreach ($cart as $ci) {
 $shipping = $subtotal > 0 ? 150 : 0;
 $total    = $subtotal + $shipping;
 
-// ── Handle checkout form submission ───────────────────────────
-$errors      = [];
-$orderPlaced = false;
-$placedOrderInfo = [];
-
-// ── Allowed locations (used for validation and datalists) ──────
+// ── Allowed locations ──────────────────────────────────────────
 $provinces = [
   'Metro Manila','Cavite','Laguna','Batangas','Bulacan','Pampanga','Rizal',
   'Quezon','Nueva Ecija','Cebu','Davao del Sur','Iloilo','Bohol','Pangasinan',
@@ -78,7 +72,7 @@ $provinceCities = [
   'Iloilo'      => ['Iloilo City','Passi','Pototan'],
   'Bohol'       => ['Tagbilaran'],
   'Pangasinan'  => ['Dagupan','Urdaneta','San Carlos','Lingayen','Alaminos'],
-  'Bicol Region' => ['Daet','Vinzons','Labo','Talisay','Jose Panganiban','Mercedes','Capalonga','Naga','Iriga','Libmanan','Pili','Goa','Sipocot','Legazpi','Ligao','Tabaco','Polangui','Daraga','Sorsogon City','Bulan','Irosin','Masbate City','Cataingan','Virac'],
+  'Bicol Region' => ['Daet','Vinzons','Labo','Jose Panganiban','Mercedes','Capalonga','Naga','Iriga','Libmanan','Pili','Goa','Sipocot','Legazpi','Ligao','Tabaco','Polangui','Daraga','Sorsogon City','Bulan','Irosin','Masbate City','Cataingan','Virac'],
   'Negros Occidental'=> ['Bacolod','Bago','Cadiz','La Carlota','Sagay','Sipalay','Talisay','Victorias'],
   'Negros Oriental' => ['Dumaguete','Bais','Canlaon','Guihulngan','Tanjay'],
   'Leyte'           => ['Tacloban','Ormoc','Baybay','Palo'],
@@ -118,15 +112,13 @@ $cityZipCodes = [
   'Bacolod' => '6100', 'Bago' => '6101', 'Cadiz' => '6121', 'La Carlota' => '6130', 'Sagay' => '6122', 'Sipalay' => '6113',
   'Tagbilaran' => '6300',
   'Dagupan' => '2400', 'Urdaneta' => '2428', 'San Carlos' => '2420', 'Lingayen' => '2401', 'Alaminos' => '2404',
-  // Bicol Region
-  'Daet' => '4600', 'Vinzons' => '4601', 'Labo' => '4603', 'Talisay' => '4602',
+  'Daet' => '4600', 'Vinzons' => '4601', 'Labo' => '4603',
   'Jose Panganiban' => '4606', 'Mercedes' => '4604', 'Capalonga' => '4607',
   'Naga' => '4400', 'Iriga' => '4431', 'Libmanan' => '4407', 'Pili' => '4418', 'Goa' => '4422', 'Sipocot' => '4408',
   'Legazpi' => '4500', 'Ligao' => '4504', 'Tabaco' => '4511', 'Polangui' => '4506', 'Daraga' => '4501',
   'Sorsogon City' => '4700', 'Bulan' => '4706', 'Irosin' => '4707',
   'Masbate City' => '5400', 'Cataingan' => '5405',
   'Virac' => '4800',
-  // Others
   'Tacloban' => '6500', 'Ormoc' => '6541', 'Baybay' => '6521', 'Palo' => '6501',
   'Catbalogan' => '6700', 'Calbayog' => '6710',
   'Zamboanga City' => '7000', 'Pagadian' => '7016', 'Dipolog' => '7100',
@@ -144,9 +136,7 @@ $cityZipCodes = [
 
 $cities = array_values(array_unique(array_merge(...array_values($provinceCities))));
 
-// ── Barangays per city ──────────────────────────────────────────
 $cityBarangays = [
-  // Metro Manila
   'Manila'       => ['Binondo','Ermita','Intramuros','Malate','Paco','Pandacan','Port Area','Quiapo','Sampaloc','San Andres','San Miguel','San Nicolas','Santa Ana','Santa Cruz','Santa Mesa','Tondo'],
   'Quezon City'  => ['Bagong Pag-asa','Bagumbayan','Batasan Hills','Commonwealth','Cubao','Diliman','Fairview','Holy Spirit','Kamuning','Katipunan','Loyola Heights','Malaya','Novaliches','Project 4','Project 6','Project 7','Quirino 3-A','San Bartolome','Tandang Sora','UP Campus','White Plains'],
   'Makati'       => ['Bel-Air','Forbes Park','Guadalupe Nuevo','Guadalupe Viejo','Kasilawan','La Paz','Magallanes','Olympia','Palanan','Pembo','Pinagkaisahan','Pio del Pilar','Poblacion','Rembo','San Antonio','San Isidro','San Lorenzo','Santa Cruz','Singkamas','Tejeros','Urdaneta','Valenzuela'],
@@ -158,45 +148,42 @@ $cityBarangays = [
   'Mandaluyong'  => ['Addition Hills','Bagong Silang','Barangka Drive','Barangka Ilaya','Barangka Itaas','Barangka Ibaba','Buayang Bato','Burol','Daang Bakal','Hagdan Bato Itaas','Hagdan Bato Libis','Harapin Ang Bukas','Highway Hills','Hulo','Mabini-J. Rizal','Malamig','Mandaluyong','Mauway','Namayan','New Zañiga','Old Zañiga','Pag-asa','Plainview','Pleasant Hills','Poblacion','San Andres','San Joaquin','Vergara','Wack-Wack Greenhills'],
   'Marikina'     => ['Barangka','Calumpang','Concepcion Dos','Concepcion Uno','Fortune','Industrial Valley','Jesus dela Peña','Kalumpang','Malanday','Marikina Heights','Nangka','Parang','San Roque','Santa Elena','Santo Niño','Tañong','Tumana'],
   'Muntinlupa'   => ['Alabang','Ayala Alabang','Bayanan','Buli','Cupang','Poblacion','Putatan','Sucat','Tunasan'],
-  'Pasay'        => ['Baclaran','Bangkal','Bgy. 1 to 201','Libertad','Malibay','Maricaban','Palanyag','San Isidro','Santa Clara','Villamor'],
+  'Pasay'        => ['Baclaran','Bangkal','Libertad','Malibay','Maricaban','Palanyag','San Isidro','Santa Clara','Villamor'],
   'San Juan'     => ['Addition Hills','Batis','Corazon de Jesus','Ermitaño','Greenhills','Isabelita','Kabayanan','Little Baguio','Maytunas','Onse','Pasadena','Pedro Cruz','Salapan','San Perfecto','St. Joseph','Tibagan','West Crame'],
-  'Valenzuela'   => ['Arkong Bato','Bagbaguin','Balangkas','Bignay','Bisig','Canumay East','Canumay West','Coloong','Dalandanan','Gen. T. de Leon','Isla','Karuhatan','Lawang Bato','Lingunan','Mabolo','Malanday','Malinta','Mapulang Lupa','Marulas','Maysan','Palasan','Parada','Pariancillo Villa','Paso de Blas','Pasolo','Poblacion','Pulo','Punturin','Rincon','Tagalag','Ugong','Viente Reales','Wawang Pulo'],
-  // Cavite
-  'Bacoor'       => ['Alima','Aniban I','Aniban II','Aniban III','Aniban IV','Aniban V','Banalo','Bayanan','Campo Santo','Daang Bukid','Digman','Dulong Bayan','Habay I','Habay II','Kaingin','Ligas I','Ligas II','Ligas III','Mabolo I','Mabolo II','Mabolo III','Maliksi I','Maliksi II','Maliksi III','Mambog I','Mambog II','Mambog III','Mambog IV','Mambog V','Molino I','Molino II','Molino III','Molino IV','Molino V','Molino VI','Niog I','Niog II','Niog III','P.F. Espiritu I','P.F. Espiritu II','P.F. Espiritu III','P.F. Espiritu IV','P.F. Espiritu V','P.F. Espiritu VI','P.F. Espiritu VII','Panapaan I','Panapaan II','Panapaan III','Panapaan IV','Panapaan V','Panapaan VI','Panapaan VII','Panapaan VIII','Queens Row Central','Queens Row East','Queens Row West','Real I','Real II','Salinas I','Salinas II','Salinas III','Salinas IV','San Nicolas I','San Nicolas II','San Nicolas III','Sineguelasan','Tabing Dagat','Talaba I','Talaba II','Talaba III','Talaba IV','Talaba V','Talaba VI','Talaba VII','Zapote I','Zapote II','Zapote III','Zapote IV','Zapote V'],
-  'Imus'         => ['Alapan I-A','Alapan I-B','Alapan I-C','Alapan II-A','Alapan II-B','Anabu I-A','Anabu I-B','Anabu I-C','Anabu I-D','Anabu I-E','Anabu I-F','Anabu I-G','Anabu II-A','Anabu II-B','Anabu II-C','Anabu II-D','Anabu II-E','Buhay na Tubig','Buhay na Tubig 2','Carsadang Bago I','Carsadang Bago II','Magdalo','Malagasang I-A','Malagasang I-B','Malagasang I-C','Malagasang I-D','Malagasang I-E','Malagasang I-F','Malagasang I-G','Malagasang II-A','Malagasang II-B','Malagasang II-C','Malagasang II-D','Malagasang II-E','Malagasang II-F','Malagasang II-G','Mariano Espeleta I','Mariano Espeleta II','Mariano Espeleta III','Palico I','Palico II','Palico III','Palico IV','Pasong Buaya I','Pasong Buaya II','Poblacion I-A','Poblacion I-B','Poblacion II-A','Poblacion II-B','Poblacion III-A','Poblacion III-B','Tanzang Luma I','Tanzang Luma II','Tanzang Luma III','Tanzang Luma IV','Tanzang Luma V','Tanzang Luma VI','Tinabunan','Toclong I-A','Toclong I-B','Toclong I-C','Toclong II-A','Toclong II-B'],
-  'Dasmariñas'   => ['Burol I','Burol II','Burol III','Burol Main','Datu Esmael','Emmanuel Bergado I','Emmanuel Bergado II','Fatima I','Fatima II','Fatima III','Habay','Langkaan I','Langkaan II','Luzviminda I','Luzviminda II','Maguay','Maliksi I','Maliksi II','Maliksi III','Paliparan I','Paliparan II','Paliparan III','Sabang','Salawag','Salitran I','Salitran II','Salitran III','Salitran IV','Sampaloc I','Sampaloc II','Sampaloc III','Sampaloc IV','Sampaloc V','San Agustin I','San Agustin II','San Agustin III','San Jose','San Lorenzo Ruiz I','San Lorenzo Ruiz II','San Miguel','San Simon','Santissimo Rosario','Santo Cristo I','Santo Cristo II','Burol','Zone I Poblacion','Zone II Poblacion','Zone III Poblacion'],
+  'Valenzuela'   => ['Arkong Bato','Bagbaguin','Balangkas','Bignay','Bisig','Canumay East','Canumay West','Coloong','Dalandanan','Gen. T. de Leon','Isla','Karuhatan','Lawang Bato','Lingunan','Mabolo','Malanday','Malinta','Mapulang Lupa','Marulas','Maysan','Palasan','Parada','Paso de Blas','Pasolo','Poblacion','Pulo','Punturin','Rincon','Tagalag','Ugong','Viente Reales','Wawang Pulo'],
+  'Bacoor'       => ['Alima','Aniban I','Aniban II','Aniban III','Aniban IV','Aniban V','Banalo','Bayanan','Campo Santo','Daang Bukid','Digman','Dulong Bayan','Habay I','Habay II','Kaingin','Ligas I','Ligas II','Ligas III','Mabolo I','Mabolo II','Mabolo III','Maliksi I','Maliksi II','Maliksi III','Mambog I','Mambog II','Mambog III','Mambog IV','Mambog V','Molino I','Molino II','Molino III','Molino IV','Molino V','Molino VI','Niog I','Niog II','Niog III','Panapaan I','Panapaan II','Panapaan III','Panapaan IV','Panapaan V','Panapaan VI','Panapaan VII','Panapaan VIII','Queens Row Central','Queens Row East','Queens Row West','Real I','Real II','Salinas I','Salinas II','Salinas III','Salinas IV','San Nicolas I','San Nicolas II','San Nicolas III','Sineguelasan','Tabing Dagat','Talaba I','Talaba II','Talaba III','Talaba IV','Talaba V','Talaba VI','Talaba VII','Zapote I','Zapote II','Zapote III','Zapote IV','Zapote V'],
+  'Imus'         => ['Alapan I-A','Alapan I-B','Alapan I-C','Alapan II-A','Alapan II-B','Anabu I-A','Anabu I-B','Anabu I-C','Anabu I-D','Anabu I-E','Anabu I-F','Anabu I-G','Anabu II-A','Anabu II-B','Anabu II-C','Anabu II-D','Anabu II-E','Buhay na Tubig','Carsadang Bago I','Carsadang Bago II','Magdalo','Malagasang I-A','Malagasang I-B','Malagasang I-C','Malagasang I-D','Malagasang I-E','Malagasang I-F','Malagasang I-G','Malagasang II-A','Malagasang II-B','Malagasang II-C','Malagasang II-D','Malagasang II-E','Malagasang II-F','Malagasang II-G','Mariano Espeleta I','Mariano Espeleta II','Mariano Espeleta III','Palico I','Palico II','Palico III','Palico IV','Pasong Buaya I','Pasong Buaya II','Poblacion I-A','Poblacion I-B','Poblacion II-A','Poblacion II-B','Poblacion III-A','Poblacion III-B','Tanzang Luma I','Tanzang Luma II','Tanzang Luma III','Tanzang Luma IV','Tanzang Luma V','Tanzang Luma VI','Tinabunan','Toclong I-A','Toclong I-B','Toclong I-C','Toclong II-A','Toclong II-B'],
+  'Dasmariñas'   => ['Burol I','Burol II','Burol III','Burol Main','Datu Esmael','Emmanuel Bergado I','Emmanuel Bergado II','Fatima I','Fatima II','Fatima III','Habay','Langkaan I','Langkaan II','Luzviminda I','Luzviminda II','Maguay','Maliksi I','Maliksi II','Maliksi III','Paliparan I','Paliparan II','Paliparan III','Sabang','Salawag','Salitran I','Salitran II','Salitran III','Salitran IV','Sampaloc I','Sampaloc II','Sampaloc III','Sampaloc IV','Sampaloc V','San Agustin I','San Agustin II','San Agustin III','San Jose','San Lorenzo Ruiz I','San Lorenzo Ruiz II','San Miguel','San Simon','Santissimo Rosario','Santo Cristo I','Santo Cristo II','Zone I Poblacion','Zone II Poblacion','Zone III Poblacion'],
   'General Trias'=> ['Alingaro','Arnaldo','Bacao I','Bacao II','Bagumbayan','Biclatan','Buenavista I','Buenavista II','Buenavista III','Corregidor','Dulong Bayan','Gov. Ferrer','Javalera','Manggahan','Navarro','Ninety Ninth','Panungyanan','Pasong Camachile I','Pasong Camachile II','Pasong Kawayan I','Pasong Kawayan II','Pinagtipunan','Poblacion I','Poblacion II','Poblacion III','Prinza','Sab-a Basin','San Francisco','San Gabriel','San Juan I','San Juan II','Santiago','Tapia','Tejero','Vibora'],
   'Tagaytay'     => ['Asisan','Bagong Tubig','Calabuso','Diokno','Francisco','Guinhawa North','Guinhawa South','Iruhin Central','Iruhin East','Iruhin West','Kaybagal Central','Kaybagal East','Kaybagal North','Kaybagal South','Mag-asawang Ilat','Maharlika East','Maharlika West','Mendez Crossing East','Mendez Crossing West','Mitayin','Neogan','Patutong Malaki North','Patutong Malaki South','Sambong','San Jose','Silang Junction North','Silang Junction South','Sungay East','Sungay West','Tolentino East','Tolentino West','Zambal'],
-  // Laguna
   'Calamba'      => ['Bagong Kalsada','Banadero','Banlic','Barandal','Batino','Bubuyan','Bucal','Bunggo','Burol','Camaligan','Canlubang','Kay-anlog','La Mesa','Laguerta','Lawa','Lecheria','Lingga','Looc','Mabato','Makiling','Majada Out','Majada Labas','Minola','Paciano Rizal','Palingon','Palo-Alto','Pansol','Parian','Prinza','Punta','Puting Lupa','Real','Saimsim','Sampiruhan','San Cristobal','San Jose','San Juan','Sirang Lupa','Sucol','Tulo','Turbina','Ulango','Uwisan'],
   'Biñan'        => ['Biñan','Canlalay','Casile','De La Paz','Ganado','Loma','Luis Luz','Malaban','Malamig','Mamplasan','Platero','Poblacion','San Antonio','San Francisco','San Jose','San Vicente','Santo Domingo','Santo Niño','Santo Tomas','Soro-soro','Timbao','Tubigan','Zapote'],
   'San Pedro'    => ['Bagong Silang','Calendola','Chrysanthemum','Cuyab','Estrella','Fatima','G.S.I.S.','Landayan','Langgam','Laram','Magsaysay','Maharlika','Narra','Nueva','Pacita 1','Pacita 2','Poblacion','Riverside','Sampaguita','San Antonio','United Bayanihan','United Better Living'],
   'Santa Rosa'   => ['Aplaya','Balibago','Caingin','Dila','Dita','Don Jose','Ibaba','Kanluran','Labas','Macabling','Malitlit','Malusak','Market Area','Pooc','Pulong Santa Cruz','Sinalhan','Tagapo'],
-  'Cabuyao'      => ['Baclaran','Banay-Banay','Banlic','Bigaa','Butong','Casile','Diezmo','Gulod','Mamatid','Marinig','Niugan','Pittland','Pulo','San Isidro','Sala','Barangay 1 to 7 Poblacion'],
-  // Batangas
-  'Batangas City'=> ['Alangilan','Arce','Balagtas','Balete','Banaba Center','Barangay 1 to 24','Bilogo','Bolbok','Bukal','Calicanto','Cuta','Dalig','Dela Paz','Dela Paz Proper','Domoclay','Dumuclay','Gulod Itaas','Gulod Labas','Ilihan','Kumintang Ibaba','Kumintang Ilaya','Libjo','Maapaz','Mahabang Parang','Malamig','Marunos','Mataas na Lupa','Matamis','Matlang','Pag-asa','Paharang Kanluran','Paharang Silangan','Palahanan I','Palahanan II','Pamilhan','Puting Bato East','Puting Bato West','Sambat','San Isidro','San Jose Sico','San Pedro','Simlong','Sirang Lupa','Tulo','Wawa'],
-  'Lipa'         => ['Adya','Anilao','Anilao-Labac','Antipolo Del Norte','Antipolo Del Sur','Bagong Pook','Balintawak','Banaybanay','Barangay 1 to 12 Poblacion','Bolbok','Bulacan','Bungahan','Calamias','Cumba','Dagatan','Duhatan','Halang','Inosluban','Kayumanggi','Latag','Lodlod','Lumbang','Mabini','Malagonlong','Malitlit','Marawoy','Mataas Na Lupa','Matingain I','Matingain II','Morado','Pinagkawitan','Pinagtongulan','Plaridel','Poblacion Barangay 1-12','Quezon','Rizal','Sabang','Sampaguita','San Benito','San Carlos','San Celestino','San Francisco','San Guillermo','San Isidro','San Jose','San Lucas','San Salvador','San Sebastian','Santo Niño','Sapac','Sico','Talisay','Tambo','Tangob','Tanguay','Tibig','Tinatagan','Tuy','Wawa'],
-  // Rizal
+  'Cabuyao'      => ['Baclaran','Banay-Banay','Banlic','Bigaa','Butong','Casile','Diezmo','Gulod','Mamatid','Marinig','Niugan','Pittland','Pulo','San Isidro','Sala'],
+  'Batangas City'=> ['Alangilan','Arce','Balagtas','Balete','Banaba Center','Bilogo','Bolbok','Bukal','Calicanto','Cuta','Dalig','Dela Paz','Dela Paz Proper','Domoclay','Dumuclay','Gulod Itaas','Gulod Labas','Ilihan','Kumintang Ibaba','Kumintang Ilaya','Libjo','Maapaz','Mahabang Parang','Malamig','Marunos','Mataas na Lupa','Matamis','Matlang','Pag-asa','Paharang Kanluran','Paharang Silangan','Palahanan I','Palahanan II','Pamilhan','Puting Bato East','Puting Bato West','Sambat','San Isidro','San Jose Sico','San Pedro','Simlong','Sirang Lupa','Tulo','Wawa'],
+  'Lipa'         => ['Adya','Anilao','Anilao-Labac','Antipolo Del Norte','Antipolo Del Sur','Bagong Pook','Balintawak','Banaybanay','Bolbok','Bulacan','Bungahan','Calamias','Cumba','Dagatan','Duhatan','Halang','Inosluban','Kayumanggi','Latag','Lodlod','Lumbang','Mabini','Malagonlong','Malitlit','Marawoy','Mataas Na Lupa','Morado','Pinagkawitan','Pinagtongulan','Plaridel','Quezon','Rizal','Sabang','Sampaguita','San Benito','San Carlos','San Celestino','San Francisco','San Guillermo','San Isidro','San Jose','San Lucas','San Salvador','San Sebastian','Santo Niño','Sapac','Sico','Talisay','Tambo','Tangob','Tanguay','Tibig','Tinatagan','Tuy','Wawa'],
   'Antipolo'     => ['Bagong Nayon','Beverly Hills','Calawis','Cupang','Dalig','Dela Paz','Inarawan','Mambugan','Mayamot','Muyong','San Isidro','San Jose','San Juan','San Luis','San Roque','Santa Cruz','Santo Niño','Sinag','Tartaria'],
   'Cainta'       => ['Banting','Dayap','Karangalan Village','Niño Jesus','Parang','Poblacion','San Andres','San Juan','Santo Domingo','Santo Niño'],
   'Taytay'       => ['Dolores','Muzon','Poblacion','San Isidro','San Juan','Santa Ana'],
-  // Cebu
-  'Cebu City'    => ['Adlaon','Agsungot','Apas','Babag','Bacayan','Banilad','Basak Pardo','Basak San Nicolas','Binaliw','Bonbon','Budlaan','Busay','Calamba','Cambinocot','Capitol Site','Carreta','Central','Cogon Pardo','Cogon Ramos','Day-as','Duljo','Ermita','Guadalupe','Guba','Hippodromo','Inayawan','Kalubihan','Kalunasan','Kamagayan','Kasambagan','Kinasang-an','Labangon','Lahug','Lorega','Lusaran','Luz','Mabini','Mabolo','Malubog','Mambaling','Mentor Village','Mingo','Nivel Hills','Mohon','Pardo','Pari-an','Paril','Pasil','Pit-os','Pulangbato','Pung-ol-Sibugay','Punta Princesa','Quiot Pardo','Sambag I','Sambag II','San Antonio','San Jose','San Nicolas Central','San Nicolas Proper','San Roque','Santa Cruz','Santo Niño','Sapangdaku','Sawang Calero','Sinsin','Sito Cansaga','Sito Dumalag','Sito Hipodromo','Sito Nasipit','Sito Natalio','Sito Sudlon','Sito Tigbao','Sompotan','T. Padilla','Tabunan','Tagba-o','Taptap','Tejero','Tinago','Tisa','To-ong Pardo','Tuburan','Tungkop'],
+  'Cebu City'    => ['Adlaon','Agsungot','Apas','Babag','Bacayan','Banilad','Basak Pardo','Basak San Nicolas','Binaliw','Bonbon','Budlaan','Busay','Calamba','Cambinocot','Capitol Site','Carreta','Central','Cogon Pardo','Cogon Ramos','Day-as','Duljo','Ermita','Guadalupe','Guba','Hippodromo','Inayawan','Kalubihan','Kalunasan','Kamagayan','Kasambagan','Kinasang-an','Labangon','Lahug','Lorega','Lusaran','Luz','Mabini','Mabolo','Malubog','Mambaling','Mohon','Pardo','Pari-an','Paril','Pasil','Pit-os','Pulangbato','Punta Princesa','Quiot Pardo','Sambag I','Sambag II','San Antonio','San Jose','San Nicolas Central','San Nicolas Proper','San Roque','Santa Cruz','Santo Niño','Sapangdaku','Sawang Calero','Sinsin','Sompotan','T. Padilla','Tabunan','Tagba-o','Taptap','Tejero','Tinago','Tisa','To-ong Pardo','Tuburan','Tungkop'],
   'Mandaue'      => ['Alang-alang','Bakilid','Banilad','Basak','Cambaro','Canduman','Casili','Casuntingan','Centro','Cubacub','Guizo','Ibabao-Estancia','Jagobiao','Labogon','Looc','Maguikay','Mahiga','Mantuyong','Opao','Pakna-an','Paknaan','Subangdaku','Tabok','Tawason','Tingub','Tipolo','Umapad'],
-  'Davao City'   => ['Agdao','Alambre','Alejandra Navarro','Alfonso Angliongto Sr.','Angalan','Atan-Awe','Baganihan','Bago Aplaya','Bago Gallera','Bago Oshiro','Baliok','Bangkas Heights','Bantol','Baracatan','Barangay 1-40 Poblacion','Biao Escuela','Biao Guianga','Biao Joaquin','Binugao','Bucana','Buda','Buhangin','Bunawan','Cabantian','Cadalian','Calinan','Callawa','Camansi','Carmen','Catalunan Grande','Catalunan Pequeño','Catigan','Cawayan','Centro','Colosas','Communal','Crossing Bayabas','Dacudao','Dalag','Dalagdag','Daliao','Daliaon Plantation','Datu Salumay','Dumoy','Eden','Fatima','Gatungan','Gov. Paciano Bangoy','Gov. Vicente Duterte','Gumalang','Ilang','Indangan','Kap. Tomas Monteverde Sr.','Kilate','Lacson','Lamanan','Lampianao','Langub','Lapu-lapu','Las Palmas','Lasang','Leon Garcia Sr.','Lizada','Los Amigos','Lubogan','Lumiad','Ma-a','Mabuhay','Magsaysay','Magtuod','Mahayag','Malabog','Malagos','Malalag','Manambulan','Mandug','Manuel Guianga','Mapula','Marapangi','Mario Guianga','Matina Aplaya','Matina Biao','Matina Crossing','Matina Pangi','Megkawayan','Mintal','Mudiang','Mulig','New Carmen','New Valencia','Panacan','Panacan 2','Paradise Embak','Paquibato','Paradise Embak','Piapi','Poblacion','Puan','Puting Bato','Riverside','Salapawan','Salaysay','Saloy','San Antonio','San Isidro','Santos','Sasa','Sirib','Suawan','Subasta','Tacunan','Tagakpan','Tagluno','Tagurano','Talandang','Talomo','Talomo River','Tamayong','Tambobong','Tamugan','Tapak','Tawan-Tawan','Tibuloy','Tibungco','Tidman','Tigatto','Toril','Tugbok','Tungkalan','Ubalde','Ula','Unidos','Wangan','Wilfredo Aquino','Wines'],
-  // Iloilo
-  'Iloilo City'  => ['Aguinaldo','Airport','Alday','Arevalo','Balabago','Balantang','Bakhaw','Benedicto','Bo. Obrero','Bolilao','Boulevard','Bonifacio','Buenavista','Buntatala','Burgos Poblacion','Calaparan','Calumpang','Compania','Cuartero','Danao','Del Lima','Demoledor','Desamparados','Divinagracia','Dungon A','Dungon B','Dungon C','East Timawa','Edganzon','El 98','Fajardo','Geronimo','Gloria','Gustilo','Hibao-an Norte','Hibao-an Sur','Hinactacan','Ingore','Jalandoni Estate','Jalandoni-Wilson','Javellana','Jereos','Kahirupan','Kauswagan','Laguda','Lapuz Norte','Lapuz Sur','Leganes','Libertad-Santa Isabel','Libertad','Lio-an','Loboc','Lopez Jaena Norte','Lopez Jaena Sur','Luna','M.V. Hechanova','Mabolo','Magsaysay','Mansaya-Lapuz','Montinola','Nabitasan','North Baluarte','North Fundidor','Oasis','Pale Benedicto Rizal','Palapala','Pale','Pelago','Pison-Labao','Poblacion Molo','Progreso','Punong','Quezon','Quintin Salas','Rizal Palapala I','Rizal Palapala II','Roxas Village','Sambag','Sampaguita','San Agustin','San Felix','San Isidro Norte','San Isidro Sur','San Jose','San Juan','Santa Cruz','Santo Niño Norte','Santo Niño Sur','Santo Rosario','Seminario','Simon Ledesma','Sooc','Taal','Tabucan','Tacas','Tagbac','Tanza-Baybay','Tap-oc','Tibungco','Timawa Tanza I','Timawa Tanza II','Ungka I','Ungka II','Veterans Village','Villa Anita','West Habog-habog','West Timawa','Yulo Drive','Yulo-Arroyo','Zulueta-Delgado'],
-  // Bohol
+  'Davao City'   => ['Agdao','Bago Aplaya','Bago Gallera','Bago Oshiro','Baliok','Bangkas Heights','Bantol','Baracatan','Biao Escuela','Biao Guianga','Biao Joaquin','Binugao','Bucana','Buda','Buhangin','Bunawan','Cabantian','Cadalian','Calinan','Callawa','Camansi','Carmen','Catalunan Grande','Catalunan Pequeño','Catigan','Cawayan','Centro','Communal','Crossing Bayabas','Dacudao','Dalag','Dalagdag','Daliao','Datu Salumay','Dumoy','Eden','Fatima','Gatungan','Gov. Paciano Bangoy','Gov. Vicente Duterte','Gumalang','Ilang','Indangan','Lacson','Lamanan','Lampianao','Langub','Lapu-lapu','Las Palmas','Lasang','Leon Garcia Sr.','Lizada','Los Amigos','Lubogan','Lumiad','Ma-a','Mabuhay','Magsaysay','Magtuod','Mahayag','Malabog','Malagos','Malalag','Manambulan','Mandug','Manuel Guianga','Mapula','Marapangi','Matina Aplaya','Matina Biao','Matina Crossing','Matina Pangi','Megkawayan','Mintal','Mudiang','Mulig','New Carmen','New Valencia','Panacan','Paradise Embak','Paquibato','Piapi','Poblacion','Puan','Puting Bato','Riverside','Salapawan','Salaysay','Saloy','San Antonio','San Isidro','Santos','Sasa','Sirib','Suawan','Subasta','Tacunan','Tagakpan','Tagluno','Tagurano','Talandang','Talomo','Talomo River','Tamayong','Tambobong','Tamugan','Tapak','Tawan-Tawan','Tibuloy','Tibungco','Tidman','Tigatto','Toril','Tugbok','Tungkalan','Ubalde','Ula','Unidos','Wangan','Wilfredo Aquino','Wines'],
+  'Iloilo City'  => ['Aguinaldo','Airport','Alday','Arevalo','Balabago','Balantang','Bakhaw','Benedicto','Bo. Obrero','Bolilao','Boulevard','Bonifacio','Buenavista','Buntatala','Burgos Poblacion','Calaparan','Calumpang','Compania','Cuartero','Danao','Del Lima','Demoledor','Desamparados','Divinagracia','Dungon A','Dungon B','Dungon C','East Timawa','Edganzon','El 98','Fajardo','Geronimo','Gloria','Gustilo','Hibao-an Norte','Hibao-an Sur','Hinactacan','Ingore','Jalandoni Estate','Jalandoni-Wilson','Javellana','Jereos','Kahirupan','Kauswagan','Laguda','Lapuz Norte','Lapuz Sur','Leganes','Libertad-Santa Isabel','Libertad','Lio-an','Loboc','Lopez Jaena Norte','Lopez Jaena Sur','Luna','M.V. Hechanova','Mabolo','Magsaysay','Mansaya-Lapuz','Montinola','Nabitasan','North Baluarte','North Fundidor','Oasis','Palapala','Pale Benedicto Rizal','Pelago','Pison-Labao','Poblacion Molo','Progreso','Punong','Quezon','Quintin Salas','Rizal Palapala I','Rizal Palapala II','Roxas Village','Sambag','Sampaguita','San Agustin','San Felix','San Isidro Norte','San Isidro Sur','San Jose','San Juan','Santa Cruz','Santo Niño Norte','Santo Niño Sur','Santo Rosario','Seminario','Simon Ledesma','Sooc','Taal','Tabucan','Tacas','Tagbac','Tanza-Baybay','Tap-oc','Timawa Tanza I','Timawa Tanza II','Ungka I','Ungka II','Veterans Village','Villa Anita','West Habog-habog','West Timawa','Yulo Drive','Yulo-Arroyo','Zulueta-Delgado'],
   'Tagbilaran'   => ['Bool','Booy','Cogon','Dampas','Dao','Manga','Mansasa','Poblacion I','Poblacion II','Poblacion III','San Isidro','Taloto','Tiptip','Ubujan'],
-  // Add more cities as needed
+  'Dagupan'      => ['Bacayao Norte','Bacayao Sur','Barangay I (Poblacion)','Barangay II (Poblacion)','Barangay III (Poblacion)','Barangay IV (Poblacion)','Bonuan Binloc','Bonuan Boquig','Bonuan Gueset','Calmay','Carael','Caranglaan','Herrero','Lasip Chico','Lasip Grande','Lomboy','Lucao','Malued','Mamalingling','Mangin','Mayombo','Pantal','Pogo Chico','Pogo Grande','Pugaro Suit','Salapingao','Tambac','Tapuac','Tebeng'],
+  'Naga'         => ['Abella','Bagumbayan Norte','Bagumbayan Sur','Balatas','Calauag','Cararayan','Carolina','Concepcion Grande','Concepcion Pequeño','Dayangdang','Del Rosario','Dinaga','Igualdad Interior','Lerma','Liboton','Mabolo','Pacol','Panicuason','Peñafrancia','Sabang','San Felipe','San Francisco','Santa Cruz','Tabuco','Tinago','Triangulo'],
 ];
+
+// ── Handle checkout form submission ───────────────────────────
+$errors      = [];
+$orderPlaced = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName    = trim($_POST['full_name']    ?? '');
     $phone       = trim($_POST['phone']        ?? '');
     $address     = trim($_POST['address']      ?? '');
     $barangay    = trim($_POST['barangay']     ?? '');
-    $country     = trim($_POST['country']      ?? 'Philippines');
     $province    = trim($_POST['province']     ?? '');
     $city        = trim($_POST['city']         ?? '');
     $zip         = trim($_POST['zip']          ?? '');
@@ -204,7 +191,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $refNo       = trim($_POST['ref_no']       ?? '');
     $notes       = trim($_POST['notes']        ?? '');
 
-    // Handle proof of payment upload (only for e-wallet methods)
     $proofPath = null;
     $eWalletMethods = ['GCash', 'Maya', 'Bank Transfer'];
     if (in_array($payMethod, $eWalletMethods, true)) {
@@ -243,9 +229,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$city)      $errors[] = 'City is required.';
     if (!$zip)       $errors[] = 'ZIP Code is required.';
     if (!$payMethod) $errors[] = 'Please select a payment method.';
-
-    if ($province && !in_array($province, $provinces, true))
-      $errors[] = 'Please select a valid province from the list.';
     if ($city && !in_array($city, $cities, true))
       $errors[] = 'Please select a valid city from the list.';
     if ($province && $city && isset($provinceCities[$province]) && !empty($provinceCities[$province])
@@ -268,7 +251,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         try {
-            // Generate unique order ID using the custom ID system
             $orderId = generateCustomId('OR');
 
             $orderData = [
@@ -293,12 +275,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $db->beginTransaction();
 
-            // 1. Resolve/create address and payment records
             $userId    = (string)$dbUser->user_id;
             $addressId = findOrCreateAddress($userId, $phone, $address, $barangay, $city, $province, $zip);
             $paymentId = createPayment($payMethod, 'pending', $refNo ?: null, $proofPath);
 
-            // 2. Insert order (normalized schema)
             $oStmt = $db->prepare("
                 INSERT INTO orders
                 (order_id, user_id, address_id, payment_id, total_ammount, shipping_fee, user_note, order_date, order_status)
@@ -307,9 +287,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $oStmt->execute([
                 $orderId, $userId, $addressId, $paymentId, $total, $shipping, $notes, 'Pending'
             ]);
-            $dbOrdNo = $orderId;   // The custom OR-ZY### id IS the primary key
+            $dbOrdNo = $orderId;
 
-            // 3. Insert order items with correct schema columns
             $oiStmt = $db->prepare("
                 INSERT INTO order_items (orderitem_id, order_id, prod_id, prod_name, quantity, unit_price)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -325,7 +304,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
             }
 
-            // 4. Deduct inventory safely
             $deductStmt = $db->prepare("
                 UPDATE product_inv SET prod_stock = prod_stock - ?
                 WHERE prod_id = ? AND prod_stock >= ?
@@ -339,12 +317,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // 5. Clear cart
             clearCartForUser($userEmail);
 
             $db->commit();
 
-            // Store order flash for profile page modal
             $_SESSION['order_flash'] = [
                 'order_id'    => $orderId,
                 'pay_method'  => $payMethod,
@@ -391,157 +367,76 @@ body{background:var(--cream);min-height:100vh;padding-top:70px;}
 .navbar{background:#fff!important;box-shadow:0 1px 12px rgba(0,0,0,.07);}
 .navbar-brand{font-family:'Playfair Display',serif;color:var(--green)!important;font-size:1.55rem;letter-spacing:2px;}
 
-.step-label{
-  font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  color:var(--green);margin-bottom:6px;
-}
+.step-label{font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:6px;}
 
-.checkout-card{
-  background:#fff;border-radius:20px;
-  box-shadow:0 4px 20px rgba(0,0,0,.07);
-  padding:28px;margin-bottom:20px;
-}
-.checkout-card h5{
-  font-family:'Playfair Display',serif;
-  color:var(--deep);font-size:1.15rem;margin-bottom:20px;
-}
+.checkout-card{background:#fff;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,.07);padding:28px;margin-bottom:20px;}
+.checkout-card h5{font-family:'Playfair Display',serif;color:var(--deep);font-size:1.15rem;margin-bottom:20px;}
 
 .field{position:relative;margin-bottom:18px;}
 .field input,.field select,.field textarea{
   width:100%;padding:15px 14px 7px;
   background:var(--sage);border:2px solid transparent;
   border-radius:14px;outline:none;
-  font-family: var(--ui-font);font-size:.92rem;
+  font-family:var(--ui-font);font-size:.92rem;
   color:var(--deep);transition:.2s;appearance:none;
 }
-
-.field input.is-invalid,.field select.is-invalid,.field textarea.is-invalid{
-  border-color:#dc3545;background:#fff !important;
-}
+.field input.is-invalid,.field select.is-invalid,.field textarea.is-invalid{border-color:#dc3545;background:#fff !important;}
 .live-error{color:#dc3545;font-size:.78rem;margin-top:6px;display:none;padding-left:6px}
 .field textarea{min-height:80px;resize:none;padding-top:20px;}
-.field input:focus,.field select:focus,.field textarea:focus{
-  border-color:var(--green);background:#fff;
-}
-.field label{
-  position:absolute;left:14px;top:14px;
-  font-size:.82rem;color:#999;pointer-events:none;transition:.2s;
-}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);background:#fff;}
+.field label{position:absolute;left:14px;top:14px;font-size:.82rem;color:#999;pointer-events:none;transition:.2s;}
 .field input:focus~label,
 .field input:not(:placeholder-shown)~label,
 .field textarea:focus~label,
-.field textarea:not(:placeholder-shown)~label{
-  top:4px;font-size:.67rem;color:var(--green);font-weight:600;
-}
+.field textarea:not(:placeholder-shown)~label{top:4px;font-size:.67rem;color:var(--green);font-weight:600;}
 .field select~label{top:4px;font-size:.67rem;color:var(--green);font-weight:600;}
 
-.pay-option{
-  display:flex;align-items:center;gap:12px;
-  padding:14px 16px;border:2px solid var(--sage);
-  border-radius:14px;cursor:pointer;transition:.2s;margin-bottom:10px;
-}
+/* readonly postal code styling */
+.field input[readonly]{background:#eef4ee;color:#555;cursor:default;}
+.field input[readonly]:focus{border-color:var(--sage);background:#eef4ee;}
+
+.pay-option{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--sage);border-radius:14px;cursor:pointer;transition:.2s;margin-bottom:10px;}
 .pay-option:hover{border-color:var(--green);background:#f8fdf8;}
 .pay-option input[type=radio]{accent-color:var(--green);width:16px;height:16px;flex-shrink:0;}
 .pay-option.selected{border-color:var(--green);background:#f0f7f0;}
-.pay-icon{width:36px;height:36px;border-radius:10px;background:var(--sage);
-  display:flex;align-items:center;justify-content:center;color:var(--green);font-size:1rem;}
+.pay-icon{width:36px;height:36px;border-radius:10px;background:var(--sage);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:1rem;}
 
-.order-item{
-  display:flex;align-items:center;gap:12px;
-  padding:10px 0;border-bottom:1px solid #f0f0eb;
-}
+.order-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0eb;}
 .order-item:last-child{border-bottom:none;}
-.order-item img{
-  width:52px;height:52px;object-fit:cover;
-  border-radius:10px;background:var(--sage);flex-shrink:0;
-}
-.order-total-row{
-  display:flex;justify-content:space-between;
-  font-size:.88rem;color:#777;padding:4px 0;
-}
-.order-total-row.grand{
-  font-size:1.05rem;font-weight:800;
-  color:var(--green);border-top:2px solid var(--sage);
-  padding-top:12px;margin-top:6px;
-}
+.order-item img{width:52px;height:52px;object-fit:cover;border-radius:10px;background:var(--sage);flex-shrink:0;}
+.order-total-row{display:flex;justify-content:space-between;font-size:.88rem;color:#777;padding:4px 0;}
+.order-total-row.grand{font-size:1.05rem;font-weight:800;color:var(--green);border-top:2px solid var(--sage);padding-top:12px;margin-top:6px;}
 
-.btn-place{
-  width:100%;padding:15px;border:none;
-  background:var(--green);color:#fff;
-  border-radius:50px;font-weight:700;font-size:1rem;
-  cursor:pointer;transition:.2s;letter-spacing:.5px;
-}
+.btn-place{width:100%;padding:15px;border:none;background:var(--green);color:#fff;border-radius:50px;font-weight:700;font-size:1rem;cursor:pointer;transition:.2s;letter-spacing:.5px;}
 .btn-place:hover{background:var(--deep);}
 .btn-place:disabled{opacity:.6;cursor:not-allowed;}
 
-.alert-errors{
-  background:#fee2e2;border:1px solid #fca5a5;
-  border-radius:14px;padding:14px 18px;margin-bottom:20px;
-  color:#b91c1c;font-size:.85rem;
-}
+.alert-errors{background:#fee2e2;border:1px solid #fca5a5;border-radius:14px;padding:14px 18px;margin-bottom:20px;color:#b91c1c;font-size:.85rem;}
 
-footer{
-  display:flex;align-items:center;justify-content:center;
-  gap:12px;padding:24px;margin-top:40px;
-  border-top:1px solid #e8e4dc;
-}
-footer .footer-brand{
-  font-family:'Playfair Display',serif;
-  color:var(--green);font-size:1rem;letter-spacing:3px;
-}
+footer{display:flex;align-items:center;justify-content:center;gap:12px;padding:24px;margin-top:40px;border-top:1px solid #e8e4dc;}
+footer .footer-brand{font-family:'Playfair Display',serif;color:var(--green);font-size:1rem;letter-spacing:3px;}
 
-/* Order summary scroll area — thin green scrollbar */
 .checkout-card > div[style*="overflow-y:auto"]::-webkit-scrollbar{width:5px;}
 .checkout-card > div[style*="overflow-y:auto"]::-webkit-scrollbar-track{background:var(--sage);border-radius:4px;}
 .checkout-card > div[style*="overflow-y:auto"]::-webkit-scrollbar-thumb{background:var(--green);border-radius:4px;}
 .checkout-card > div[style*="overflow-y:auto"]::-webkit-scrollbar-thumb:hover{background:var(--deep);}
 
-/* ── Payment expand panels ── */
-.pay-panel{
-  display:none;
-  background:#f8fdf8;border:1.5px solid var(--sage);
-  border-radius:14px;padding:18px 18px 14px;
-  margin-top:6px;margin-bottom:10px;
-  animation:fadeSlide .2s ease;
-}
+.pay-panel{display:none;background:#f8fdf8;border:1.5px solid var(--sage);border-radius:14px;padding:18px 18px 14px;margin-top:6px;margin-bottom:10px;animation:fadeSlide .2s ease;}
 .pay-panel.show{display:block;}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 
-/* QR block */
 .qr-block{text-align:center;padding:10px 0;}
 .qr-block img{width:160px;height:160px;border-radius:12px;border:2px solid var(--sage);object-fit:cover;}
 .qr-label{font-size:.78rem;color:#777;margin-top:8px;}
 .qr-number{font-weight:700;font-size:1rem;color:var(--green);letter-spacing:1px;margin-top:4px;}
 
-/* Card input fields inside panel */
 .card-field{position:relative;margin-bottom:14px;}
-.card-field input{
-  width:100%;padding:13px 14px 5px;
-  background:#fff;border:1.5px solid var(--sage);
-  border-radius:12px;outline:none;
-  font-family: var(--ui-font);font-size:.9rem;
-  color:var(--deep);transition:.2s;
-}
+.card-field input{width:100%;padding:13px 14px 5px;background:#fff;border:1.5px solid var(--sage);border-radius:12px;outline:none;font-family:var(--ui-font);font-size:.9rem;color:var(--deep);transition:.2s;}
 .card-field input:focus{border-color:var(--green);}
-.card-field label{
-  position:absolute;left:14px;top:13px;
-  font-size:.8rem;color:#aaa;pointer-events:none;transition:.2s;
-}
-.card-field input:focus~label,
-.card-field input:not(:placeholder-shown)~label{
-  top:3px;font-size:.63rem;color:var(--green);font-weight:600;
-}
-
-/* COD info box */
-.cod-info{
-  display:flex;align-items:flex-start;gap:12px;
-  background:#f0fdf4;border-radius:12px;padding:14px;
-}
-.cod-info i{color:var(--green);font-size:1.2rem;margin-top:2px;flex-shrink:0;}
-.cod-info p{margin:0;font-size:.85rem;color:#444;line-height:1.5;}
+.card-field label{position:absolute;left:14px;top:13px;font-size:.8rem;color:#aaa;pointer-events:none;transition:.2s;}
+.card-field input:focus~label,.card-field input:not(:placeholder-shown)~label{top:3px;font-size:.63rem;color:var(--green);font-weight:600;}
 </style>
 <script>
-/* ZYTHERA dark mode — apply before paint to prevent flash */
 (function(){
   if(localStorage.getItem('zythera_dark')==='1'){
     document.documentElement.style.background='#111e11';
@@ -564,7 +459,6 @@ footer .footer-brand{
         <i class="fas fa-arrow-left me-1"></i> Keep Shopping
       </a>
       <a href="profile.php" class="btn btn-sm btn-light rounded-pill px-3">My Profile</a>
-
     </div>
   </div>
 </nav>
@@ -613,30 +507,7 @@ footer .footer-brand{
           <div id="phoneError" class="live-error">&nbsp;</div>
         </div>
 
-        <!-- 3. House / Street -->
-        <div class="field">
-          <input type="text" name="address" placeholder=" " required
-            value="<?= htmlspecialchars($_POST['address'] ?? '') ?>">
-          <label>House / Unit / Street Address *</label>
-        </div>
-
-        <!-- 3b. Barangay -->
-        <div class="field">
-          <select name="barangay" id="barangay" required>
-            <option value=""> Select Barangay </option>
-          </select>
-          <label>Barangay *</label>
-        </div>
-
-        <!-- 4. Country (dropdown) -->
-        <div class="field">
-          <select name="country" id="country" required>
-            <option value="Philippines" selected>Philippines</option>
-          </select>
-          <label>Country *</label>
-        </div>
-
-        <!-- 5. Province (dropdown) -->
+        <!-- 3. Province -->
         <div class="field">
           <select name="province" id="province" required onchange="filterCities()">
             <option value=""> Select Province </option>
@@ -650,10 +521,10 @@ footer .footer-brand{
           <label>Province *</label>
         </div>
 
-        <!-- 6. City (dropdown) -->
+        <!-- 4. City / Municipality -->
         <div class="field">
-          <select name="city" id="city" required>
-            <option value=""> Select City </option>
+          <select name="city" id="city" required onchange="updateZipCode(); filterBarangays();">
+            <option value=""> Select City / Municipality </option>
             <?php foreach ($cities as $_c): ?>
               <option value="<?= htmlspecialchars($_c) ?>"
                 <?= ($_POST['city'] ?? '') === $_c ? 'selected' : '' ?>>
@@ -664,12 +535,26 @@ footer .footer-brand{
           <label>City / Municipality *</label>
         </div>
 
-        <!-- 7. ZIP Code -->
+        <!-- 5. Barangay -->
         <div class="field">
-          <input type="text" id="zip" name="zip" placeholder=" " required maxlength="4" readonly
+          <select name="barangay" id="barangay" required>
+            <option value=""> Select Barangay </option>
+          </select>
+          <label>Barangay *</label>
+        </div>
+
+        <!-- 6. House No. / Street Address -->
+        <div class="field">
+          <input type="text" name="address" id="address" placeholder=" " required
+            value="<?= htmlspecialchars($_POST['address'] ?? '') ?>">
+          <label>House No. / Building / Street Address *</label>
+        </div>
+
+        <!-- 7. Postal Code (auto-fill) -->
+        <div class="field">
+          <input type="text" id="zip" name="zip" placeholder=" " readonly
             value="<?= htmlspecialchars($_POST['zip'] ?? '') ?>">
-          <label>ZIP Code *</label>
-          <div id="zipError" class="live-error">&nbsp;</div>
+          <label>Postal Code (auto-filled)</label>
         </div>
 
         <!-- 8. Delivery Notes -->
@@ -683,7 +568,7 @@ footer .footer-brand{
       <div class="checkout-card">
         <h5><i class="fas fa-credit-card me-2" style="color:var(--green);"></i>Payment Method</h5>
 
-        <!-- ── GCash ── -->
+        <!-- GCash -->
         <label class="pay-option" id="lbl-gcash" onclick="togglePay('gcash')">
           <input type="radio" name="pay_method" value="GCash" id="radio-gcash"
             <?= ($_POST['pay_method'] ?? '') === 'GCash' ? 'checked' : '' ?>>
@@ -700,13 +585,16 @@ footer .footer-brand{
                  alt="GCash QR Code">
             <div class="qr-label">Scan with your GCash app</div>
             <div class="qr-number"><i class="fas fa-mobile-alt me-1"></i>0917-123-4567</div>
-            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> FURNITURE</strong></div>
+            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong>ZYTHERA FURNITURE</strong></div>
           </div>
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:10px;">
             <i class="fas fa-info-circle me-1"></i>
             Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify the payment before shipping.
           </div>
+          <div class="proof-slot" id="proof-slot-gcash"></div>
         </div>
+
+        <!-- Maya -->
         <label class="pay-option" id="lbl-maya" onclick="togglePay('maya')">
           <input type="radio" name="pay_method" value="Maya" id="radio-maya"
             <?= ($_POST['pay_method'] ?? '') === 'Maya' ? 'checked' : '' ?>>
@@ -723,15 +611,16 @@ footer .footer-brand{
                  alt="Maya QR Code">
             <div class="qr-label">Scan with your Maya app</div>
             <div class="qr-number"><i class="fas fa-wallet me-1"></i>0917-765-4321</div>
-            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span> FURNITURE</strong></div>
+            <div style="font-size:.72rem;color:#aaa;margin-top:4px;">Account Name: <strong>ZYTHERA FURNITURE</strong></div>
           </div>
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:10px;">
             <i class="fas fa-info-circle me-1"></i>
             Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify the payment before shipping.
           </div>
+          <div class="proof-slot" id="proof-slot-maya"></div>
         </div>
 
-        <!-- ── Bank Transfer / Card ── -->
+        <!-- Bank Transfer / Card -->
         <label class="pay-option" id="lbl-bank" onclick="togglePay('bank')">
           <input type="radio" name="pay_method" value="Bank Transfer" id="radio-bank"
             <?= ($_POST['pay_method'] ?? '') === 'Bank Transfer' ? 'checked' : '' ?>>
@@ -777,9 +666,10 @@ footer .footer-brand{
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:4px;">
             <i class="fas fa-lock me-1"></i>Your card details are encrypted and secure.
           </div>
+          <div class="proof-slot" id="proof-slot-bank"></div>
         </div>
 
-        <!-- ── Shared Proof of Payment (shown for all e-wallet methods) ── -->
+        <!-- Shared Proof of Payment block -->
         <div id="proof-of-payment-block" style="display:none;margin-top:4px;background:#f8fdf8;border:1.5px solid #d4e4d4;border-radius:14px;padding:14px 16px;">
           <div style="font-size:.78rem;font-weight:700;color:#2d5a2d;margin-bottom:10px;">
             <i class="fas fa-paperclip me-1"></i>Attach Proof of Payment *
@@ -802,7 +692,6 @@ footer .footer-brand{
         </div>
 
       </div>
-
     </div><!-- /col-lg-7 -->
 
     <!-- RIGHT: Order Summary -->
@@ -820,8 +709,7 @@ footer .footer-brand{
               <img src="<?= htmlspecialchars($ci['image'] ?? '') ?>" alt=""
                 onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
               <div style="flex:1;min-width:0;">
-                <div style="font-weight:600;font-size:.85rem;color:var(--deep);
-                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                <div style="font-weight:600;font-size:.85rem;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                   <?= htmlspecialchars($ci['name'] ?? '') ?>
                 </div>
                 <div style="font-size:.76rem;color:#999;">
@@ -836,27 +724,27 @@ footer .footer-brand{
         </div>
 
         <div style="flex-shrink:0;">
-        <div class="order-total-row">
-          <span>Subtotal</span>
-          <span>₱<?= number_format($subtotal) ?></span>
-        </div>
-        <div class="order-total-row">
-          <span>Shipping Fee</span>
-          <span>₱<?= number_format($shipping) ?></span>
-        </div>
-        <div class="order-total-row grand">
-          <span>Total</span>
-          <span>₱<?= number_format($total) ?></span>
-        </div>
+          <div class="order-total-row">
+            <span>Subtotal</span>
+            <span>₱<?= number_format($subtotal) ?></span>
+          </div>
+          <div class="order-total-row">
+            <span>Shipping Fee</span>
+            <span>₱<?= number_format($shipping) ?></span>
+          </div>
+          <div class="order-total-row grand">
+            <span>Total</span>
+            <span>₱<?= number_format($total) ?></span>
+          </div>
 
-        <button type="submit" name="place_order" class="btn-place mt-4">
-          <i class="fas fa-lock me-2"></i>Place Order
-        </button>
+          <button type="submit" name="place_order" class="btn-place mt-4">
+            <i class="fas fa-lock me-2"></i>Place Order
+          </button>
 
-        <p style="text-align:center;font-size:.72rem;color:#bbb;margin-top:12px;">
-          <i class="fas fa-shield-alt me-1"></i>Your information is secure and encrypted
-        </p>
-        </div><!-- /flex-shrink:0 totals wrapper -->
+          <p style="text-align:center;font-size:.72rem;color:#bbb;margin-top:12px;">
+            <i class="fas fa-shield-alt me-1"></i>Your information is secure and encrypted
+          </p>
+        </div>
       </div>
     </div>
 
@@ -867,32 +755,87 @@ footer .footer-brand{
 
 <footer>
   <img src="pci/Group_15.png" style="width:28px;" alt="Zythera logo">
-  <span class="footer-brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
+  <span class="footer-brand">ZYTHERA</span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// ── Data from PHP ─────────────────────────────────────────────
+const PROVINCE_CITIES  = <?= json_encode($provinceCities,  JSON_UNESCAPED_UNICODE) ?>;
+const CITY_ZIP_CODES   = <?= json_encode($cityZipCodes,    JSON_UNESCAPED_UNICODE) ?>;
+const CITY_BARANGAYS   = <?= json_encode($cityBarangays,   JSON_UNESCAPED_UNICODE) ?>;
+const ALL_CITIES       = <?= json_encode($cities,          JSON_UNESCAPED_UNICODE) ?>;
+const SAVED_BARANGAY   = <?= json_encode($_POST['barangay'] ?? '') ?>;
+
+// ── Province → City filter ────────────────────────────────────
+function filterCities() {
+  const province   = document.getElementById('province').value;
+  const citySelect = document.getElementById('city');
+  const savedCity  = citySelect.value;
+
+  const list = (PROVINCE_CITIES[province] && PROVINCE_CITIES[province].length)
+    ? PROVINCE_CITIES[province]
+    : ALL_CITIES;
+
+  citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+  list.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if (c === savedCity) opt.selected = true;
+    citySelect.appendChild(opt);
+  });
+
+  if (savedCity && !list.includes(savedCity)) citySelect.value = '';
+  updateZipCode();
+  filterBarangays();
+}
+
+// ── City → ZIP auto-fill ──────────────────────────────────────
+function updateZipCode() {
+  const city = document.getElementById('city').value;
+  document.getElementById('zip').value = CITY_ZIP_CODES[city] || '';
+}
+
+// ── City → Barangay filter ────────────────────────────────────
+function filterBarangays() {
+  const city     = document.getElementById('city').value;
+  const sel      = document.getElementById('barangay');
+  const previous = sel.value;
+
+  let list = (CITY_BARANGAYS[city] && CITY_BARANGAYS[city].length)
+    ? [...CITY_BARANGAYS[city]].sort()
+    : ['Poblacion', ...Array.from({length:30}, (_,i) => 'Barangay ' + (i+1))];
+
+  sel.innerHTML = '<option value="">Select Barangay</option>';
+  list.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b; opt.textContent = b;
+    if (b === previous || b === SAVED_BARANGAY) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
 // ── Payment panel toggle ──────────────────────────────────────
 const PAY_GROUPS = ['gcash','maya','bank'];
-const EWALLET_GROUPS = ['gcash','maya','bank'];
 
 function showPay(group) {
   PAY_GROUPS.forEach(g => {
-    const lbl   = document.getElementById('lbl-' + g);
-    const panel = document.getElementById('panel-' + g);
-    if (g === group) {
-      lbl?.classList.add('selected');
-      panel?.classList.add('show');
-    } else {
-      lbl?.classList.remove('selected');
-      panel?.classList.remove('show');
-    }
+    document.getElementById('lbl-' + g)?.classList.toggle('selected', g === group);
+    document.getElementById('panel-' + g)?.classList.toggle('show',   g === group);
   });
-  // Show/hide the shared proof block
   const proofBlock = document.getElementById('proof-of-payment-block');
-  if (proofBlock) {
-    proofBlock.style.display = EWALLET_GROUPS.includes(group) ? 'block' : 'none';
+  const slot       = document.getElementById('proof-slot-' + group);
+  if (proofBlock && slot) {
+    slot.appendChild(proofBlock);
+    proofBlock.style.display = 'block';
+  } else if (proofBlock) {
+    proofBlock.style.display = 'none';
   }
+}
+
+function togglePay(group) {
+  const radio = document.getElementById('radio-' + group);
+  if (radio) { radio.checked = true; showPay(group); }
 }
 
 function handleProofFile(input) {
@@ -907,550 +850,199 @@ function handleProofFile(input) {
   }
 }
 
-function togglePay(group) {
-  const radio = document.getElementById('radio-' + group);
-  if (radio) {
-    radio.checked = true;
-    showPay(group);
-  }
-}
-
-// Restore on page reload (e.g. after server-side error)
-(function(){
-  PAY_GROUPS.forEach(g => {
-    const radio = document.getElementById('radio-' + g);
-    if (radio?.checked) {
-      showPay(g);
-    }
-  });
-
-  const payValueToGroup = value => {
-    if (value === 'Bank Transfer') return 'bank';
-    if (value === 'Cash on Delivery (COD)') return 'cod';
-    return value.toLowerCase();
-  };
-
-  document.querySelectorAll('input[name="pay_method"]').forEach(input => {
-    input.addEventListener('change', function(){
-      if (this.checked) showPay(payValueToGroup(this.value));
-    });
-  });
-})();
-
-// ── Card number formatter (XXXX XXXX XXXX XXXX) ──────────────
-function fmtCard(el) {
-  let v = el.value.replace(/\D/g,'').slice(0,16);
-  el.value = v.replace(/(\d{4})(?=\d)/g,'$1 ');
-}
-
-// ── Expiry formatter (MM/YY) ─────────────────────────────────
-function fmtExpiry(el) {
-  let v = el.value.replace(/\D/g,'').slice(0,4);
-  if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
-  el.value = v;
-}
+// ── Card formatters ───────────────────────────────────────────
+function fmtCard(el)   { let v=el.value.replace(/\D/g,'').slice(0,16); el.value=v.replace(/(\d{4})(?=\d)/g,'$1 '); }
+function fmtExpiry(el) { let v=el.value.replace(/\D/g,'').slice(0,4); if(v.length>=3) v=v.slice(0,2)+'/'+v.slice(2); el.value=v; }
 
 function setError(input, errorEl, message) {
   if (input) input.classList.toggle('is-invalid', !!message);
-  if (errorEl) {
-    errorEl.textContent = message || '\u00A0';
-    errorEl.style.display = message ? 'block' : 'none';
-  }
+  if (errorEl) { errorEl.textContent = message || '\u00A0'; errorEl.style.display = message ? 'block' : 'none'; }
 }
 
 function resetCardErrors() {
-  setError(document.getElementById('card_name'), document.getElementById('cardNameError'), '');
+  ['card_name','card_number','card_expiry','card_cvv'].forEach(id => {
+    setError(document.getElementById(id), document.getElementById(id.replace('card_','card')+'Error'), '');
+  });
+  setError(document.getElementById('card_name'),   document.getElementById('cardNameError'),   '');
   setError(document.getElementById('card_number'), document.getElementById('cardNumberError'), '');
   setError(document.getElementById('card_expiry'), document.getElementById('cardExpiryError'), '');
-  setError(document.getElementById('card_cvv'), document.getElementById('cardCvvError'), '');
+  setError(document.getElementById('card_cvv'),    document.getElementById('cardCvvError'),    '');
 }
 
 // ── Live validation ───────────────────────────────────────────
 (function(){
-  const phoneInput = document.getElementById('phone');
-  const phoneError = document.getElementById('phoneError');
-  const fullInput  = document.getElementById('full_name');
-  const fullError  = document.getElementById('fullNameError');
-  const zipInput   = document.getElementById('zip');
-  const zipError   = document.getElementById('zipError');
-
-  if (fullInput && fullError) {
-    fullInput.addEventListener('input', function(){
-      const v = (this.value||'').trim();
-      if (!v) { fullError.style.display='none'; this.classList.remove('is-invalid'); return; }
-      if (!/^[\p{L} .'\-]*$/u.test(v)) { fullError.textContent='Invalid characters.'; fullError.style.display='block'; this.classList.add('is-invalid'); return; }
-      if (v.length<2) { fullError.textContent='Name too short.'; fullError.style.display='block'; this.classList.add('is-invalid'); return; }
-      fullError.style.display='none'; this.classList.remove('is-invalid');
+  const rules = [
+    { id:'full_name', errId:'fullNameError', validate: v => {
+      if (!v) return ''; if (!/^[\p{L} .'\-]*$/u.test(v)) return 'Invalid characters.';
+      if (v.length<2) return 'Name too short.'; return '';
+    }},
+    { id:'phone', errId:'phoneError', validate: v => {
+      if (!v) return ''; if (!/^[0-9]*$/.test(v)) return 'Digits only.';
+      if (v.length>11) return 'Max 11 digits.'; if (v.length<10) return 'Min 10 digits.'; return '';
+    }},
+  ];
+  rules.forEach(({id, errId, validate}) => {
+    const inp = document.getElementById(id);
+    const err = document.getElementById(errId);
+    if (inp && err) inp.addEventListener('input', function(){
+      const msg = validate((this.value||'').trim());
+      err.textContent = msg || '\u00A0'; err.style.display = msg ? 'block' : 'none';
+      this.classList.toggle('is-invalid', !!msg);
     });
-  }
-
-  if (phoneInput && phoneError) {
-    phoneInput.addEventListener('input', function(){
-      const v = (this.value||'').trim();
-      if (!v) { phoneError.style.display='none'; this.classList.remove('is-invalid'); return; }
-      if (!/^[0-9]*$/.test(v)) { phoneError.textContent='Digits only.'; phoneError.style.display='block'; this.classList.add('is-invalid'); return; }
-      if (v.length>11) { phoneError.textContent='Max 11 digits.'; phoneError.style.display='block'; this.classList.add('is-invalid'); return; }
-      if (v.length<10) { phoneError.textContent='Min 10 digits.'; phoneError.style.display='block'; this.classList.add('is-invalid'); return; }
-      phoneError.style.display='none'; this.classList.remove('is-invalid');
-    });
-  }
-
-  if (zipInput && zipError) {
-    zipInput.addEventListener('input', function(){
-      const v = (this.value||'').trim();
-      if (!v) { zipError.style.display='none'; this.classList.remove('is-invalid'); return; }
-      if (!/^[0-9]*$/.test(v)) { zipError.textContent='Digits only.'; zipError.style.display='block'; this.classList.add('is-invalid'); return; }
-      if (v.length>4) { zipError.textContent='Max 4 digits.'; zipError.style.display='block'; this.classList.add('is-invalid'); return; }
-      if (v.length<4) { zipError.textContent='Must be 4 digits.'; zipError.style.display='block'; this.classList.add('is-invalid'); return; }
-      zipError.style.display='none'; this.classList.remove('is-invalid');
-    });
-  }
+  });
 })();
 
 // ── Submit validation ─────────────────────────────────────────
 document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
-  const btn      = this.querySelector('.btn-place');
-  const errs     = [];
-  const phoneVal = (document.getElementById('phone')?.value||'').trim();
-  const zipVal   = (document.getElementById('zip')?.value||'').trim();
-  const provVal  = (document.getElementById('province')?.value||'').trim();
-  const cityVal  = (document.getElementById('city')?.value||'').trim();
-  const payVal   = this.querySelector('input[name=pay_method]:checked')?.value||'';
+  const btn    = this.querySelector('.btn-place');
+  const errs   = [];
+  const phone  = (document.getElementById('phone')?.value||'').trim();
+  const prov   = (document.getElementById('province')?.value||'').trim();
+  const city   = (document.getElementById('city')?.value||'').trim();
+  const brgy   = (document.getElementById('barangay')?.value||'').trim();
+  const addr   = (document.getElementById('address')?.value||'').trim();
+  const zip    = (document.getElementById('zip')?.value||'').trim();
+  const payVal = this.querySelector('input[name=pay_method]:checked')?.value||'';
 
-  if (!provVal) errs.push('Please select a province.');
-  if (!cityVal) errs.push('Please select a city.');
-  if (!payVal)  errs.push('Please select a payment method.');
-  if (!/^[0-9]{10,11}$/.test(phoneVal)) errs.push('Phone must be 10–11 digits.');
-  if (!/^[0-9]{4}$/.test(zipVal)) errs.push('ZIP Code must be 4 digits.');
+  if (!prov)  errs.push('Please select a province.');
+  if (!city)  errs.push('Please select a city.');
+  if (!brgy)  errs.push('Please select a barangay.');
+  if (!addr)  errs.push('Please enter your house / street address.');
+  if (!payVal) errs.push('Please select a payment method.');
+  if (!/^[0-9]{10,11}$/.test(phone)) errs.push('Phone must be 10–11 digits.');
+  if (!zip) errs.push('Postal code could not be auto-filled. Please select a valid city.');
 
-  // Proof of payment validation for e-wallet methods
-  const eWalletMethods = ['GCash', 'Maya', 'Bank Transfer'];
+  const eWalletMethods = ['GCash','Maya','Bank Transfer'];
   if (eWalletMethods.includes(payVal)) {
     const proofInput = document.getElementById('pay_proof');
     const refInput   = document.getElementById('ref_no');
-    if (!proofInput || !proofInput.files || proofInput.files.length === 0) {
-      errs.push('Please attach your proof of payment.');
-    }
-    if (!refInput || !refInput.value.trim()) {
-      errs.push('Please enter your reference / transaction number.');
-    }
+    if (!proofInput?.files?.length) errs.push('Please attach your proof of payment.');
+    if (!refInput?.value.trim())    errs.push('Please enter your reference / transaction number.');
   }
-
-  if (!document.getElementById('province')?.value) errs.push('Please select a province.');
-  if (!document.getElementById('city')?.value) errs.push('Please select a city.');
 
   if (payVal === 'Bank Transfer') {
     const cardName = (document.getElementById('card_name')?.value||'').trim();
     const cardNum  = (document.getElementById('card_number')?.value||'').replace(/\s/g,'');
     const expiry   = (document.getElementById('card_expiry')?.value||'').trim();
     const cvv      = (document.getElementById('card_cvv')?.value||'').trim();
-
     resetCardErrors();
-
-    if (!cardName) {
-      setError(document.getElementById('card_name'), document.getElementById('cardNameError'), 'Please enter the name on card.');
-      errs.push('Please enter the name on card.');
-    }
-    if (!/^\d{13,16}$/.test(cardNum)) {
-      setError(document.getElementById('card_number'), document.getElementById('cardNumberError'), 'Please enter a valid card number.');
-      errs.push('Please enter a valid card number.');
-    }
-    if (!/^\d{2}\/\d{2}$/.test(expiry) || Number(expiry.slice(0,2)) < 1 || Number(expiry.slice(0,2)) > 12) {
-      setError(document.getElementById('card_expiry'), document.getElementById('cardExpiryError'), 'Please enter a valid expiry (MM/YY).');
-      errs.push('Please enter a valid expiry (MM/YY).');
-    }
-    if (!/^\d{3,4}$/.test(cvv)) {
-      setError(document.getElementById('card_cvv'), document.getElementById('cardCvvError'), 'Please enter a valid CVV.');
-      errs.push('Please enter a valid CVV.');
-    }
+    if (!cardName) { setError(document.getElementById('card_name'),   document.getElementById('cardNameError'),   'Please enter the name on card.'); errs.push('Please enter the name on card.'); }
+    if (!/^\d{13,16}$/.test(cardNum)) { setError(document.getElementById('card_number'), document.getElementById('cardNumberError'), 'Please enter a valid card number.'); errs.push('Please enter a valid card number.'); }
+    if (!/^\d{2}\/\d{2}$/.test(expiry)||Number(expiry.slice(0,2))<1||Number(expiry.slice(0,2))>12) { setError(document.getElementById('card_expiry'), document.getElementById('cardExpiryError'), 'Please enter a valid expiry (MM/YY).'); errs.push('Please enter a valid expiry (MM/YY).'); }
+    if (!/^\d{3,4}$/.test(cvv)) { setError(document.getElementById('card_cvv'), document.getElementById('cardCvvError'), 'Please enter a valid CVV.'); errs.push('Please enter a valid CVV.'); }
   } else {
     resetCardErrors();
   }
 
-  if (errs.length) {
-    e.preventDefault();
-    if (btn) btn.disabled = false;
-    alert(errs.join('\n'));
-    return false;
-  }
-
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Placing Order...';
-  }
+  if (errs.length) { e.preventDefault(); if (btn) btn.disabled=false; alert(errs.join('\n')); return false; }
+  if (btn) { btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin me-2"></i>Placing Order...'; }
 });
 
-function filterBarangays() {
-  const city = document.getElementById('city')?.value || '';
-  const barangaySelect = document.getElementById('barangay');
-  if (!barangaySelect) return;
-
-  const cityBarangays = <?php echo json_encode($cityBarangays, JSON_UNESCAPED_UNICODE); ?>;
-  const selectedBarangay = barangaySelect.value;
-  const barangays = (cityBarangays[city] && cityBarangays[city].length > 0) ? cityBarangays[city] : [];
-
-  barangaySelect.innerHTML = '<option value=""> Select Barangay </option>';
-  if (barangays.length === 0 && city) {
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = '— Type your barangay below —';
-    opt.disabled = true;
-    barangaySelect.appendChild(opt);
-    // Allow free text fallback by switching to text input
-    barangaySelect.setAttribute('data-no-list', '1');
-  } else {
-    barangaySelect.removeAttribute('data-no-list');
-    barangays.sort().forEach((brgy) => {
-      const opt = document.createElement('option');
-      opt.value = brgy;
-      opt.textContent = brgy;
-      if (brgy === selectedBarangay) opt.selected = true;
-      barangaySelect.appendChild(opt);
-    });
-    if (selectedBarangay && !barangays.includes(selectedBarangay)) {
-      barangaySelect.value = '';
-    }
-  }
-}
-
-function filterCities() {
-  const province = document.getElementById('province')?.value || '';
-  const citySelect = document.getElementById('city');
-  if (!citySelect) return;
-
-  const provinceCities = <?php echo json_encode($provinceCities, JSON_UNESCAPED_UNICODE); ?>;
-  const allCities = <?php echo json_encode($cities, JSON_UNESCAPED_UNICODE); ?>;
-  const selectedCity = citySelect.value;
-  const cities = provinceCities[province] && provinceCities[province].length > 0 ? provinceCities[province] : allCities;
-
-  citySelect.innerHTML = '<option value=""> Select City </option>';
-  cities.forEach((city) => {
-    const opt = document.createElement('option');
-    opt.value = city;
-    opt.textContent = city;
-    if (city === selectedCity) opt.selected = true;
-    citySelect.appendChild(opt);
-  });
-
-  if (selectedCity && !cities.includes(selectedCity)) {
-    citySelect.value = '';
-  }
-
-  updateZipCode();
-}
-
-function updateZipCode() {
-  const city = document.getElementById('city')?.value || '';
-  const zipInput = document.getElementById('zip');
-  if (!zipInput) return;
-
-  const cityZipCodes = <?php echo json_encode($cityZipCodes, JSON_UNESCAPED_UNICODE); ?>;
-  zipInput.value = cityZipCodes[city] || '';
-}
-
+// ── Init on DOM ready ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
+  // Restore province → city → barangay chain on page reload (after POST error)
   filterCities();
-  document.getElementById('city')?.addEventListener('change', function() {
-    updateZipCode();
-    filterBarangays();
+
+  // Restore payment panel
+  PAY_GROUPS.forEach(g => {
+    if (document.getElementById('radio-' + g)?.checked) showPay(g);
   });
-  filterBarangays();
-  // Re-select barangay after POST repopulation (errors on submit)
-  const savedBarangay = <?php echo json_encode($_POST['barangay'] ?? ''); ?>;
-  if (savedBarangay) {
-    const barangaySelect = document.getElementById('barangay');
-    if (barangaySelect) {
-      // Try to set; if option not yet rendered, wait until filterBarangays populates
-      barangaySelect.value = savedBarangay;
-      if (!barangaySelect.value) {
-        const opt = document.createElement('option');
-        opt.value = savedBarangay;
-        opt.textContent = savedBarangay;
-        opt.selected = true;
-        barangaySelect.appendChild(opt);
-      }
+
+  // Restore saved barangay after filterBarangays populates the list
+  if (SAVED_BARANGAY) {
+    const sel = document.getElementById('barangay');
+    if (sel && !sel.value) {
+      const opt = document.createElement('option');
+      opt.value = SAVED_BARANGAY; opt.textContent = SAVED_BARANGAY; opt.selected = true;
+      sel.appendChild(opt);
     }
   }
 });
 
-// ── Logout modal functions ──
-function openLogoutModal() {
-  const overlay = document.getElementById('logoutModalOverlay');
-  if (overlay) {
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-}
-
-function closeLogoutModal(event) {
-  const overlay = document.getElementById('logoutModalOverlay');
-  if (overlay) {
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-}
-
-function performLogout() {
-  const confirmBtn = document.querySelector('.logout-confirm-btn');
-  if (confirmBtn) {
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = 'Logging out...';
-  }
-  window.location.href = 'logout.php';
-}
-
-// Close modal on escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    closeLogoutModal();
-  }
-});
-
-// Close modal when clicking overlay
-const logoutOverlay = document.getElementById('logoutModalOverlay');
-if (logoutOverlay) {
-  logoutOverlay.addEventListener('click', function(e) {
-    if (e.target.id === 'logoutModalOverlay') {
-      closeLogoutModal();
-    }
-  });
-}
-</script>
-
-<script>
-// ── Cart ↔ Checkout live synchronisation ──────────────────────
-// Seed initial cart from PHP (authoritative at page render time)
+// ── Cart live sync (BroadcastChannel + polling) ───────────────
 let checkoutCart = <?= json_encode(array_values(array_map(function($i){
-    return [
-        'inv_id' => (string)($i['inv_id'] ?? ''),
-        'name'   => $i['name']  ?? '',
-        'price'  => (float)($i['price'] ?? 0),
-        'qty'    => (int)($i['qty']   ?? 1),
-        'image'  => $i['image'] ?? '',
-    ];
+    return ['inv_id'=>(string)($i['inv_id']??''),'name'=>$i['name']??'','price'=>(float)($i['price']??0),'qty'=>(int)($i['qty']??1),'image'=>$i['image']??''];
 }, $cart))) ?>;
-
 const SHIPPING_FEE = 150;
 
-/**
- * Re-render the Order Summary panel from checkoutCart.
- * If the cart becomes empty, redirect back to the shop.
- */
+function numFmt(n)    { return Number(n).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function escHtml(s)   { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 function rebuildOrderSummary(cart) {
-  const container = document.querySelector('.checkout-card div[style*="overflow-y:auto"]');
+  const container  = document.querySelector('.checkout-card div[style*="overflow-y:auto"]');
   const subtotalEl = document.querySelector('.order-total-row:nth-child(1) span:last-child');
   const shippingEl = document.querySelector('.order-total-row:nth-child(2) span:last-child');
   const totalEl    = document.querySelector('.order-total-row.grand span:last-child');
-
   if (!container) return;
-
-  // If cart emptied, bounce back to shop
-  if (!cart || cart.length === 0) {
-    window.location.href = 'website.php';
-    return;
-  }
-
-  // Rebuild items HTML
-  let html = '';
-  let subtotal = 0;
+  if (!cart || !cart.length) { window.location.href='website.php'; return; }
+  let html='', subtotal=0;
   cart.forEach(item => {
-    const qty   = Number(item.qty)   || 1;
-    const price = Number(item.price) || 0;
-    const line  = price * qty;
-    subtotal   += line;
-    const imgSrc = item.image
-      ? item.image
-      : 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop';
-    html += `
-      <div class="order-item">
-        <img src="${escapeHtml(imgSrc)}" alt=""
-          onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:.85rem;color:var(--deep);
-            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            ${escapeHtml(item.name || '')}
-          </div>
-          <div style="font-size:.76rem;color:#999;">
-            ₱${numFmt(price)} × ${qty}
-          </div>
-        </div>
-        <div style="font-weight:700;color:var(--green);font-size:.88rem;white-space:nowrap;">
-          ₱${numFmt(line)}
-        </div>
-      </div>`;
+    const qty=Number(item.qty)||1, price=Number(item.price)||0, line=price*qty;
+    subtotal+=line;
+    const img=item.image||'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop';
+    html+=`<div class="order-item"><img src="${escHtml(img)}" alt="" onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'"><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(item.name||'')}</div><div style="font-size:.76rem;color:#999;">₱${numFmt(price)} × ${qty}</div></div><div style="font-weight:700;color:var(--green);font-size:.88rem;white-space:nowrap;">₱${numFmt(line)}</div></div>`;
   });
-  container.innerHTML = html;
-
-  const shipping = subtotal > 0 ? SHIPPING_FEE : 0;
-  const total    = subtotal + shipping;
-
-  if (subtotalEl) subtotalEl.textContent = '₱' + numFmt(subtotal);
-  if (shippingEl) shippingEl.textContent = '₱' + numFmt(shipping);
-  if (totalEl)    totalEl.textContent    = '₱' + numFmt(total);
+  container.innerHTML=html;
+  const shipping=subtotal>0?SHIPPING_FEE:0, total=subtotal+shipping;
+  if(subtotalEl) subtotalEl.textContent='₱'+numFmt(subtotal);
+  if(shippingEl) shippingEl.textContent='₱'+numFmt(shipping);
+  if(totalEl)    totalEl.textContent='₱'+numFmt(total);
 }
 
-function numFmt(n) {
-  return Number(n).toLocaleString('en-PH', {minimumFractionDigits:0, maximumFractionDigits:0});
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── BroadcastChannel: listen for cart changes from website.php ─
 try {
-  const bc = new BroadcastChannel('zythera_cart');
-  bc.addEventListener('message', e => {
-    if (e.data && e.data.type === 'cart_updated' && Array.isArray(e.data.cart)) {
-      checkoutCart = e.data.cart;
-      rebuildOrderSummary(checkoutCart);
-    }
-  });
-} catch(_) { /* BroadcastChannel not supported */ }
+  const bc=new BroadcastChannel('zythera_cart');
+  bc.addEventListener('message',e=>{ if(e.data?.type==='cart_updated'&&Array.isArray(e.data.cart)){ checkoutCart=e.data.cart; rebuildOrderSummary(checkoutCart); } });
+} catch(_){}
 
-// ── Polling fallback: re-fetch cart every 5 s while tab is visible
-// This covers the case where the user edits the cart in the same tab
-// (website.php embedded iframe or navigates back).
-let _pollTimer = null;
-function startCartPoll() {
-  if (_pollTimer) return;
-  _pollTimer = setInterval(() => {
-    if (document.hidden) return;
-    fetch('getcart.php', { credentials: 'same-origin' })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.cart)) {
-          // Only re-render if something actually changed
-          const sig = a => a.map(i => i.inv_id + ':' + i.qty).join(',');
-          if (sig(data.cart) !== sig(checkoutCart)) {
-            checkoutCart = data.cart;
-            rebuildOrderSummary(checkoutCart);
-          }
-        }
-      })
-      .catch(() => {});
-  }, 5000);
-}
-startCartPoll();
+setInterval(()=>{
+  if(document.hidden) return;
+  fetch('getcart.php',{credentials:'same-origin'}).then(r=>r.json()).then(data=>{
+    if(data.success&&Array.isArray(data.cart)){
+      const sig=a=>a.map(i=>i.inv_id+':'+i.qty).join(',');
+      if(sig(data.cart)!==sig(checkoutCart)){ checkoutCart=data.cart; rebuildOrderSummary(checkoutCart); }
+    }
+  }).catch(()=>{});
+},5000);
+
+// ── Logout modal ──────────────────────────────────────────────
+function openLogoutModal()  { const o=document.getElementById('logoutModalOverlay'); if(o){o.classList.add('active');document.body.style.overflow='hidden';} }
+function closeLogoutModal() { const o=document.getElementById('logoutModalOverlay'); if(o){o.classList.remove('active');document.body.style.overflow='';} }
+function performLogout()    { const b=document.querySelector('.logout-confirm-btn'); if(b){b.disabled=true;b.textContent='Logging out...';} window.location.href='logout.php'; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLogoutModal(); });
+document.getElementById('logoutModalOverlay')?.addEventListener('click',e=>{ if(e.target.id==='logoutModalOverlay') closeLogoutModal(); });
 </script>
-<!-- Logout Confirmation Modal -->
+
+<!-- Logout Modal -->
 <div id="logoutModalOverlay" class="logout-modal-overlay">
-    <div class="logout-modal">
-        <h2>Log Out Confirmation</h2>
-        <p>Are you sure you want to log out of your account?</p>
-        <div class="logout-modal-buttons">
-            <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">
-                Stay
-            </button>
-            <button type="button" class="logout-confirm-btn" onclick="performLogout()">
-                Logout
-            </button>
-        </div>
+  <div class="logout-modal">
+    <h2>Log Out Confirmation</h2>
+    <p>Are you sure you want to log out of your account?</p>
+    <div class="logout-modal-buttons">
+      <button type="button" class="logout-cancel-btn"  onclick="closeLogoutModal()">Stay</button>
+      <button type="button" class="logout-confirm-btn" onclick="performLogout()">Logout</button>
     </div>
+  </div>
 </div>
 
 <style>
-    .logout-modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.6);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(3px);
-    }
-    .logout-modal-overlay.active { display: flex; }
-
-    .logout-modal {
-      background: #fff;
-      border-radius: 20px;
-      padding: 32px 28px;
-      width: min(420px, calc(100vw - 32px));
-      box-shadow: 0 20px 60px rgba(0,0,0,.3);
-      text-align: center;
-      animation: slideDown .3s ease-out;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .logout-modal h2 {
-      font-family: 'Playfair Display', serif;
-      color: var(--deep);
-      font-size: 1.3rem;
-      margin: 0 0 12px 0;
-      font-weight: 700;
-    }
-
-    .logout-modal p {
-      color: #666;
-      font-size: .95rem;
-      margin: 0 0 24px 0;
-      line-height: 1.5;
-    }
-
-    body.dark .logout-modal {
-      background: #1f2937;
-    }
-    body.dark .logout-modal h2 {
-      color: #a8d4a8;
-    }
-    body.dark .logout-modal p {
-      color: #cbd5e1;
-    }
-    body.dark .logout-cancel-btn {
-      background: #2d3748;
-      color: #cbd5e1;
-    }
-    body.dark .logout-cancel-btn:hover {
-      background: #374151;
-    }
-
-    .logout-modal-buttons {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    .logout-modal-buttons button {
-      padding: 12px 28px;
-      border-radius: 50px;
-      border: none;
-      font-weight: 600;
-      font-size: .9rem;
-      cursor: pointer;
-      transition: .2s ease;
-      font-family: var(--ui-font);
-    }
-
-    .logout-cancel-btn {
-      background: #f0ece4;
-      color: #555;
-    }
-    .logout-cancel-btn:hover {
-      background: #e2ddd4;
-    }
-
-    .logout-confirm-btn {
-      background: var(--green);
-      color: #fff;
-      min-width: 120px;
-    }
-    .logout-confirm-btn:hover {
-      background: var(--deep);
-    }
-    .logout-confirm-btn:active {
-      transform: scale(0.98);
-    }
+.logout-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.logout-modal-overlay.active{display:flex;}
+.logout-modal{background:#fff;border-radius:20px;padding:32px 28px;width:min(420px,calc(100vw - 32px));box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;animation:slideDown .3s ease-out;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.logout-modal h2{font-family:'Playfair Display',serif;color:var(--deep);font-size:1.3rem;margin:0 0 12px;font-weight:700;}
+.logout-modal p{color:#666;font-size:.95rem;margin:0 0 24px;line-height:1.5;}
+body.dark .logout-modal{background:#1f2937;}
+body.dark .logout-modal h2{color:#a8d4a8;}
+body.dark .logout-modal p{color:#cbd5e1;}
+body.dark .logout-cancel-btn{background:#2d3748;color:#cbd5e1;}
+body.dark .logout-cancel-btn:hover{background:#374151;}
+.logout-modal-buttons{display:flex;gap:12px;justify-content:center;}
+.logout-modal-buttons button{padding:12px 28px;border-radius:50px;border:none;font-weight:600;font-size:.9rem;cursor:pointer;transition:.2s;font-family:var(--ui-font);}
+.logout-cancel-btn{background:#f0ece4;color:#555;}
+.logout-cancel-btn:hover{background:#e2ddd4;}
+.logout-confirm-btn{background:var(--green);color:#fff;min-width:120px;}
+.logout-confirm-btn:hover{background:var(--deep);}
+.logout-confirm-btn:active{transform:scale(.98);}
 </style>
 </body>
 </html>
