@@ -611,6 +611,90 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             font-size: 1rem;
             letter-spacing: 4px;
         }
+
+        /* ── TWO-COLUMN LAYOUT ── */
+        .two-col-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.8fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .profile-col {
+            position: sticky;
+            top: 72px;
+        }
+
+        .orders-col .section-card {
+            min-height: 500px;
+        }
+
+        /* ── ORDER STATUS TABS ── */
+        .order-tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid var(--sage);
+        }
+
+        .order-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 14px;
+            border-radius: 50px;
+            border: 2px solid var(--sage);
+            background: #fff;
+            color: #888;
+            font-size: .78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .18s;
+            white-space: nowrap;
+        }
+
+        .order-tab:hover {
+            border-color: var(--mid);
+            color: var(--green);
+            background: var(--sage);
+        }
+
+        .order-tab.active {
+            background: var(--green);
+            border-color: var(--green);
+            color: #fff;
+        }
+
+        .tab-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.25);
+            color: inherit;
+            border-radius: 50px;
+            font-size: .66rem;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+        }
+
+        .order-tab:not(.active) .tab-count {
+            background: var(--sage);
+            color: var(--green);
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .two-col-layout {
+                grid-template-columns: 1fr;
+            }
+            .profile-col {
+                position: static;
+            }
+        }
     </style>
 <script>
 /* ZYTHERA dark mode — apply before paint to prevent flash */
@@ -651,126 +735,241 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
     <?php endif; ?>
 
     <div class="page-wrapper">
-        <div class="container py-4" style="max-width:780px;">
+        <div class="container py-4" style="max-width:1200px;">
 
-            <div class="profile-card">
-                <div class="profile-header">
-                    <div class="avatar-ring" onclick="document.getElementById('picInput').click();" title="Click to change photo">
-                        <?php $avatarSrc = getAvatarURL($user['profile_pic'] ?? null, $user['email'] ?? null, $user['name'] ?? null, 100); ?>
-                        <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="Profile Photo">
-                        <div class="avatar-overlay"><i class="fas fa-camera" style="color:#fff;font-size:1.3rem;"></i></div>
-                    </div>
+            <?php if ($userRole !== 'admin'): ?>
+            <!-- ── TWO-COLUMN LAYOUT ── -->
+            <div class="two-col-layout">
 
-                    <h4 class="mb-1 fw-bold"><?= htmlspecialchars($user['name']) ?></h4>
-                    <p class="mb-1 opacity-75" style="font-size:.85rem;"><?= htmlspecialchars($userEmail) ?></p>
-                    <span class="badge-role <?= $userRole === 'admin' ? 'badge-admin' : 'badge-user' ?>">
-                        <?= strtoupper($userRole) ?>
-                    </span>
-
-                    <form method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
-                        <input type="file" name="profile_pic" id="picInput" accept="image/*"
-                            onchange="document.getElementById('avatarForm').submit();" required>
-                        <input type="hidden" name="upload_pic" value="1">
-                    </form>
-
-                    <?php if (!empty($user['profile_pic'])): ?>
-                        <form method="POST" class="mt-3">
-                            <button name="remove_pic" type="submit"
-                                style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-                           color:#fff;border-radius:50px;padding:4px 16px;font-size:.74rem;cursor:pointer;transition:.2s;">
-                                <i class="fas fa-trash me-1"></i>Remove Photo
-                            </button>
-                        </form>
-                    <?php endif; ?>
-                    <p class="mt-2 mb-0 opacity-50" style="font-size:.7rem;">
-                        <i class="fas fa-camera me-1"></i>Click avatar to change · Max 5 MB
-                    </p>
-                </div>
-
-                <div class="p-4">
-                    <div class="section-title"><i class="fas fa-pen" style="color:var(--green);font-size:.9rem;"></i>Edit Profile</div>
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold" style="color:var(--green);">Full Name</label>
-                            <input class="form-control" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold" style="color:var(--green);">New Password</label>
-                            <div class="position-relative">
-                                <input class="form-control" name="password" type="password" id="pwField"
-                                    placeholder="Min 6 characters" autocomplete="new-password">
-                                <button type="button" onclick="togglePw()" tabindex="-1"
-                                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
-                                    <i class="fas fa-eye" id="pwEye"></i>
-                                </button>
+                <!-- ── LEFT: PROFILE CARD ── -->
+                <div class="profile-col">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="avatar-ring" onclick="document.getElementById('picInput').click();" title="Click to change photo">
+                                <?php $avatarSrc = getAvatarURL($user['profile_pic'] ?? null, $user['email'] ?? null, $user['name'] ?? null, 100); ?>
+                                <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="Profile Photo">
+                                <div class="avatar-overlay"><i class="fas fa-camera" style="color:#fff;font-size:1.3rem;"></i></div>
                             </div>
-                        </div>
-                        <button name="update_profile" class="btn-green btn w-100">Save Changes</button>
-                    </form>
-                </div>
-            </div>
 
-                <?php if ($userRole !== 'admin'): ?>
-                <!-- ── ORDER HISTORY ── -->
-                <div class="section-card">
-                    <div class="section-title">
-                        <i class="fas fa-receipt" style="color:var(--green);"></i>
-                        Order History
-                        <span class="badge rounded-pill ms-1"
-                            style="background:var(--mid);color:#fff;font-size:.7rem;padding:4px 9px;">
-                            <?= count($orders) ?>
-                        </span>
-                    </div>
+                            <h4 class="mb-1 fw-bold"><?= htmlspecialchars($user['name']) ?></h4>
+                            <p class="mb-1 opacity-75" style="font-size:.85rem;"><?= htmlspecialchars($userEmail) ?></p>
+                            <span class="badge-role badge-user"><?= strtoupper($userRole) ?></span>
 
-                    <?php if (empty($orders)): ?>
-                        <div class="empty-state">
-                            <i class="fas fa-box-open"></i>
-                            <p>No orders placed yet.</p>
-                            <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill mt-2">Browse Products</a>
+                            <form method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
+                                <input type="file" name="profile_pic" id="picInput" accept="image/*"
+                                    onchange="document.getElementById('avatarForm').submit();" required>
+                                <input type="hidden" name="upload_pic" value="1">
+                            </form>
+
+                            <?php if (!empty($user['profile_pic'])): ?>
+                                <form method="POST" class="mt-3">
+                                    <button name="remove_pic" type="submit"
+                                        style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+                                       color:#fff;border-radius:50px;padding:4px 16px;font-size:.74rem;cursor:pointer;transition:.2s;">
+                                        <i class="fas fa-trash me-1"></i>Remove Photo
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                            <p class="mt-2 mb-0 opacity-50" style="font-size:.7rem;">
+                                <i class="fas fa-camera me-1"></i>Click avatar to change · Max 5 MB
+                            </p>
                         </div>
-                    <?php else: ?>
-                        <div class="order-list">
-                            <?php foreach ($orders as $o): ?>
-                                <?php
-                                $oStatus  = $o->status ?? 'Pending';
-                                $stCls    = match (strtolower($oStatus)) {
-                                    'delivered', 'completed' => 'st-delivered',
-                                    'cancelled'              => 'st-cancelled',
-                                    'shipped'                => 'st-shipped',
-                                    'processing'             => 'st-processing',
-                                    default                  => 'st-pending'
-                                };
-                                $oSub      = (float)($o->subtotal ?? 0);
-                                $oShip     = is_numeric($o->shipping ?? null) ? (float)$o->shipping : 150;
-                                $oTotal    = (float)($o->total ?? ($oSub + $oShip));
-                                $oOrderId  = $o->order_id  ?? '—';
-                                $oDate     = $o->date      ?? '';
-                                $itemCount = count($o->items ?? []);
-                                ?>
-                                <a href="order.php?order_id=<?= urlencode($oOrderId) ?>&return=profile" class="order-link" aria-label="View order <?= htmlspecialchars($oOrderId) ?>">
-                                    <div class="order-box">
-                                        <div class="order-summary">
-                                            <div class="order-summary-left">
-                                                <div class="order-summary-title">Order #<?= htmlspecialchars($oOrderId) ?></div>
-                                                <div class="order-summary-meta">
-                                                    <?= $oDate ? date('M d, Y · h:i A', strtotime($oDate)) : 'No date' ?> · <?= $itemCount ?> item<?= $itemCount === 1 ? '' : 's' ?>
-                                                </div>
-                                            </div>
-                                            <div class="order-summary-right">
-                                                <div class="order-total">₱<?= number_format($oTotal, 2) ?></div>
-                                                <span class="order-status <?= $stCls ?>" style="margin-top:6px;display:inline-block;">
-                                                    <?= htmlspecialchars($oStatus) ?>
-                                                </span>
-                                            </div>
-                                        </div>
+
+                        <div class="p-4">
+                            <div class="section-title"><i class="fas fa-pen" style="color:var(--green);font-size:.9rem;"></i>Edit Profile</div>
+                            <form method="POST">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">Full Name</label>
+                                    <input class="form-control" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">New Password</label>
+                                    <div class="position-relative">
+                                        <input class="form-control" name="password" type="password" id="pwField"
+                                            placeholder="Min 6 characters" autocomplete="new-password">
+                                        <button type="button" onclick="togglePw()" tabindex="-1"
+                                            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
+                                            <i class="fas fa-eye" id="pwEye"></i>
+                                        </button>
                                     </div>
-                                </a>
+                                </div>
+                                <button name="update_profile" class="btn-green btn w-100">Save Changes</button>
+                            </form>
+
+                            <!-- Member since -->
+                            <?php if (!empty($user['created_at'])): ?>
+                            <div class="mt-4 pt-3" style="border-top:2px solid var(--sage);">
+                                <div style="font-size:.75rem;color:#aaa;text-align:center;">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Member since <?= date('M Y', strtotime($user['created_at'])) ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div><!-- /profile-col -->
+
+                <!-- ── RIGHT: MY ORDERS ── -->
+                <div class="orders-col">
+                    <div class="section-card" style="height:100%;">
+                        <div class="section-title" style="margin-bottom:16px;">
+                            <i class="fas fa-shopping-bag" style="color:var(--green);"></i>
+                            My Orders
+                            <span class="badge rounded-pill ms-1"
+                                style="background:var(--mid);color:#fff;font-size:.7rem;padding:4px 9px;">
+                                <?= count($orders) ?>
+                            </span>
+                        </div>
+
+                        <!-- ── STATUS TABS ── -->
+                        <?php
+                        $tabStatuses = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+                        $tabCounts   = ['All' => count($orders)];
+                        foreach (['Pending','Processing','Shipped','Delivered','Cancelled'] as $ts) {
+                            $tabCounts[$ts] = count(array_filter($orders, fn($o) => strtolower($o->status ?? '') === strtolower($ts)));
+                        }
+                        $tabIcons = [
+                            'All'        => 'fa-list',
+                            'Pending'    => 'fa-clock',
+                            'Processing' => 'fa-gear',
+                            'Shipped'    => 'fa-truck',
+                            'Delivered'  => 'fa-check-circle',
+                            'Cancelled'  => 'fa-times-circle',
+                        ];
+                        ?>
+                        <div class="order-tabs" id="orderTabs">
+                            <?php foreach ($tabStatuses as $tab): ?>
+                            <button class="order-tab <?= $tab === 'All' ? 'active' : '' ?>"
+                                    onclick="filterOrders('<?= $tab ?>')"
+                                    data-tab="<?= $tab ?>">
+                                <i class="fas <?= $tabIcons[$tab] ?> me-1"></i>
+                                <?= $tab ?>
+                                <?php if ($tabCounts[$tab] > 0): ?>
+                                <span class="tab-count"><?= $tabCounts[$tab] ?></span>
+                                <?php endif; ?>
+                            </button>
                             <?php endforeach; ?>
                         </div>
-                    <?php endif; ?>
-                </div>
 
-                <?php endif; ?>
+                        <!-- ── ORDER LIST ── -->
+                        <?php if (empty($orders)): ?>
+                            <div class="empty-state">
+                                <i class="fas fa-box-open"></i>
+                                <p>No orders placed yet.</p>
+                                <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill mt-2">Browse Products</a>
+                            </div>
+                        <?php else: ?>
+                            <div class="order-list" id="orderList">
+                                <?php foreach ($orders as $o): ?>
+                                    <?php
+                                    $oStatus  = $o->status ?? 'Pending';
+                                    $stCls    = match (strtolower($oStatus)) {
+                                        'delivered' => 'st-delivered',
+                                        'cancelled' => 'st-cancelled',
+                                        'shipped'   => 'st-shipped',
+                                        'processing'=> 'st-processing',
+                                        default     => 'st-pending'
+                                    };
+                                    $oSub      = (float)($o->subtotal ?? 0);
+                                    $oShip     = is_numeric($o->shipping ?? null) ? (float)$o->shipping : 150;
+                                    $oTotal    = (float)($o->total ?? ($oSub + $oShip));
+                                    $oOrderId  = $o->order_id ?? '—';
+                                    $oDate     = $o->date ?? '';
+                                    $itemCount = count($o->items ?? []);
+                                    ?>
+                                    <a href="order.php?order_id=<?= urlencode($oOrderId) ?>&return=profile"
+                                       class="order-link"
+                                       data-status="<?= htmlspecialchars($oStatus) ?>"
+                                       aria-label="View order <?= htmlspecialchars($oOrderId) ?>">
+                                        <div class="order-box">
+                                            <div class="order-summary">
+                                                <div class="order-summary-left">
+                                                    <div class="order-summary-title">Order #<?= htmlspecialchars($oOrderId) ?></div>
+                                                    <div class="order-summary-meta">
+                                                        <?= $oDate ? date('M d, Y · h:i A', strtotime($oDate)) : 'No date' ?>
+                                                        · <?= $itemCount ?> item<?= $itemCount === 1 ? '' : 's' ?>
+                                                    </div>
+                                                </div>
+                                                <div class="order-summary-right">
+                                                    <div class="order-total">₱<?= number_format($oTotal, 2) ?></div>
+                                                    <span class="order-status <?= $stCls ?>" style="margin-top:6px;display:inline-block;">
+                                                        <?= htmlspecialchars($oStatus) ?>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+
+                            <!-- empty-tab message (shown by JS when filter yields 0 results) -->
+                            <div class="empty-state" id="emptyTabMsg" style="display:none;">
+                                <i class="fas fa-inbox"></i>
+                                <p id="emptyTabText">No orders in this category.</p>
+                            </div>
+                        <?php endif; ?>
+
+                    </div>
+                </div><!-- /orders-col -->
+
+            </div><!-- /two-col-layout -->
+
+            <?php else: ?>
+            <!-- ── ADMIN SINGLE COLUMN (no orders section) ── -->
+            <div style="max-width:480px;margin:0 auto;">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="avatar-ring" onclick="document.getElementById('picInput').click();" title="Click to change photo">
+                            <?php $avatarSrc = getAvatarURL($user['profile_pic'] ?? null, $user['email'] ?? null, $user['name'] ?? null, 100); ?>
+                            <img src="<?= htmlspecialchars($avatarSrc) ?>" alt="Profile Photo">
+                            <div class="avatar-overlay"><i class="fas fa-camera" style="color:#fff;font-size:1.3rem;"></i></div>
+                        </div>
+                        <h4 class="mb-1 fw-bold"><?= htmlspecialchars($user['name']) ?></h4>
+                        <p class="mb-1 opacity-75" style="font-size:.85rem;"><?= htmlspecialchars($userEmail) ?></p>
+                        <span class="badge-role badge-admin">ADMIN</span>
+                        <form method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
+                            <input type="file" name="profile_pic" id="picInput" accept="image/*"
+                                onchange="document.getElementById('avatarForm').submit();" required>
+                            <input type="hidden" name="upload_pic" value="1">
+                        </form>
+                        <?php if (!empty($user['profile_pic'])): ?>
+                            <form method="POST" class="mt-3">
+                                <button name="remove_pic" type="submit"
+                                    style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+                                   color:#fff;border-radius:50px;padding:4px 16px;font-size:.74rem;cursor:pointer;transition:.2s;">
+                                    <i class="fas fa-trash me-1"></i>Remove Photo
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                        <p class="mt-2 mb-0 opacity-50" style="font-size:.7rem;">
+                            <i class="fas fa-camera me-1"></i>Click avatar to change · Max 5 MB
+                        </p>
+                    </div>
+                    <div class="p-4">
+                        <div class="section-title"><i class="fas fa-pen" style="color:var(--green);font-size:.9rem;"></i>Edit Profile</div>
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold" style="color:var(--green);">Full Name</label>
+                                <input class="form-control" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold" style="color:var(--green);">New Password</label>
+                                <div class="position-relative">
+                                    <input class="form-control" name="password" type="password" id="pwField"
+                                        placeholder="Min 6 characters" autocomplete="new-password">
+                                    <button type="button" onclick="togglePw()" tabindex="-1"
+                                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
+                                        <i class="fas fa-eye" id="pwEye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button name="update_profile" class="btn-green btn w-100">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
         </div>
 
         <footer>
@@ -778,8 +977,43 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             <span class="footer-brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
         </footer>
 
-        <!-- FIX: Bootstrap JS was missing -->
+        <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script>
+        function filterOrders(tab) {
+            // Update active tab
+            document.querySelectorAll('.order-tab').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+
+            const items   = document.querySelectorAll('#orderList .order-link');
+            const emptyMsg = document.getElementById('emptyTabMsg');
+            const emptyTxt = document.getElementById('emptyTabText');
+            const orderList = document.getElementById('orderList');
+
+            if (!items.length) return;
+
+            let visible = 0;
+            items.forEach(function(link) {
+                const status = (link.dataset.status || '').trim();
+                const show   = tab === 'All' || status.toLowerCase() === tab.toLowerCase();
+                link.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            if (emptyMsg && orderList) {
+                if (visible === 0) {
+                    orderList.style.display = 'none';
+                    emptyMsg.style.display  = '';
+                    if (emptyTxt) emptyTxt.textContent = 'No ' + tab + ' orders yet.';
+                } else {
+                    orderList.style.display = '';
+                    emptyMsg.style.display  = 'none';
+                }
+            }
+        }
+        </script>
 
         <?php
         $flash = null;

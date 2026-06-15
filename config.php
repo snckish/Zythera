@@ -382,14 +382,14 @@ function findOrCreateAddress(string $userId, string $phone, string $address, str
 /**
  * Create a new payment record and return the custom payment_id string.
  */
-function createPayment(string $method, string $status = 'pending'): string {
+function createPayment(string $method, string $status = 'pending', ?string $refNo = null, ?string $proofPath = null): string {
     $db    = getDBConnection();
     $newId = generateCustomId('PAY');
     $ins   = $db->prepare("
-        INSERT INTO payment (payment_id, payment_method, payment_status, payment_date)
-        VALUES (?, ?, ?, NOW())
+        INSERT INTO payment (payment_id, payment_method, payment_status, payment_date, reference_no, pay_proof)
+        VALUES (?, ?, ?, NOW(), ?, ?)
     ");
-    $ins->execute([$newId, $method, $status]);
+    $ins->execute([$newId, $method, $status, $refNo, $proofPath]);
     return $newId;
 }
 
@@ -627,6 +627,7 @@ const ORDER_SELECT_SQL = "
         pay.payment_method                     AS pay_method,
         pay.payment_status                     AS pay_status,
         pay.reference_no                       AS pay_reference,
+        pay.pay_proof                          AS pay_proof,
         CONCAT_WS(' ', u.fname, NULLIF(u.mname,''), u.lname) AS full_name,
         ua.phone_num                           AS phone,
         ua.st_address                          AS address,

@@ -144,6 +144,53 @@ $cityZipCodes = [
 
 $cities = array_values(array_unique(array_merge(...array_values($provinceCities))));
 
+// ── Barangays per city ──────────────────────────────────────────
+$cityBarangays = [
+  // Metro Manila
+  'Manila'       => ['Binondo','Ermita','Intramuros','Malate','Paco','Pandacan','Port Area','Quiapo','Sampaloc','San Andres','San Miguel','San Nicolas','Santa Ana','Santa Cruz','Santa Mesa','Tondo'],
+  'Quezon City'  => ['Bagong Pag-asa','Bagumbayan','Batasan Hills','Commonwealth','Cubao','Diliman','Fairview','Holy Spirit','Kamuning','Katipunan','Loyola Heights','Malaya','Novaliches','Project 4','Project 6','Project 7','Quirino 3-A','San Bartolome','Tandang Sora','UP Campus','White Plains'],
+  'Makati'       => ['Bel-Air','Forbes Park','Guadalupe Nuevo','Guadalupe Viejo','Kasilawan','La Paz','Magallanes','Olympia','Palanan','Pembo','Pinagkaisahan','Pio del Pilar','Poblacion','Rembo','San Antonio','San Isidro','San Lorenzo','Santa Cruz','Singkamas','Tejeros','Urdaneta','Valenzuela'],
+  'Pasig'        => ['Bagong Ilog','Bagong Katipunan','Bambang','Buting','Caniogan','Dela Paz','Kalawaan','Kapasigan','Kapitolyo','Malinao','Manggahan','Maybunga','Oranbo','Palatiw','Pinagbuhatan','Pineda','Rosario','Sagad','San Antonio','San Joaquin','San Jose','San Nicolas','Santa Lucia','Santa Rosa','Santo Tomas','Santolan','Sumilang','Ugong'],
+  'Taguig'       => ['Bagumbayan','Bambang','Calzada','Cembo','Central','Comembo','East Rembo','Fort Bonifacio','Katuparan','Ligid-Tipas','Lower Bicutan','Maharlika Village','New Lower Bicutan','North Daang Hari','North Signal Village','Palingon','Pinagsama','San Miguel','Santa Ana','South Cembo','South Daang Hari','South Signal Village','Tanyag','Tuktukan','Upper Bicutan','Ususan','Wawa','West Rembo'],
+  'Parañaque'    => ['Baclaran','BF Homes','Don Bosco','Don Galo','La Huerta','Marcelo Green','Merville','Moonwalk','San Antonio','San Dionisio','San Isidro','San Martin de Porres','Santo Niño','Sun Valley','Tambo','Vitalez'],
+  'Caloocan'     => ['Bagong Barrio','Bagong Silang','Baesa','Camarin','Concepcion','Deparo','Grace Park','Llano','Maypajo','Monumento','Pag-asa','Pangarap','Pullman','San Jose','San Roque','Sangandaan','Tala','Tibag','University Hills','Wakas'],
+  'Las Piñas'    => ['Almanza Dos','Almanza Uno','BF International','Daniel Fajardo','Elias Aldana','Ilaya','Manuyo Dos','Manuyo Uno','Pamplona Dos','Pamplona Tres','Pamplona Uno','Pilar','Pulang Lupa Dos','Pulang Lupa Uno','Talon Dos','Talon Kuatro','Talon Otso','Talon Tres','Talon Uno','Zapote'],
+  'Mandaluyong'  => ['Addition Hills','Bagong Silang','Barangka Drive','Barangka Ilaya','Barangka Itaas','Barangka Ibaba','Buayang Bato','Burol','Daang Bakal','Hagdan Bato Itaas','Hagdan Bato Libis','Harapin Ang Bukas','Highway Hills','Hulo','Mabini-J. Rizal','Malamig','Mandaluyong','Mauway','Namayan','New Zañiga','Old Zañiga','Pag-asa','Plainview','Pleasant Hills','Poblacion','San Andres','San Joaquin','Vergara','Wack-Wack Greenhills'],
+  'Marikina'     => ['Barangka','Calumpang','Concepcion Dos','Concepcion Uno','Fortune','Industrial Valley','Jesus dela Peña','Kalumpang','Malanday','Marikina Heights','Nangka','Parang','San Roque','Santa Elena','Santo Niño','Tañong','Tumana'],
+  'Muntinlupa'   => ['Alabang','Ayala Alabang','Bayanan','Buli','Cupang','Poblacion','Putatan','Sucat','Tunasan'],
+  'Pasay'        => ['Baclaran','Bangkal','Bgy. 1 to 201','Libertad','Malibay','Maricaban','Palanyag','San Isidro','Santa Clara','Villamor'],
+  'San Juan'     => ['Addition Hills','Batis','Corazon de Jesus','Ermitaño','Greenhills','Isabelita','Kabayanan','Little Baguio','Maytunas','Onse','Pasadena','Pedro Cruz','Salapan','San Perfecto','St. Joseph','Tibagan','West Crame'],
+  'Valenzuela'   => ['Arkong Bato','Bagbaguin','Balangkas','Bignay','Bisig','Canumay East','Canumay West','Coloong','Dalandanan','Gen. T. de Leon','Isla','Karuhatan','Lawang Bato','Lingunan','Mabolo','Malanday','Malinta','Mapulang Lupa','Marulas','Maysan','Palasan','Parada','Pariancillo Villa','Paso de Blas','Pasolo','Poblacion','Pulo','Punturin','Rincon','Tagalag','Ugong','Viente Reales','Wawang Pulo'],
+  // Cavite
+  'Bacoor'       => ['Alima','Aniban I','Aniban II','Aniban III','Aniban IV','Aniban V','Banalo','Bayanan','Campo Santo','Daang Bukid','Digman','Dulong Bayan','Habay I','Habay II','Kaingin','Ligas I','Ligas II','Ligas III','Mabolo I','Mabolo II','Mabolo III','Maliksi I','Maliksi II','Maliksi III','Mambog I','Mambog II','Mambog III','Mambog IV','Mambog V','Molino I','Molino II','Molino III','Molino IV','Molino V','Molino VI','Niog I','Niog II','Niog III','P.F. Espiritu I','P.F. Espiritu II','P.F. Espiritu III','P.F. Espiritu IV','P.F. Espiritu V','P.F. Espiritu VI','P.F. Espiritu VII','Panapaan I','Panapaan II','Panapaan III','Panapaan IV','Panapaan V','Panapaan VI','Panapaan VII','Panapaan VIII','Queens Row Central','Queens Row East','Queens Row West','Real I','Real II','Salinas I','Salinas II','Salinas III','Salinas IV','San Nicolas I','San Nicolas II','San Nicolas III','Sineguelasan','Tabing Dagat','Talaba I','Talaba II','Talaba III','Talaba IV','Talaba V','Talaba VI','Talaba VII','Zapote I','Zapote II','Zapote III','Zapote IV','Zapote V'],
+  'Imus'         => ['Alapan I-A','Alapan I-B','Alapan I-C','Alapan II-A','Alapan II-B','Anabu I-A','Anabu I-B','Anabu I-C','Anabu I-D','Anabu I-E','Anabu I-F','Anabu I-G','Anabu II-A','Anabu II-B','Anabu II-C','Anabu II-D','Anabu II-E','Buhay na Tubig','Buhay na Tubig 2','Carsadang Bago I','Carsadang Bago II','Magdalo','Malagasang I-A','Malagasang I-B','Malagasang I-C','Malagasang I-D','Malagasang I-E','Malagasang I-F','Malagasang I-G','Malagasang II-A','Malagasang II-B','Malagasang II-C','Malagasang II-D','Malagasang II-E','Malagasang II-F','Malagasang II-G','Mariano Espeleta I','Mariano Espeleta II','Mariano Espeleta III','Palico I','Palico II','Palico III','Palico IV','Pasong Buaya I','Pasong Buaya II','Poblacion I-A','Poblacion I-B','Poblacion II-A','Poblacion II-B','Poblacion III-A','Poblacion III-B','Tanzang Luma I','Tanzang Luma II','Tanzang Luma III','Tanzang Luma IV','Tanzang Luma V','Tanzang Luma VI','Tinabunan','Toclong I-A','Toclong I-B','Toclong I-C','Toclong II-A','Toclong II-B'],
+  'Dasmariñas'   => ['Burol I','Burol II','Burol III','Burol Main','Datu Esmael','Emmanuel Bergado I','Emmanuel Bergado II','Fatima I','Fatima II','Fatima III','Habay','Langkaan I','Langkaan II','Luzviminda I','Luzviminda II','Maguay','Maliksi I','Maliksi II','Maliksi III','Paliparan I','Paliparan II','Paliparan III','Sabang','Salawag','Salitran I','Salitran II','Salitran III','Salitran IV','Sampaloc I','Sampaloc II','Sampaloc III','Sampaloc IV','Sampaloc V','San Agustin I','San Agustin II','San Agustin III','San Jose','San Lorenzo Ruiz I','San Lorenzo Ruiz II','San Miguel','San Simon','Santissimo Rosario','Santo Cristo I','Santo Cristo II','Burol','Zone I Poblacion','Zone II Poblacion','Zone III Poblacion'],
+  'General Trias'=> ['Alingaro','Arnaldo','Bacao I','Bacao II','Bagumbayan','Biclatan','Buenavista I','Buenavista II','Buenavista III','Corregidor','Dulong Bayan','Gov. Ferrer','Javalera','Manggahan','Navarro','Ninety Ninth','Panungyanan','Pasong Camachile I','Pasong Camachile II','Pasong Kawayan I','Pasong Kawayan II','Pinagtipunan','Poblacion I','Poblacion II','Poblacion III','Prinza','Sab-a Basin','San Francisco','San Gabriel','San Juan I','San Juan II','Santiago','Tapia','Tejero','Vibora'],
+  'Tagaytay'     => ['Asisan','Bagong Tubig','Calabuso','Diokno','Francisco','Guinhawa North','Guinhawa South','Iruhin Central','Iruhin East','Iruhin West','Kaybagal Central','Kaybagal East','Kaybagal North','Kaybagal South','Mag-asawang Ilat','Maharlika East','Maharlika West','Mendez Crossing East','Mendez Crossing West','Mitayin','Neogan','Patutong Malaki North','Patutong Malaki South','Sambong','San Jose','Silang Junction North','Silang Junction South','Sungay East','Sungay West','Tolentino East','Tolentino West','Zambal'],
+  // Laguna
+  'Calamba'      => ['Bagong Kalsada','Banadero','Banlic','Barandal','Batino','Bubuyan','Bucal','Bunggo','Burol','Camaligan','Canlubang','Kay-anlog','La Mesa','Laguerta','Lawa','Lecheria','Lingga','Looc','Mabato','Makiling','Majada Out','Majada Labas','Minola','Paciano Rizal','Palingon','Palo-Alto','Pansol','Parian','Prinza','Punta','Puting Lupa','Real','Saimsim','Sampiruhan','San Cristobal','San Jose','San Juan','Sirang Lupa','Sucol','Tulo','Turbina','Ulango','Uwisan'],
+  'Biñan'        => ['Biñan','Canlalay','Casile','De La Paz','Ganado','Loma','Luis Luz','Malaban','Malamig','Mamplasan','Platero','Poblacion','San Antonio','San Francisco','San Jose','San Vicente','Santo Domingo','Santo Niño','Santo Tomas','Soro-soro','Timbao','Tubigan','Zapote'],
+  'San Pedro'    => ['Bagong Silang','Calendola','Chrysanthemum','Cuyab','Estrella','Fatima','G.S.I.S.','Landayan','Langgam','Laram','Magsaysay','Maharlika','Narra','Nueva','Pacita 1','Pacita 2','Poblacion','Riverside','Sampaguita','San Antonio','United Bayanihan','United Better Living'],
+  'Santa Rosa'   => ['Aplaya','Balibago','Caingin','Dila','Dita','Don Jose','Ibaba','Kanluran','Labas','Macabling','Malitlit','Malusak','Market Area','Pooc','Pulong Santa Cruz','Sinalhan','Tagapo'],
+  'Cabuyao'      => ['Baclaran','Banay-Banay','Banlic','Bigaa','Butong','Casile','Diezmo','Gulod','Mamatid','Marinig','Niugan','Pittland','Pulo','San Isidro','Sala','Barangay 1 to 7 Poblacion'],
+  // Batangas
+  'Batangas City'=> ['Alangilan','Arce','Balagtas','Balete','Banaba Center','Barangay 1 to 24','Bilogo','Bolbok','Bukal','Calicanto','Cuta','Dalig','Dela Paz','Dela Paz Proper','Domoclay','Dumuclay','Gulod Itaas','Gulod Labas','Ilihan','Kumintang Ibaba','Kumintang Ilaya','Libjo','Maapaz','Mahabang Parang','Malamig','Marunos','Mataas na Lupa','Matamis','Matlang','Pag-asa','Paharang Kanluran','Paharang Silangan','Palahanan I','Palahanan II','Pamilhan','Puting Bato East','Puting Bato West','Sambat','San Isidro','San Jose Sico','San Pedro','Simlong','Sirang Lupa','Tulo','Wawa'],
+  'Lipa'         => ['Adya','Anilao','Anilao-Labac','Antipolo Del Norte','Antipolo Del Sur','Bagong Pook','Balintawak','Banaybanay','Barangay 1 to 12 Poblacion','Bolbok','Bulacan','Bungahan','Calamias','Cumba','Dagatan','Duhatan','Halang','Inosluban','Kayumanggi','Latag','Lodlod','Lumbang','Mabini','Malagonlong','Malitlit','Marawoy','Mataas Na Lupa','Matingain I','Matingain II','Morado','Pinagkawitan','Pinagtongulan','Plaridel','Poblacion Barangay 1-12','Quezon','Rizal','Sabang','Sampaguita','San Benito','San Carlos','San Celestino','San Francisco','San Guillermo','San Isidro','San Jose','San Lucas','San Salvador','San Sebastian','Santo Niño','Sapac','Sico','Talisay','Tambo','Tangob','Tanguay','Tibig','Tinatagan','Tuy','Wawa'],
+  // Rizal
+  'Antipolo'     => ['Bagong Nayon','Beverly Hills','Calawis','Cupang','Dalig','Dela Paz','Inarawan','Mambugan','Mayamot','Muyong','San Isidro','San Jose','San Juan','San Luis','San Roque','Santa Cruz','Santo Niño','Sinag','Tartaria'],
+  'Cainta'       => ['Banting','Dayap','Karangalan Village','Niño Jesus','Parang','Poblacion','San Andres','San Juan','Santo Domingo','Santo Niño'],
+  'Taytay'       => ['Dolores','Muzon','Poblacion','San Isidro','San Juan','Santa Ana'],
+  // Cebu
+  'Cebu City'    => ['Adlaon','Agsungot','Apas','Babag','Bacayan','Banilad','Basak Pardo','Basak San Nicolas','Binaliw','Bonbon','Budlaan','Busay','Calamba','Cambinocot','Capitol Site','Carreta','Central','Cogon Pardo','Cogon Ramos','Day-as','Duljo','Ermita','Guadalupe','Guba','Hippodromo','Inayawan','Kalubihan','Kalunasan','Kamagayan','Kasambagan','Kinasang-an','Labangon','Lahug','Lorega','Lusaran','Luz','Mabini','Mabolo','Malubog','Mambaling','Mentor Village','Mingo','Nivel Hills','Mohon','Pardo','Pari-an','Paril','Pasil','Pit-os','Pulangbato','Pung-ol-Sibugay','Punta Princesa','Quiot Pardo','Sambag I','Sambag II','San Antonio','San Jose','San Nicolas Central','San Nicolas Proper','San Roque','Santa Cruz','Santo Niño','Sapangdaku','Sawang Calero','Sinsin','Sito Cansaga','Sito Dumalag','Sito Hipodromo','Sito Nasipit','Sito Natalio','Sito Sudlon','Sito Tigbao','Sompotan','T. Padilla','Tabunan','Tagba-o','Taptap','Tejero','Tinago','Tisa','To-ong Pardo','Tuburan','Tungkop'],
+  'Mandaue'      => ['Alang-alang','Bakilid','Banilad','Basak','Cambaro','Canduman','Casili','Casuntingan','Centro','Cubacub','Guizo','Ibabao-Estancia','Jagobiao','Labogon','Looc','Maguikay','Mahiga','Mantuyong','Opao','Pakna-an','Paknaan','Subangdaku','Tabok','Tawason','Tingub','Tipolo','Umapad'],
+  'Davao City'   => ['Agdao','Alambre','Alejandra Navarro','Alfonso Angliongto Sr.','Angalan','Atan-Awe','Baganihan','Bago Aplaya','Bago Gallera','Bago Oshiro','Baliok','Bangkas Heights','Bantol','Baracatan','Barangay 1-40 Poblacion','Biao Escuela','Biao Guianga','Biao Joaquin','Binugao','Bucana','Buda','Buhangin','Bunawan','Cabantian','Cadalian','Calinan','Callawa','Camansi','Carmen','Catalunan Grande','Catalunan Pequeño','Catigan','Cawayan','Centro','Colosas','Communal','Crossing Bayabas','Dacudao','Dalag','Dalagdag','Daliao','Daliaon Plantation','Datu Salumay','Dumoy','Eden','Fatima','Gatungan','Gov. Paciano Bangoy','Gov. Vicente Duterte','Gumalang','Ilang','Indangan','Kap. Tomas Monteverde Sr.','Kilate','Lacson','Lamanan','Lampianao','Langub','Lapu-lapu','Las Palmas','Lasang','Leon Garcia Sr.','Lizada','Los Amigos','Lubogan','Lumiad','Ma-a','Mabuhay','Magsaysay','Magtuod','Mahayag','Malabog','Malagos','Malalag','Manambulan','Mandug','Manuel Guianga','Mapula','Marapangi','Mario Guianga','Matina Aplaya','Matina Biao','Matina Crossing','Matina Pangi','Megkawayan','Mintal','Mudiang','Mulig','New Carmen','New Valencia','Panacan','Panacan 2','Paradise Embak','Paquibato','Paradise Embak','Piapi','Poblacion','Puan','Puting Bato','Riverside','Salapawan','Salaysay','Saloy','San Antonio','San Isidro','Santos','Sasa','Sirib','Suawan','Subasta','Tacunan','Tagakpan','Tagluno','Tagurano','Talandang','Talomo','Talomo River','Tamayong','Tambobong','Tamugan','Tapak','Tawan-Tawan','Tibuloy','Tibungco','Tidman','Tigatto','Toril','Tugbok','Tungkalan','Ubalde','Ula','Unidos','Wangan','Wilfredo Aquino','Wines'],
+  // Iloilo
+  'Iloilo City'  => ['Aguinaldo','Airport','Alday','Arevalo','Balabago','Balantang','Bakhaw','Benedicto','Bo. Obrero','Bolilao','Boulevard','Bonifacio','Buenavista','Buntatala','Burgos Poblacion','Calaparan','Calumpang','Compania','Cuartero','Danao','Del Lima','Demoledor','Desamparados','Divinagracia','Dungon A','Dungon B','Dungon C','East Timawa','Edganzon','El 98','Fajardo','Geronimo','Gloria','Gustilo','Hibao-an Norte','Hibao-an Sur','Hinactacan','Ingore','Jalandoni Estate','Jalandoni-Wilson','Javellana','Jereos','Kahirupan','Kauswagan','Laguda','Lapuz Norte','Lapuz Sur','Leganes','Libertad-Santa Isabel','Libertad','Lio-an','Loboc','Lopez Jaena Norte','Lopez Jaena Sur','Luna','M.V. Hechanova','Mabolo','Magsaysay','Mansaya-Lapuz','Montinola','Nabitasan','North Baluarte','North Fundidor','Oasis','Pale Benedicto Rizal','Palapala','Pale','Pelago','Pison-Labao','Poblacion Molo','Progreso','Punong','Quezon','Quintin Salas','Rizal Palapala I','Rizal Palapala II','Roxas Village','Sambag','Sampaguita','San Agustin','San Felix','San Isidro Norte','San Isidro Sur','San Jose','San Juan','Santa Cruz','Santo Niño Norte','Santo Niño Sur','Santo Rosario','Seminario','Simon Ledesma','Sooc','Taal','Tabucan','Tacas','Tagbac','Tanza-Baybay','Tap-oc','Tibungco','Timawa Tanza I','Timawa Tanza II','Ungka I','Ungka II','Veterans Village','Villa Anita','West Habog-habog','West Timawa','Yulo Drive','Yulo-Arroyo','Zulueta-Delgado'],
+  // Bohol
+  'Tagbilaran'   => ['Bool','Booy','Cogon','Dampas','Dao','Manga','Mansasa','Poblacion I','Poblacion II','Poblacion III','San Isidro','Taloto','Tiptip','Ubujan'],
+  // Add more cities as needed
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName    = trim($_POST['full_name']    ?? '');
     $phone       = trim($_POST['phone']        ?? '');
@@ -154,11 +201,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $city        = trim($_POST['city']         ?? '');
     $zip         = trim($_POST['zip']          ?? '');
     $payMethod   = trim($_POST['pay_method']   ?? '');
+    $refNo       = trim($_POST['ref_no']       ?? '');
     $notes       = trim($_POST['notes']        ?? '');
+
+    // Handle proof of payment upload (only for e-wallet methods)
+    $proofPath = null;
+    $eWalletMethods = ['GCash', 'Maya', 'Bank Transfer'];
+    if (in_array($payMethod, $eWalletMethods, true)) {
+        if (!empty($_FILES['pay_proof']['name'])) {
+            $allowedTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp'];
+            $fileType = mime_content_type($_FILES['pay_proof']['tmp_name']);
+            $fileSize = $_FILES['pay_proof']['size'];
+            if (!in_array($fileType, $allowedTypes, true)) {
+                $errors[] = 'Proof of payment must be an image (JPG, PNG, GIF, WebP).';
+            } elseif ($fileSize > 5 * 1024 * 1024) {
+                $errors[] = 'Proof of payment image must be under 5MB.';
+            } else {
+                $ext       = pathinfo($_FILES['pay_proof']['name'], PATHINFO_EXTENSION);
+                $proofName = 'proof_' . uniqid() . '.' . strtolower($ext);
+                $proofDir  = __DIR__ . '/uploads/proofs/';
+                if (!is_dir($proofDir)) mkdir($proofDir, 0755, true);
+                $proofPath = 'uploads/proofs/' . $proofName;
+                if (!move_uploaded_file($_FILES['pay_proof']['tmp_name'], $proofDir . $proofName)) {
+                    $errors[] = 'Failed to upload proof of payment. Please try again.';
+                    $proofPath = null;
+                }
+            }
+        } else {
+            $errors[] = 'Please attach your proof of payment (screenshot/receipt).';
+        }
+        if (empty($errors) && !$refNo) {
+            $errors[] = 'Please enter your reference / transaction number.';
+        }
+    }
 
     if (!$fullName)  $errors[] = 'Full name is required.';
     if (!$phone)     $errors[] = 'Phone number is required.';
     if (!$address)   $errors[] = 'Complete address is required.';
+    if (!$barangay)  $errors[] = 'Barangay is required.';
     if (!$province)  $errors[] = 'Province is required.';
     if (!$city)      $errors[] = 'City is required.';
     if (!$zip)       $errors[] = 'ZIP Code is required.';
@@ -216,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 1. Resolve/create address and payment records
             $userId    = (string)$dbUser->user_id;
             $addressId = findOrCreateAddress($userId, $phone, $address, $barangay, $city, $province, $zip);
-            $paymentId = createPayment($payMethod, 'pending');
+            $paymentId = createPayment($payMethod, 'pending', $refNo ?: null, $proofPath);
 
             // 2. Insert order (normalized schema)
             $oStmt = $db->prepare("
@@ -505,7 +585,7 @@ footer .footer-brand{
     </div>
   <?php endif; ?>
 
-  <form method="POST" id="checkoutForm">
+  <form method="POST" id="checkoutForm" enctype="multipart/form-data">
     <input type="hidden" name="place_order" value="1">
   <div class="row g-4">
 
@@ -542,9 +622,10 @@ footer .footer-brand{
 
         <!-- 3b. Barangay -->
         <div class="field">
-          <input type="text" name="barangay" placeholder=" "
-            value="<?= htmlspecialchars($_POST['barangay'] ?? '') ?>">
-          <label>Barangay (optional)</label>
+          <select name="barangay" id="barangay" required>
+            <option value=""> Select Barangay </option>
+          </select>
+          <label>Barangay *</label>
         </div>
 
         <!-- 4. Country (dropdown) -->
@@ -626,8 +707,6 @@ footer .footer-brand{
             Send <strong>₱<?= number_format($total) ?></strong> and screenshot your receipt. Our team will verify the payment before shipping.
           </div>
         </div>
-
-        <!-- ── Maya ── -->
         <label class="pay-option" id="lbl-maya" onclick="togglePay('maya')">
           <input type="radio" name="pay_method" value="Maya" id="radio-maya"
             <?= ($_POST['pay_method'] ?? '') === 'Maya' ? 'checked' : '' ?>>
@@ -697,6 +776,28 @@ footer .footer-brand{
           </div>
           <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#92400e;margin-top:4px;">
             <i class="fas fa-lock me-1"></i>Your card details are encrypted and secure.
+          </div>
+        </div>
+
+        <!-- ── Shared Proof of Payment (shown for all e-wallet methods) ── -->
+        <div id="proof-of-payment-block" style="display:none;margin-top:4px;background:#f8fdf8;border:1.5px solid #d4e4d4;border-radius:14px;padding:14px 16px;">
+          <div style="font-size:.78rem;font-weight:700;color:#2d5a2d;margin-bottom:10px;">
+            <i class="fas fa-paperclip me-1"></i>Attach Proof of Payment *
+          </div>
+          <div id="proof-upload-area" onclick="document.getElementById('pay_proof').click()"
+               style="border:2px dashed #a7c7a7;border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:#fff;transition:border-color .2s,background .2s;">
+            <i class="fas fa-cloud-upload-alt" style="font-size:1.8rem;color:#7aab7a;margin-bottom:6px;display:block;"></i>
+            <div style="font-size:.78rem;color:#555;">Click to upload your screenshot / receipt</div>
+            <div style="font-size:.7rem;color:#aaa;margin-top:3px;">JPG, PNG, WebP — max 5MB</div>
+            <div id="proof-file-name" style="font-size:.76rem;color:#2d5a2d;margin-top:8px;font-weight:700;"></div>
+          </div>
+          <input type="file" id="pay_proof" name="pay_proof" accept="image/*" style="display:none;"
+                 onchange="handleProofFile(this)">
+          <div style="margin-top:10px;">
+            <input type="text" id="ref_no" name="ref_no"
+              placeholder="Reference / Transaction No. *"
+              value="<?= htmlspecialchars($_POST['ref_no'] ?? '') ?>"
+              style="width:100%;padding:9px 12px;font-size:.82rem;border-radius:10px;border:1.5px solid #d4e4d4;background:#fff;outline:none;font-family:inherit;box-sizing:border-box;">
           </div>
         </div>
 
@@ -773,6 +874,7 @@ footer .footer-brand{
 <script>
 // ── Payment panel toggle ──────────────────────────────────────
 const PAY_GROUPS = ['gcash','maya','bank'];
+const EWALLET_GROUPS = ['gcash','maya','bank'];
 
 function showPay(group) {
   PAY_GROUPS.forEach(g => {
@@ -786,6 +888,23 @@ function showPay(group) {
       panel?.classList.remove('show');
     }
   });
+  // Show/hide the shared proof block
+  const proofBlock = document.getElementById('proof-of-payment-block');
+  if (proofBlock) {
+    proofBlock.style.display = EWALLET_GROUPS.includes(group) ? 'block' : 'none';
+  }
+}
+
+function handleProofFile(input) {
+  const nameEl = document.getElementById('proof-file-name');
+  const areaEl = document.getElementById('proof-upload-area');
+  if (input.files && input.files[0]) {
+    if (nameEl) nameEl.textContent = '✓ ' + input.files[0].name;
+    if (areaEl) { areaEl.style.borderColor = 'var(--green)'; areaEl.style.background = '#f0f7f0'; }
+  } else {
+    if (nameEl) nameEl.textContent = '';
+    if (areaEl) { areaEl.style.borderColor = '#a7c7a7'; areaEl.style.background = '#fff'; }
+  }
 }
 
 function togglePay(group) {
@@ -904,6 +1023,19 @@ document.getElementById('checkoutForm')?.addEventListener('submit', function(e) 
   if (!/^[0-9]{10,11}$/.test(phoneVal)) errs.push('Phone must be 10–11 digits.');
   if (!/^[0-9]{4}$/.test(zipVal)) errs.push('ZIP Code must be 4 digits.');
 
+  // Proof of payment validation for e-wallet methods
+  const eWalletMethods = ['GCash', 'Maya', 'Bank Transfer'];
+  if (eWalletMethods.includes(payVal)) {
+    const proofInput = document.getElementById('pay_proof');
+    const refInput   = document.getElementById('ref_no');
+    if (!proofInput || !proofInput.files || proofInput.files.length === 0) {
+      errs.push('Please attach your proof of payment.');
+    }
+    if (!refInput || !refInput.value.trim()) {
+      errs.push('Please enter your reference / transaction number.');
+    }
+  }
+
   if (!document.getElementById('province')?.value) errs.push('Please select a province.');
   if (!document.getElementById('city')?.value) errs.push('Please select a city.');
 
@@ -948,6 +1080,39 @@ document.getElementById('checkoutForm')?.addEventListener('submit', function(e) 
   }
 });
 
+function filterBarangays() {
+  const city = document.getElementById('city')?.value || '';
+  const barangaySelect = document.getElementById('barangay');
+  if (!barangaySelect) return;
+
+  const cityBarangays = <?php echo json_encode($cityBarangays, JSON_UNESCAPED_UNICODE); ?>;
+  const selectedBarangay = barangaySelect.value;
+  const barangays = (cityBarangays[city] && cityBarangays[city].length > 0) ? cityBarangays[city] : [];
+
+  barangaySelect.innerHTML = '<option value=""> Select Barangay </option>';
+  if (barangays.length === 0 && city) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = '— Type your barangay below —';
+    opt.disabled = true;
+    barangaySelect.appendChild(opt);
+    // Allow free text fallback by switching to text input
+    barangaySelect.setAttribute('data-no-list', '1');
+  } else {
+    barangaySelect.removeAttribute('data-no-list');
+    barangays.sort().forEach((brgy) => {
+      const opt = document.createElement('option');
+      opt.value = brgy;
+      opt.textContent = brgy;
+      if (brgy === selectedBarangay) opt.selected = true;
+      barangaySelect.appendChild(opt);
+    });
+    if (selectedBarangay && !barangays.includes(selectedBarangay)) {
+      barangaySelect.value = '';
+    }
+  }
+}
+
 function filterCities() {
   const province = document.getElementById('province')?.value || '';
   const citySelect = document.getElementById('city');
@@ -985,7 +1150,27 @@ function updateZipCode() {
 
 document.addEventListener('DOMContentLoaded', function() {
   filterCities();
-  document.getElementById('city')?.addEventListener('change', updateZipCode);
+  document.getElementById('city')?.addEventListener('change', function() {
+    updateZipCode();
+    filterBarangays();
+  });
+  filterBarangays();
+  // Re-select barangay after POST repopulation (errors on submit)
+  const savedBarangay = <?php echo json_encode($_POST['barangay'] ?? ''); ?>;
+  if (savedBarangay) {
+    const barangaySelect = document.getElementById('barangay');
+    if (barangaySelect) {
+      // Try to set; if option not yet rendered, wait until filterBarangays populates
+      barangaySelect.value = savedBarangay;
+      if (!barangaySelect.value) {
+        const opt = document.createElement('option');
+        opt.value = savedBarangay;
+        opt.textContent = savedBarangay;
+        opt.selected = true;
+        barangaySelect.appendChild(opt);
+      }
+    }
+  }
 });
 
 // ── Logout modal functions ──

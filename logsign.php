@@ -3,6 +3,7 @@ require 'config.php';
 
 $message = '';
 $msgType = '';
+$activeTab = 'login';
 
 // ── Cookie-based auto-restore ─────────────────────────────────
 if (empty($_SESSION['logged_in_user']) && !empty($_COOKIE['zythera_user'])) {
@@ -56,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $message = 'Please complete all required fields.';
             $msgType = 'error';
+            $activeTab = 'signup';
 
         } else {
 
@@ -76,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $message = 'Email already registered!';
                 $msgType = 'error';
+                $activeTab = 'signup';
 
             } else {
 
@@ -248,24 +251,31 @@ if (!empty($_SESSION['logged_in_user'])) {
 <style>
   :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
   body{font-family:var(--ui-font);}
-  h1,h2,h3,h4,h5,.navbar-brand{font-family:var(--logo-font)}
-  p,small{font-family:var(--text-font)}
+  h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.form-title,.visual-brand,footer .footer-brand{font-family:var(--logo-font)}
+  p,small,.tagline,.auth-switch{font-family:var(--text-font)}
 </style>
 <style>
 /* ── Reset ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --cream:#f5f2ec;--sage:#d4e4d4;--mid:#7aab7a;
-  --green:#2d5a2d;--deep:#1a2e1a;--white:#fff;
+  --green:#2d5a2d;--moss:#6f8f6b;--mist:#edf3e8;
+  --deep:#1a2e1a;--white:#fff;
   --red:#dc2626;--radius:16px;
+  --radius-card:18px;
+  --shadow-card:0 2px 16px rgba(0,0,0,.07);
+  --shadow-hover:0 12px 36px rgba(0,0,0,.13);
+}
+html,body{
+  height:100%;
+  overflow:hidden;
 }
 body{
-  min-height:100vh;
-  background:linear-gradient(135deg,#c8dcc8 0%,#f5f2ec 60%,#e8d8c8 100%);
+  min-height:100dvh;
+  background:#fff;
   font-family: var(--ui-font);
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:80px 16px 32px;
+  display:block;
+  padding:0;
 }
 
 /* ── Top Bar ── */
@@ -287,9 +297,84 @@ body{
 }
 .top-btn:hover{background:var(--sage);}
 
+.auth-shell{
+  height:100dvh;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  background:#fff;
+  padding:0;
+  gap:0;
+}
+.auth-visual{
+  position:relative;
+  height:100dvh;
+  overflow:hidden;
+  background:var(--deep);
+  border-radius:0;
+}
+.auth-visual img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.auth-visual::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(180deg,rgba(26,46,26,.08),rgba(26,46,26,.54)),
+    linear-gradient(90deg,rgba(26,46,26,.12),rgba(237,243,232,.08));
+}
+.visual-brand{
+  position:absolute;
+  top:26px;
+  left:30px;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#f7fbf3;
+  font-family:var(--logo-font);
+  font-size:1.45rem;
+  font-weight:700;
+  letter-spacing:3px;
+  text-shadow:0 2px 16px rgba(0,0,0,.24);
+}
+.visual-brand img{
+  width:30px;
+  height:30px;
+  object-fit:contain;
+  filter:brightness(0) invert(1);
+}
+.visual-copy{
+  position:absolute;
+  left:clamp(28px,8vw,116px);
+  right:32px;
+  bottom:54px;
+  z-index:1;
+  color:#fbfff8;
+}
+.visual-copy h2{
+  font-family:var(--logo-font);
+  font-size:clamp(1.45rem,2.5vw,2.25rem);
+  line-height:1.15;
+  margin-bottom:22px;
+  text-shadow:0 2px 18px rgba(0,0,0,.28);
+}
+.auth-panel{
+  height:100dvh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:42px 54px;
+  background:#ffffff;
+  border-radius:0;
+}
+
 /* Session timer bar */
 .session-bar{
-  position:fixed;top:49px;left:0;right:0;
+  position:fixed;top:0;left:0;right:0;
   height:3px;
   background:var(--sage);
   z-index:99;
@@ -302,22 +387,39 @@ body{
 
 /* ── Card ── */
 .card{
-  width:100%;max-width:460px;
-  background:rgba(255,255,255,.92);
-  backdrop-filter:blur(20px);
-  border-radius:28px;
-  box-shadow:0 16px 48px rgba(45,90,45,.15);
-  padding:40px 40px 36px;
+  width:100%;max-width:430px;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  padding:0;
 }
-@media(max-width:500px){.card{padding:28px 20px 24px;}}
-
-.brand{
-  font-family:'Playfair Display',serif;
-  color:var(--green);font-size:2.2rem;
-  text-align:center;letter-spacing:3px;
-  margin-bottom:4px;
+.card-brand{
+  font-family:var(--logo-font);
+  color:var(--deep);
+  font-size:1.7rem;
+  font-weight:700;
+  letter-spacing:3px;
+  text-align:center;
+  margin-bottom:6px;
 }
-.tagline{text-align:center;color:#888;font-size:.82rem;margin-bottom:28px;}
+.card-tagline{
+  font-family:var(--text-font);
+  text-align:center;
+  color:#7a857a;
+  font-size:.8rem;
+  margin-bottom:26px;
+}
+@media(max-width:800px){
+  .auth-shell{grid-template-columns:1fr;padding:0;}
+  .auth-visual{display:none;}
+  .auth-panel{height:100dvh;padding:32px 22px;border-radius:0;}
+}
+@media(max-width:500px){.card{max-width:100%;}}
+.tagline{display:none;}
 
 /* ── Tabs ── */
 .tabs{
@@ -337,40 +439,88 @@ body{
 
 /* ── Form panels ── */
 .form{display:none;}
-.form.active{display:block;}
+.form.active{
+  display:flex;
+  flex-direction:column;
+  animation:fadeForm .18s ease;
+}
+@keyframes fadeForm{from{opacity:.72}to{opacity:1}}
+
+.form-title{
+  font-family:var(--logo-font);
+  color:var(--green);
+  font-size:1.72rem;
+  line-height:1.15;
+  font-weight:700;
+  text-align:left;
+  margin-bottom:24px;
+  letter-spacing:0;
+}
+.auth-switch{
+  font-family:var(--text-font);
+  text-align:center;
+  margin:24px 0 0;
+  color:#5f6267;
+  font-size:.8rem;
+}
+.auth-switch button{
+  border:none;
+  background:none;
+  color:var(--green);
+  font-family:var(--ui-font);
+  font-weight:700;
+  cursor:pointer;
+  padding:0 0 2px;
+  border-bottom:1px solid rgba(45,90,45,.32);
+}
+.auth-switch button:hover{color:var(--deep);border-bottom-color:var(--deep);}
 
 /* ── Floating-label input ── */
-.field{position:relative;margin-bottom:18px;}
+.field{position:relative;margin-bottom:15px;}
+.name-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0 14px;
+}
+.name-grid .field:last-child{grid-column:1 / -1;}
 .field input,.field select{
-  width:100%;padding:15px 14px 7px;
-  background:var(--sage);border:2px solid transparent;
-  border-radius:var(--radius);outline:none;
-  font-family: var(--ui-font);font-size:.95rem;
+  width:100%;padding:13px 16px;
+  background:var(--mist);
+  border:1px solid rgba(45,90,45,.08);
+  border-radius:10px;outline:none;
+  font-family: var(--ui-font);font-size:.88rem;
   color:var(--deep);transition:.2s;appearance:none;
 }
+.field input::placeholder{color:#98a393;}
 .field input:focus,.field select:focus{
-  border-color:var(--green);background:#fff;
+  border-color:rgba(45,90,45,.32);background:#fff;
+  box-shadow:0 0 0 3px rgba(45,90,45,.1);
 }
 .field label{
-  position:absolute;left:14px;top:14px;
-  font-size:.85rem;color:#999;pointer-events:none;
-  transition:.2s;background:transparent;
+  position:static;
+  display:block;
+  margin-bottom:8px;
+  font-size:.79rem;
+  color:var(--deep);
+  pointer-events:none;
+  transition:.2s;
+  background:transparent;
 }
 .field input:focus~label,
 .field input:not(:placeholder-shown)~label{
-  top:4px;font-size:.68rem;color:var(--green);font-weight:600;
+  color:var(--green);font-weight:400;
 }
 .field select~label{
-  top:4px;font-size:.68rem;color:var(--green);font-weight:600;
+  color:var(--green);font-weight:400;
 }
 
 /* ── Submit ── */
 .btn-submit{
-  width:100%;padding:14px;border:none;border-radius:50px;
-  font-family: var(--ui-font);font-size:1rem;font-weight:700;
-  cursor:pointer;transition:.25s;margin-top:4px;letter-spacing:.5px;
+  width:100%;padding:14px;border:none;border-radius:10px;
+  font-family: var(--ui-font);font-size:.9rem;font-weight:700;
+  cursor:pointer;transition:.25s;margin-top:12px;letter-spacing:.1px;
 }
-.btn-submit.user {background:var(--green);color:#fff;}
+.btn-submit.user {background:var(--green);color:#fff;box-shadow:0 10px 22px rgba(45,90,45,.18);}
 .btn-submit.admin{background:#111827;color:#fff;}
 .btn-submit:hover{opacity:.88;transform:translateY(-1px);}
 
@@ -378,7 +528,8 @@ body{
 .pw-wrap{position:relative;}
 .pw-wrap input{padding-right:44px;}
 .pw-eye{
-  position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  position:absolute;right:13px;bottom:12px;
+  transform:none;
   background:none;border:none;cursor:pointer;
   color:#999;font-size:1rem;padding:4px;line-height:1;
   transition:color .2s;
@@ -386,6 +537,33 @@ body{
 .pw-eye:hover{color:var(--green);}
 body.dark .pw-eye{color:rgba(200,230,200,.5);}
 body.dark .pw-eye:hover{color:#a8d4a8;}
+
+.terms-row{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  margin-top:-2px;
+  color:#5d6468;
+  font-family:var(--text-font);
+  font-size:.76rem;
+  line-height:1.4;
+}
+.terms-row input{
+  width:14px;
+  height:14px;
+  margin-top:2px;
+  accent-color:var(--green);
+  flex:0 0 auto;
+}
+.terms-row a{
+  color:var(--green);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+.form-footer{
+  margin-top:24px;
+  padding-top:0;
+}
 
 /* ── Toast ── */
 .toast{
@@ -404,26 +582,33 @@ body.dark .pw-eye:hover{color:#a8d4a8;}
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-top: 24px;
+  gap: 8px;
+  margin-top: 14px;
   font-family: 'Playfair Display', serif;
   color: var(--deep);
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 3px;
-  opacity: 0.75;
+  letter-spacing: 2.5px;
+  opacity: 0.55;
   transition: .3s;
 }
 .footer-logo {
-  width: 28px; height: 28px;
+  width: 22px; height: 22px;
   object-fit: contain;
   filter: none;
   transition: filter .3s;
 }
-.brand-name { letter-spacing: 3px; }
+.brand-name { letter-spacing: 2.5px; }
+@media(min-width:801px){.footer-brand{display:none;}}
+@media(max-width:500px){
+  .name-grid{grid-template-columns:1fr;gap:0;}
+  .name-grid .field:last-child{grid-column:auto;}
+}
 
 /* ── Dark mode ── */
 body.dark{background:#1c3a1c;}
+body.dark .auth-panel{background:linear-gradient(135deg,#172717 0%,#203820 100%);}
+body.dark .auth-visual::after{background:linear-gradient(180deg,rgba(12,24,12,.2),rgba(12,24,12,.62));}
 body.dark .top-bar{
   background:rgba(15,28,15,.9);
   border-bottom:1px solid rgba(255,255,255,.07);
@@ -437,8 +622,12 @@ body.dark .card{
   box-shadow:0 20px 60px rgba(0,0,0,.45);
   border:1px solid rgba(255,255,255,.09);
 }
-body.dark .brand{color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.3);}
-body.dark .tagline{color:rgba(210,235,210,.65);}
+body.dark .card-brand{color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.3);}
+body.dark .card-tagline{color:rgba(210,235,210,.65);}
+body.dark .form-title{color:#fff;}
+body.dark .auth-switch{color:rgba(220,240,220,.65);}
+body.dark .auth-switch button{color:#a8d4a8;border-bottom-color:rgba(168,212,168,.45);}
+body.dark .auth-switch button:hover{color:#fff;border-bottom-color:#fff;}
 body.dark .tabs{
   background:rgba(0,0,0,.28);
   border:1px solid rgba(255,255,255,.1);
@@ -512,11 +701,6 @@ function toggleDark(){
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="top-bar">
-  <a href="website.php" class="top-btn">Back to Home</a>
-</div>
-
 <!-- Session timer progress bar -->
 <div class="session-bar"><div class="session-bar-fill" id="sessionBarFill" style="width:100%;"></div></div>
 
@@ -529,76 +713,100 @@ document.addEventListener('DOMContentLoaded',()=>showToast(<?= json_encode($mess
 </script>
 <?php endif; ?>
 
-<!-- CARD -->
-<div class="card">
-  <div class="brand"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></div>
-  <p class="tagline">Furniture crafted for lives that deserve beauty.</p>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button id="loginTab"  class="active" onclick="switchTab('login')">Login</button>
-    <button id="signupTab"               onclick="switchTab('signup')">Sign Up</button>
+<main class="auth-shell">
+<section class="auth-visual" aria-label="Zythera furniture showcase">
+  <img src="pci/scandinavian-interior-mockup-wall-decal-background 1.png" alt="Styled living room furniture">
+  <div class="visual-brand">
+    <img src="pci/Group_15.png" alt="">
+    <span>ZYTHERA</span>
   </div>
+  <div class="visual-copy">
+    <h2>Curated Comfort,<br>Quietly Beautiful</h2>
+  </div>
+</section>
+
+<section class="auth-panel">
+<div class="card">
+  <div class="card-brand">ZYTHERA</div>
+  <p class="card-tagline">Furniture crafted for lives that deserve beauty.</p>
 
   <!-- LOGIN FORM -->
-  <form id="loginForm" class="form active" method="POST" novalidate>
+  <form id="loginForm" class="form<?= $activeTab === 'login' ? ' active' : '' ?>" method="POST" novalidate>
+    <h2 class="form-title">Welcome back</h2>
 
     <div class="field">
-      <input type="email" name="email" placeholder=" " required autocomplete="email">
-      <label>Email Address</label>
+      <label>Email</label>
+      <input type="email" name="email" placeholder="Enter your mail" required autocomplete="email" value="<?= $activeTab === 'login' ? htmlspecialchars($email ?? '') : '' ?>">
     </div>
 
     <div class="field pw-wrap">
-      <input type="password" name="password" id="loginPw" placeholder=" " required autocomplete="current-password">
       <label>Password</label>
+      <input type="password" name="password" id="loginPw" placeholder="Enter your password" required autocomplete="current-password">
       <button type="button" class="pw-eye" onclick="togglePw('loginPw',this)" tabindex="-1" aria-label="Toggle password visibility">
         <i class="fas fa-eye"></i>
       </button>
     </div>
 
-    <button type="submit" name="login" class="btn-submit user" id="loginBtn">Login</button>
+    <button type="submit" name="login" class="btn-submit user" id="loginBtn">Log in</button>
+    <div class="form-footer">
+      <p class="auth-switch">Don't have an account? <button type="button" onclick="switchTab('signup')">Sign up</button></p>
+    </div>
   </form>
 
   <!-- SIGNUP FORM -->
-  <form id="signupForm" class="form" method="POST" novalidate>
+  <form id="signupForm" class="form<?= $activeTab === 'signup' ? ' active' : '' ?>" method="POST" novalidate>
+    <h2 class="form-title">Create an account</h2>
 
-    <div class="field">
-      <input type="text" name="fname" placeholder=" " required autocomplete="given-name">
-      <label>First Name</label>
+    <div class="name-grid">
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" name="fname" placeholder="Enter first name" required autocomplete="given-name" value="<?= $activeTab === 'signup' ? htmlspecialchars($_POST['fname'] ?? '') : '' ?>">
+      </div>
+
+      <div class="field">
+        <label>Middle Name (optional)</label>
+        <input type="text" name="mname" placeholder="Enter middle name" autocomplete="additional-name" value="<?= $activeTab === 'signup' ? htmlspecialchars($_POST['mname'] ?? '') : '' ?>">
+      </div>
+
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" name="lname" placeholder="Enter last name" required autocomplete="family-name" value="<?= $activeTab === 'signup' ? htmlspecialchars($_POST['lname'] ?? '') : '' ?>">
+      </div>
     </div>
 
     <div class="field">
-      <input type="text" name="mname" placeholder=" " autocomplete="additional-name">
-      <label>Middle Name (optional)</label>
-    </div>
-
-    <div class="field">
-      <input type="text" name="lname" placeholder=" " required autocomplete="family-name">
-      <label>Last Name</label>
-    </div>
-
-    <div class="field">
-      <input type="email" name="email" placeholder=" " required autocomplete="email">
-      <label>Email Address</label>
+      <label>Email</label>
+      <input type="email" name="email" placeholder="Enter your mail" required autocomplete="email" value="<?= $activeTab === 'signup' ? htmlspecialchars($email ?? '') : '' ?>">
     </div>
 
     <div class="field pw-wrap">
-      <input type="password" name="password" id="signupPw" placeholder=" " required autocomplete="new-password" minlength="6">
-      <label>Password (min 6 chars)</label>
+      <label>Password</label>
+      <input type="password" name="password" id="signupPw" placeholder="Enter your password" required autocomplete="new-password" minlength="6">
       <button type="button" class="pw-eye" onclick="togglePw('signupPw',this)" tabindex="-1" aria-label="Toggle password visibility">
         <i class="fas fa-eye"></i>
       </button>
     </div>
 
+    <label class="terms-row">
+      <input type="checkbox" name="terms" required>
+      <span>I agree to all the <a href="#">Terms &amp; Conditions</a></span>
+    </label>
+
     <button type="submit" name="signup" class="btn-submit user" id="signupBtn">
-      Create Account
+      Sign up
     </button>
+    <div class="form-footer">
+      <p class="auth-switch">Already have an account? <button type="button" onclick="switchTab('login')">Log in</button></p>
+    </div>
   </form>
 
 <div class="footer-brand">
   <img src="pci/Group_15.png" class="footer-logo">
   <span class="brand-name"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></span>
 </div>
+</div>
+</section>
+</main>
 
 <script>
 function togglePw(inputId, btn) {
@@ -611,8 +819,6 @@ function togglePw(inputId, btn) {
 
 // Dark mode handled by inline script above
 function switchTab(tab) {
-  document.getElementById('loginTab').classList.toggle('active',  tab==='login');
-  document.getElementById('signupTab').classList.toggle('active', tab==='signup');
   document.getElementById('loginForm').classList.toggle('active', tab==='login');
   document.getElementById('signupForm').classList.toggle('active',tab==='signup');
 }

@@ -611,33 +611,6 @@ body.dark .nav-user-capsule:hover {
     }
     .review-expand-btn:hover { color: #fff; }
 
-    /* Admin reply box */
-    .review-reply-box {
-      margin-top: 14px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: rgba(255,255,255,.1);
-      border-left: 3px solid rgba(255,255,255,.25);
-      word-break: break-word;
-      overflow-wrap: anywhere;
-    }
-    .review-reply-label {
-      display: block;
-      font-size: .72rem;
-      font-weight: 700;
-      color: #d4e4d4;
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-    }
-    .review-reply-text {
-      font-size: .82rem;
-      color: rgba(255,255,255,.88);
-      line-height: 1.6;
-      margin: 0;
-      white-space: pre-line;
-    }
-
     /* Edit review modal */
 /* ── Review Edit Modal ── */
 .review-edit-modal-bg {
@@ -1365,12 +1338,6 @@ body.dark .review-edit-modal textarea:focus {
                 <?php if ($isLong): ?>
                 <button class="review-expand-btn" id="btn-<?= $cardId ?>"
                   onclick="event.stopPropagation();toggleReview('<?= $cardId ?>')">Read more</button>
-                <?php endif; ?>
-                <?php if (!empty($review->reply)): ?>
-                <div class="review-reply-box">
-                  <span class="review-reply-label"><i class="fas fa-reply" style="margin-right:5px;font-size:.7rem;"></i>Admin reply</span>
-                  <p class="review-reply-text"><?= nl2br(htmlspecialchars($review->reply)) ?></p>
-                </div>
                 <?php endif; ?>
               </div>
             <?php endforeach; ?>

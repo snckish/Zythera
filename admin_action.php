@@ -64,42 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_review'])) {
     exit;
 }
 
-// ── Reply to review (POST) — must be checked BEFORE the generic POST block ──
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply_review'])) {
-    header('Content-Type: application/json');
-    header('Cache-Control: no-cache, no-store, must-revalidate');
-
-    try {
-        $currentRole = $_SESSION['role'] ?? 'user';
-        if ($currentRole !== 'admin') {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Admin access required.']);
-            exit;
-        }
-
-        $reviewId = trim($_POST['review_id'] ?? '');
-        $reply    = trim($_POST['reply'] ?? '');
-
-        if ($reviewId === '' || $reply === '') {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Review ID and reply text are required.']);
-            exit;
-        }
-
-        replyToReview($reviewId, $reply);
-        http_response_code(200);
-        echo json_encode(['success' => true, 'message' => 'Reply sent to customer.']);
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-    }
-    exit;
-}
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST'
     && !isset($_POST['update_payment'])
     && !isset($_POST['edit_review'])
-    && !isset($_POST['reply_review'])
 ) {
     // message-sending feature removed
 

@@ -1152,6 +1152,7 @@ if ($searchQuery !== '') {
         $orderPayMethod  = $order->pay_method    ?? '';
         $orderPayStatus  = $order->pay_status    ?? 'pending';
         $orderPayRef     = $order->pay_reference ?? '';
+        $orderPayProof   = $order->pay_proof     ?? '';
         $orderPayId      = $order->payment_id    ?? '';
         // Use flat columns directly from schema
         $shippingInfo = [
@@ -1292,6 +1293,22 @@ if ($searchQuery !== '') {
                 <?php else: ?>
                 <div style="font-size:.72rem;color:#aaa;" id="pay-ref-display-<?= htmlspecialchars($orderId) ?>">
                   Ref: <span id="pay-ref-text-<?= htmlspecialchars($orderId) ?>">—</span>
+                </div>
+                <?php endif; ?>
+
+                <!-- Proof of Payment -->
+                <?php if ($orderPayProof): ?>
+                <div style="margin-top:8px;" id="proof-display-<?= htmlspecialchars($orderId) ?>">
+                  <div style="font-size:.68rem;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;"><i class="fas fa-image me-1"></i>Proof of Payment</div>
+                  <a href="<?= htmlspecialchars($orderPayProof) ?>" target="_blank" onclick="openProofLightbox(this.href,event)"
+                     style="display:block;border-radius:8px;overflow:hidden;border:1.5px solid #d4e4d4;max-width:140px;">
+                    <img src="<?= htmlspecialchars($orderPayProof) ?>" alt="Proof"
+                         style="width:100%;display:block;object-fit:cover;max-height:100px;">
+                  </a>
+                </div>
+                <?php else: ?>
+                <div style="margin-top:8px;font-size:.71rem;color:#bbb;" id="proof-display-<?= htmlspecialchars($orderId) ?>">
+                  <i class="fas fa-image me-1"></i>No proof uploaded
                 </div>
                 <?php endif; ?>
 
@@ -1482,7 +1499,6 @@ if ($searchQuery !== '') {
                     <th>Order</th>
                     <th>Rating</th>
                     <th>Comment</th>
-                    <th>Admin Reply</th>
                     <th>Date</th>
                     <th>Actions</th>
                 </tr>
@@ -1500,24 +1516,8 @@ if ($searchQuery !== '') {
                     <td><?= htmlspecialchars($review->order_id) ?></td>
                     <td><?= htmlspecialchars($review->rating) ?>/5</td>
                     <td style="max-width:220px;white-space:pre-wrap;word-break:break-word;"><?= htmlspecialchars($review->comment) ?></td>
-                    <td id="reply-cell-<?= htmlspecialchars($review->review_id) ?>" style="max-width:220px;white-space:pre-wrap;word-break:break-word;">
-                        <?php if (!empty($review->reply)): ?>
-                            <span class="reply-text"><?= htmlspecialchars($review->reply) ?></span>
-                            <?php if (!empty($review->reply_created_at)): ?>
-                                <div style="font-size:.72rem;color:#888;margin-top:4px;">Replied <?= htmlspecialchars($review->reply_created_at) ?></div>
-                            <?php endif; ?>
-                        <?php else: ?>
-                            <span class="reply-text" style="color:#aaa;">—</span>
-                        <?php endif; ?>
-                    </td>
                     <td><?= htmlspecialchars($review->created_at) ?></td>
                     <td>
-                        <button class="btn btn-edit btn-sm w-100"
-                            onclick="replyReview(<?= htmlspecialchars($review->review_id) ?>, '<?= addslashes($review->author_name ?: $review->author_email ?: 'Reviewer') ?>')"
-                            id="reply-btn-<?= htmlspecialchars($review->review_id) ?>">
-                            <i class="fas fa-reply"></i>
-                            <?= !empty($review->reply) ? 'Edit Reply' : 'Reply' ?>
-                        </button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -1806,95 +1806,6 @@ function deleteUser(email, name) {
         .catch(() => alert('Request failed.'));
 }
 
-function replyReview(reviewId, author) {
-    // Use a proper modal instead of prompt()
-    let modal = document.getElementById('reply-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'reply-modal';
-        modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);';
-        modal.innerHTML = `
-          <div style="background:#fff;border-radius:18px;padding:28px 32px;min-width:360px;max-width:500px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.18);font-family:inherit;">
-            <h5 id="reply-modal-title" style="margin:0 0 14px;font-size:1.05rem;color:#1a2e1a;font-weight:700;"></h5>
-            <textarea id="reply-modal-text" rows="4"
-              style="width:100%;border:2px solid #d4e4d4;border-radius:10px;padding:10px 12px;font-size:.9rem;font-family:inherit;color:#2d5a2d;resize:vertical;outline:none;transition:.2s;"
-              onfocus="this.style.borderColor='#2d5a2d'" onblur="this.style.borderColor='#d4e4d4'"
-              placeholder="Type your reply…"></textarea>
-            <div style="margin-top:4px;font-size:.75rem;color:#888;" id="reply-char-count">0 / 500 characters</div>
-            <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
-              <button onclick="document.getElementById('reply-modal').style.display='none'"
-                style="padding:8px 20px;border-radius:10px;border:2px solid #d4e4d4;background:#fff;color:#666;font-size:.88rem;cursor:pointer;font-family:inherit;">
-                Cancel
-              </button>
-              <button id="reply-send-btn"
-                style="padding:8px 22px;border-radius:10px;border:none;background:#2d5a2d;color:#fff;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;">
-                Send Reply
-              </button>
-            </div>
-          </div>`;
-        document.body.appendChild(modal);
-
-        document.getElementById('reply-modal-text').addEventListener('input', function() {
-            const len = this.value.length;
-            document.getElementById('reply-char-count').textContent = len + ' / 500 characters';
-            if (len > 500) this.value = this.value.slice(0, 500);
-        });
-
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) modal.style.display = 'none';
-        });
-    }
-
-    document.getElementById('reply-modal-title').textContent = 'Reply to ' + author;
-    document.getElementById('reply-modal-text').value = '';
-    document.getElementById('reply-char-count').textContent = '0 / 500 characters';
-    modal.style.display = 'flex';
-    setTimeout(() => document.getElementById('reply-modal-text').focus(), 100);
-
-    const sendBtn = document.getElementById('reply-send-btn');
-    const newBtn = sendBtn.cloneNode(true);
-    sendBtn.parentNode.replaceChild(newBtn, sendBtn);
-    newBtn.addEventListener('click', function() {
-        const trimmed = document.getElementById('reply-modal-text').value.trim();
-        if (!trimmed) {
-            document.getElementById('reply-modal-text').style.borderColor = '#dc2626';
-            document.getElementById('reply-modal-text').placeholder = 'Reply cannot be empty!';
-            return;
-        }
-        newBtn.disabled = true;
-        newBtn.textContent = 'Sending…';
-        
-        const formData = new FormData();
-        formData.append('reply_review', '1');
-        formData.append('review_id', reviewId);
-        formData.append('reply', trimmed);
-        
-        fetch('admin_action.php', {
-            method: 'POST',
-            body: formData,
-            credentials: 'same-origin'
-        })
-        .then(r => r.json())
-        .then(data => {
-            modal.style.display = 'none';
-            if (data.success) {
-                showToast('✓ Reply saved and sent to customer.');
-                setTimeout(() => window.location.reload(), 1200);
-            } else {
-                alert(data.message || 'Could not save reply.');
-                newBtn.disabled = false;
-                newBtn.textContent = 'Send Reply';
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('Request failed. Please check the browser console and try again.');
-            newBtn.disabled = false;
-            newBtn.textContent = 'Send Reply';
-        });
-    });
-}
-
 function showToast(msg, isError = false) {
     let t = document.getElementById('admin-toast');
     if (!t) {
@@ -2024,7 +1935,31 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// ── Proof of Payment Lightbox ─────────────────────────────────
+function openProofLightbox(src, e) {
+  if (e) e.preventDefault();
+  const lb = document.getElementById('proofLightbox');
+  const img = document.getElementById('proofLightboxImg');
+  if (lb && img) {
+    img.src = src;
+    lb.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+}
+function closeProofLightbox() {
+  const lb = document.getElementById('proofLightbox');
+  if (lb) { lb.style.display = 'none'; document.body.style.overflow = ''; }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProofLightbox(); });
+
 </script>
+
+<!-- Proof Lightbox -->
+<div id="proofLightbox" onclick="closeProofLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <img id="proofLightboxImg" src="" alt="Proof of Payment"
+       style="max-width:94vw;max-height:90vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.6);object-fit:contain;">
+  <button onclick="closeProofLightbox()" style="position:fixed;top:18px;right:22px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.5rem;border-radius:50%;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+</div>
 
 </body>
 </html>

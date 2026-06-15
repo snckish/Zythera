@@ -555,15 +555,6 @@ Any feedback for us?"
           </div>
         </div>
         <p style="line-height:1.75;color:#555;margin:0;font-size:.88rem;"><?= nl2br(htmlspecialchars($oReview->comment)) ?></p>
-        <?php if (!empty($oReview->reply)): ?>
-        <div style="margin-top:16px;padding:14px;border-radius:14px;background:var(--sage-light);color:#2d5a2d;font-size:.86rem;line-height:1.7;">
-          <strong style="display:block;margin-bottom:8px;color:var(--deep-green);">Admin Reply</strong>
-          <?= nl2br(htmlspecialchars($oReview->reply)) ?>
-          <?php if (!empty($oReview->reply_created_at)): ?>
-          <div style="margin-top:10px;color:#666;font-size:.78rem;"><i class="fas fa-clock me-1"></i>Replied on <?= htmlspecialchars(date('F d, Y', strtotime($oReview->reply_created_at))) ?></div>
-          <?php endif; ?>
-        </div>
-        <?php endif; ?>
         <div class="d-flex align-items-center justify-content-between gap-3" style="margin-top:16px;flex-wrap:wrap;">
           <div style="color:#aaa;font-size:.78rem;"><i class="fas fa-calendar-alt me-1"></i>Submitted on <?= htmlspecialchars(date('F d, Y', strtotime($oReview->created_at))) ?></div>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleReviewEditForm(true)">
