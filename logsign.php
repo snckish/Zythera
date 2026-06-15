@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $check->execute([$email]);
 
-            if ($check->fetch()) {
+            if ($check->fetch() || isAdminEmail($email)) {
 
                 $message = 'Email already registered!';
                 $msgType = 'error';

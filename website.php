@@ -1135,7 +1135,7 @@ body.dark .review-edit-modal textarea:focus {
         <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
           <a href="#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
-          <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Message Us</a>
+          <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
           <?php if ($userEmail): ?>
             <div class="nav-user-capsule">
               <div class="text-end d-none d-md-block">
@@ -1545,7 +1545,7 @@ body.dark .review-edit-modal textarea:focus {
         </div>
         <!-- Contact col -->
         <div class="col-6 col-md-3 footer-col">
-          <p class="footer-col-title">Message Us</p>
+          <p class="footer-col-title">Contact Us</p>
           <a href="tel:+639123456789" class="footer-link"><i class="fas fa-phone"></i>+63 912 345 6789</a>
           <a href="mailto:zythera@gmail.com" class="footer-link"><i class="fas fa-envelope"></i>zythera@gmail.com</a>
           <span class="footer-link" style="cursor:default;"><i class="fas fa-map-marker-alt"></i>123 Furniture St, Philippines</span>

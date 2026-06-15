@@ -206,32 +206,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ext       = pathinfo($_FILES['pay_proof']['name'], PATHINFO_EXTENSION);
                 $proofName = 'proof_' . uniqid() . '.' . strtolower($ext);
                 $proofDir  = __DIR__ . '/uploads/proofs/';
-                // Ensure the full directory path exists (create uploads/ then uploads/proofs/)
-                if (!is_dir(__DIR__ . '/uploads/')) {
-                    mkdir(__DIR__ . '/uploads/', 0755, true);
-                }
-                if (!is_dir($proofDir)) {
-                    mkdir($proofDir, 0755, true);
-                }
-                // Check if the upload error code indicates a problem
-                if ($_FILES['pay_proof']['error'] !== UPLOAD_ERR_OK) {
-                    $uploadErrors = [
-                        UPLOAD_ERR_INI_SIZE   => 'File exceeds server upload limit.',
-                        UPLOAD_ERR_FORM_SIZE  => 'File exceeds form upload limit.',
-                        UPLOAD_ERR_PARTIAL    => 'File was only partially uploaded.',
-                        UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder on server.',
-                        UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
-                        UPLOAD_ERR_EXTENSION  => 'Upload blocked by server extension.',
-                    ];
-                    $errors[] = $uploadErrors[$_FILES['pay_proof']['error']] ?? 'Upload failed (error ' . $_FILES['pay_proof']['error'] . '). Please try again.';
-                } elseif (!is_writable($proofDir)) {
-                    $errors[] = 'Upload folder is not writable. Please contact support.';
-                } else {
-                    $proofPath = 'uploads/proofs/' . $proofName;
-                    if (!move_uploaded_file($_FILES['pay_proof']['tmp_name'], $proofDir . $proofName)) {
-                        $errors[] = 'Failed to save proof of payment. Please try again.';
-                        $proofPath = null;
-                    }
+                if (!is_dir($proofDir)) mkdir($proofDir, 0755, true);
+                $proofPath = 'uploads/proofs/' . $proofName;
+                if (!move_uploaded_file($_FILES['pay_proof']['tmp_name'], $proofDir . $proofName)) {
+                    $errors[] = 'Failed to upload proof of payment. Please try again.';
+                    $proofPath = null;
                 }
             }
         } else {
@@ -575,7 +554,7 @@ footer .footer-brand{font-family:'Playfair Display',serif;color:var(--green);fon
         <div class="field">
           <input type="text" id="zip" name="zip" placeholder=" " readonly
             value="<?= htmlspecialchars($_POST['zip'] ?? '') ?>">
-          <label>Postal Code</label>
+          <label>Postal Code (auto-filled)</label>
         </div>
 
         <!-- 8. Delivery Notes -->

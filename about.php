@@ -351,7 +351,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
         <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
           <a href="website.php#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
-          <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Message Us</a>
+          <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
           <?php if ($userEmail): ?>
             <div class="nav-user-capsule">
               <div class="text-end d-none d-md-block">
@@ -626,7 +626,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
           <a href="website.php#contact" class="about-footer-link">Contact</a>
         </div>
         <div class="col-6 col-md-3">
-          <p class="about-footer-col-title">Message Us</p>
+          <p class="about-footer-col-title">Contact Us</p>
           <a href="tel:+639123456789" class="about-footer-link"><i class="fas fa-phone me-2" style="font-size:.75rem;opacity:.55;"></i>+63 912 345 6789</a>
           <a href="mailto:zythera@gmail.com" class="about-footer-link"><i class="fas fa-envelope me-2" style="font-size:.75rem;opacity:.55;"></i>zythera@gmail.com</a>
           <span class="about-footer-link" style="cursor:default;"><i class="fas fa-map-marker-alt me-2" style="font-size:.75rem;opacity:.55;"></i>123 Furniture St, Philippines</span>
