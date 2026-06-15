@@ -1,3 +1,6 @@
+
+
+
 CREATE DATABASE IF NOT EXISTS zythera_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE zythera_db;
 
@@ -81,12 +84,12 @@ CREATE TABLE IF NOT EXISTS admins (
 CREATE TABLE IF NOT EXISTS user_address (
     address_id        VARCHAR(20)  NOT NULL,
     user_id           VARCHAR(20)  NOT NULL,
-    phone_num         VARCHAR(20),
-    st_address        VARCHAR(255),
-    barangay          VARCHAR(100),
-    city_municipality VARCHAR(100),
-    province          VARCHAR(100),
-    zip_code          VARCHAR(10),
+    phone_num         VARCHAR(20) NOT NULL,
+    province          VARCHAR(100) NOT NULL,
+    city_municipality VARCHAR(100) NOT NULL,
+    barangay          VARCHAR(100) NOT NULL,
+    st_address        VARCHAR(255) NOT NULL,
+    zip_code          VARCHAR(10) NOT NULL,
     PRIMARY KEY (address_id),
     CONSTRAINT fk_ua_user FOREIGN KEY (user_id) REFERENCES users (user_id)
         ON UPDATE CASCADE ON DELETE CASCADE
@@ -250,3 +253,4 @@ INSERT INTO product_inv (prod_id, category_id, prod_name, prod_desc, prod_size, 
 -- ============================================================
 ALTER TABLE payment
   ADD COLUMN IF NOT EXISTS pay_proof VARCHAR(255) DEFAULT NULL;
+
