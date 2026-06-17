@@ -218,10 +218,3 @@ INSERT INTO product_inv (prod_id, category_id, prod_name, prod_desc, prod_size, 
     (@p08, @cid_sofa,  'Light Gray Sectional Sofa',      'Minimalist L-shaped sofa with plush light gray upholstery paired with a marble-top coffee table.',                    'L250 x W160 x H90 cm', 'Light Gray, Dark Metal',  5, 27499.00, 'pci/download_(5).jpeg'),
     (@p09, @cid_chair, 'Classic Dining Chair Set',       'High-back dining chairs with beige fabric upholstery and solid walnut wood legs, sold as a pair.',                    'L58 x W52 x H88 cm',   'Beige, Walnut',         10,  9499.00, 'pci/download.jpeg'),
     (@p10, @cid_sofa,  'Gray Metal Frame Sofa Set',      'Industrial-style living room sofa set with gray cushions, black metal frames, and matching armchairs and coffee table.','L220 x W80 x H85 cm', 'Gray, Black',            9, 24999.00, 'pci/images_(3).jpeg');
--- ============================================================
--- MIGRATION: Add pay_proof column to existing payment table
--- Safe to run on existing databases (IF NOT EXISTS equivalent)
--- ============================================================
-ALTER TABLE payment
-  ADD COLUMN IF NOT EXISTS pay_proof VARCHAR(255) DEFAULT NULL;
-
