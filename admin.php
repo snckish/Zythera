@@ -851,6 +851,9 @@ if ($adminRole !== 'admin') {
         <button class="sidebar-link" onclick="showSection('reviews')" id="nav-reviews">
             <i class="fas fa-star"></i> Reviews
         </button>
+        <button class="sidebar-link" onclick="showSection('messages')" id="nav-messages">
+            <i class="fas fa-envelope"></i> Messages
+        </button>
 
         <div class="sidebar-label" style="margin-top:8px;">Store</div>
         <a href="website.php" class="sidebar-link">
@@ -1525,6 +1528,57 @@ if ($searchQuery !== '') {
 </div>
 </div><!-- /section-reviews -->
 
+<!-- ── SECTION: Messages ── -->
+<div id="section-messages" style="display:none;">
+<?php
+$contactMsgs = [];
+try {
+    $db2 = getDBConnection();
+    $contactStmt = $db2->query("SELECT * FROM messages ORDER BY created_at DESC");
+    $contactMsgs = $contactStmt->fetchAll();
+} catch (Exception $e) {
+    // Tables may not exist yet.
+}
+?>
+<div class="card p-4 mt-3">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-envelope" style="color:var(--deep-green);font-size:1.1rem;"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold mb-0" style="color:var(--deep-green);">Customer Messages</h5>
+        </div>
+    </div>
+    <?php if (empty($contactMsgs)): ?>
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-envelope-open fa-3x mb-3 opacity-25"></i>
+        <p>No messages received yet.</p>
+    </div>
+    <?php else: ?>
+    <div class="table-responsive">
+    <table class="table align-middle" style="font-size:.88rem;">
+        <thead>
+            <tr>
+                <th>Name</th><th>Email</th><th>Subject</th><th>Message</th><th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($contactMsgs as $m): ?>
+        <tr>
+            <td class="fw-semibold"><?= htmlspecialchars($m->full_name ?? '') ?></td>
+            <td><?= htmlspecialchars($m->email ?? '') ?></td>
+            <td><?= htmlspecialchars($m->subject ?? '') ?></td>
+            <td style="max-width:260px;white-space:pre-wrap;word-break:break-word;"><?= htmlspecialchars($m->message ?? '') ?></td>
+            <td style="white-space:nowrap;color:#999;"><?= htmlspecialchars($m->created_at ?? '') ?></td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    </div>
+    <?php endif; ?>
+</div>
+</div><!-- /section-messages -->
+
 </div><!-- /container -->
 </div><!-- /main-content -->
 
@@ -1548,10 +1602,11 @@ const sectionTitles = {
     orders:     'Order History',
     users:      'User Summary',
     reviews:    'User Reviews',
+    messages:   'Customer Messages',
 };
 
 function showSection(name) {
-    ['inventory','addproduct','analytics','orders','users','reviews'].forEach(s => {
+    ['inventory','addproduct','analytics','orders','users','reviews','messages'].forEach(s => {
         document.getElementById('section-' + s).style.display = s === name ? '' : 'none';
     });
     document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));

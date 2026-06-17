@@ -1,5 +1,6 @@
 <?php
 require 'config.php';
+require __DIR__ . '/includes/location_data.php';
 
 if (empty($_SESSION['logged_in_user'])) {
     header('Location: logsign.php');
@@ -22,10 +23,23 @@ $user = [
     'email'       => $dbUser->email ?? '',
     'role'        => $dbUser->role ?? 'user',
     'profile_pic' => $dbUser->profile_pic ?? null,
+    'phone_num'   => $dbUser->phone_num ?? '',
+    'birthday'    => $dbUser->birthday ?? '',
     'created_at'  => $dbUser->created_at ?? '',
 ];
 $userRole = $_SESSION['role'] ?? $user['role'];
 $isAdminAccount = ($userRole === 'admin');
+$uObj = $dbUser;
+$userName = $user['name'] ?? '';
+$loginTime = $_SESSION['login_time'] ?? null;
+$cartCount = 0;
+if ($userRole !== 'admin' && !empty($_SESSION['cart'][$userEmail]) && is_array($_SESSION['cart'][$userEmail])) {
+    $cartCount = count($_SESSION['cart'][$userEmail]);
+}
+$profileError = '';
+$activeSettingsTab = $_GET['tab'] ?? 'account';
+$allowedSettingsTabs = ['account', 'addresses', 'orders', 'security'];
+if (!in_array($activeSettingsTab, $allowedSettingsTabs, true)) $activeSettingsTab = 'account';
 
 if ($userRole !== 'admin') {
     if (!isset($_SESSION['orders'][$userEmail])) $_SESSION['orders'][$userEmail] = [];
@@ -33,67 +47,147 @@ if ($userRole !== 'admin') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    if (isset($_POST['update_profile'])) {
+    if (isset($_POST['update_account'])) {
         $newName = trim($_POST['name'] ?? '');
-        $newPass = trim($_POST['password'] ?? '');
+        $newPhone = preg_replace('/\D+/', '', $_POST['phone_num'] ?? '');
+        $newBirthday = trim($_POST['birthday'] ?? '');
         if ($newName === '') $newName = $user['name'];
-
-        if ($isAdminAccount) {
-            if (!empty($newPass)) {
-                if (strlen($newPass) < 6) die('Password must be at least 6 characters.');
-                $hashed = password_hash($newPass, PASSWORD_DEFAULT);
-                $_SESSION['admin_overrides'][$userEmail]['admin_fname'] = $newName;
-                $_SESSION['admin_overrides'][$userEmail]['password']    = $hashed;
-            } else {
-                $_SESSION['admin_overrides'][$userEmail]['admin_fname'] = $newName;
-            }
-        } else {
-            $nameParts = splitName($newName);
-            if (!empty($newPass)) {
-                if (strlen($newPass) < 6) die('Password must be at least 6 characters.');
-                $hashed = password_hash($newPass, PASSWORD_DEFAULT);
-                $db->prepare("UPDATE users SET fname=?, mname=?, lname=?, password=? WHERE email=?")
-                   ->execute([$nameParts['fname'], $nameParts['mname'], $nameParts['lname'], $hashed, $userEmail]);
-            } else {
-                $db->prepare("UPDATE users SET fname=?, mname=?, lname=? WHERE email=?")
-                   ->execute([$nameParts['fname'], $nameParts['mname'], $nameParts['lname'], $userEmail]);
-            }
+        if ($newPhone !== '' && !preg_match('/^[0-9]{10,11}$/', $newPhone)) {
+            $profileError = 'Phone number must be 10 or 11 digits.';
         }
-        header('Location: profile.php?updated=1');
-        exit;
+        if ($newBirthday !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $newBirthday)) {
+            $profileError = 'Please enter a valid birthday.';
+        }
+
+        if ($profileError === '') {
+            if ($isAdminAccount) {
+                if (tableExists('admins')) {
+                    $db->prepare("UPDATE admins SET admin_fname=? WHERE email=?")->execute([$newName, $userEmail]);
+                }
+            } else {
+                $nameParts = splitName($newName);
+                $db->prepare("UPDATE users SET fname=?, mname=?, lname=?, phone_num=?, birthday=? WHERE email=?")
+                   ->execute([$nameParts['fname'], $nameParts['mname'], $nameParts['lname'], $newPhone ?: null, $newBirthday ?: null, $userEmail]);
+            }
+            header('Location: profile.php?updated=1&tab=account');
+            exit;
+        }
+        $activeSettingsTab = 'account';
+    }
+
+    if (isset($_POST['change_password']) || isset($_POST['update_profile'])) {
+        $currentPass = trim($_POST['current_password'] ?? '');
+        $newPass = trim($_POST['password'] ?? '');
+
+        if (isset($_POST['update_profile']) && $isAdminAccount) {
+            $newName = trim($_POST['name'] ?? $user['name']);
+            if ($newPass !== '' && $currentPass === '') {
+                $profileError = 'Please enter your old password.';
+            } elseif ($newPass !== '' && !password_verify($currentPass, (string)($dbUser->password ?? ''))) {
+                $profileError = 'Old password is incorrect.';
+            } elseif ($newPass !== '' && strlen($newPass) < 6) {
+                $profileError = 'Password must be at least 6 characters.';
+            } elseif ($newPass !== '') {
+                if (tableExists('admins')) {
+                    $hashed = password_hash($newPass, PASSWORD_DEFAULT);
+                    $db->prepare("UPDATE admins SET admin_fname=?, password=? WHERE email=?")->execute([$newName, $hashed, $userEmail]);
+                }
+                header('Location: profile.php?updated=1');
+                exit;
+            } else {
+                if (tableExists('admins')) {
+                    $db->prepare("UPDATE admins SET admin_fname=? WHERE email=?")->execute([$newName, $userEmail]);
+                }
+                header('Location: profile.php?updated=1');
+                exit;
+            }
+        } elseif ($newPass === '') {
+            $profileError = 'Please enter a new password.';
+        } elseif ($currentPass === '') {
+            $profileError = 'Please enter your old password.';
+        } elseif (!password_verify($currentPass, (string)($dbUser->password ?? ''))) {
+            $profileError = 'Old password is incorrect.';
+        } elseif (strlen($newPass) < 6) {
+            $profileError = 'Password must be at least 6 characters.';
+        } else {
+            $hashed = password_hash($newPass, PASSWORD_DEFAULT);
+            if ($isAdminAccount) {
+                if (tableExists('admins')) {
+                    $db->prepare("UPDATE admins SET password=? WHERE email=?")->execute([$hashed, $userEmail]);
+                }
+            } else {
+                $db->prepare("UPDATE users SET password=? WHERE email=?")->execute([$hashed, $userEmail]);
+            }
+            header('Location: profile.php?updated=1&tab=security');
+            exit;
+        }
+        $activeSettingsTab = 'security';
+    }
+
+    if (!$isAdminAccount && isset($_POST['save_address'])) {
+        try {
+            $currentUserId = (string)$dbUser->user_id;
+            $addressId = trim($_POST['address_id'] ?? '');
+            saveUserAddress($currentUserId, [
+                'address_label' => $_POST['address_label'] ?? 'Home',
+                'phone_num' => $_POST['phone_num'] ?? '',
+                'st_address' => $_POST['st_address'] ?? '',
+                'barangay' => $_POST['barangay'] ?? '',
+                'city_municipality' => $_POST['city_municipality'] ?? '',
+                'province' => $_POST['province'] ?? '',
+                'zip_code' => $_POST['zip_code'] ?? '',
+                'is_default' => isset($_POST['is_default']),
+            ], $addressId !== '' ? $addressId : null);
+            header('Location: profile.php?updated=1&tab=addresses');
+            exit;
+        } catch (Throwable $e) {
+            $profileError = $e->getMessage();
+            $activeSettingsTab = 'addresses';
+        }
+    }
+
+    if (!$isAdminAccount && isset($_POST['set_default_address'])) {
+        try {
+            setDefaultAddress((string)$dbUser->user_id, trim($_POST['address_id'] ?? ''));
+            header('Location: profile.php?updated=1&tab=addresses');
+            exit;
+        } catch (Throwable $e) {
+            $profileError = $e->getMessage();
+            $activeSettingsTab = 'addresses';
+        }
+    }
+
+    if (!$isAdminAccount && isset($_POST['delete_address'])) {
+        try {
+            deleteUserAddress((string)$dbUser->user_id, trim($_POST['address_id'] ?? ''));
+            header('Location: profile.php?updated=1&tab=addresses');
+            exit;
+        } catch (Throwable $e) {
+            $profileError = 'This address is linked to an order and cannot be deleted.';
+            $activeSettingsTab = 'addresses';
+        }
     }
 
     if (isset($_POST['upload_pic']) && isset($_FILES['profile_pic'])) {
         $file = $_FILES['profile_pic'];
         if ($file['error'] === 0) {
-            $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-            $allowedExts  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-            $mimeType     = mime_content_type($file['tmp_name']);
-            $ext          = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-
-            if (!in_array($mimeType, $allowedMimes, true) || !in_array($ext, $allowedExts, true)) {
-                $_SESSION['profile_error'] = 'Profile picture must be a real image (JPG, PNG, GIF, WebP).';
-                header('Location: profile.php');
-                exit;
-            }
-
-            if ($file['size'] > 5 * 1024 * 1024) {
-                $_SESSION['profile_error'] = 'Profile picture must be under 5MB.';
-                header('Location: profile.php');
-                exit;
-            }
-
-            if (!is_dir('uploads/profile_pics')) mkdir('uploads/profile_pics', 0755, true);
-            $newName = uniqid('profile_', true) . '.' . $ext;
-            $target  = 'uploads/profile_pics/' . $newName;
-            if (move_uploaded_file($file['tmp_name'], $target)) {
-                if ($isAdminAccount) {
-                    $_SESSION['admin_overrides'][$userEmail]['admin_pfp'] = $target;
-                } else {
-                    $db->prepare("UPDATE users SET user_pfp=? WHERE email=?")->execute([$target, $userEmail]);
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed)) {
+                if (!is_dir('uploads/profile_pics')) mkdir('uploads/profile_pics', 0777, true);
+                $newName = uniqid('profile_', true) . '.' . $ext;
+                $target  = 'uploads/profile_pics/' . $newName;
+                if (move_uploaded_file($file['tmp_name'], $target)) {
+                    if ($isAdminAccount) {
+                        if (tableExists('admins')) {
+                            $db->prepare("UPDATE admins SET admin_pfp=? WHERE email=?")->execute([$target, $userEmail]);
+                        }
+                    } else {
+                        $db->prepare("UPDATE users SET user_pfp=? WHERE email=?")->execute([$target, $userEmail]);
+                    }
+                    header('Location: profile.php?updated=1');
+                    exit;
                 }
-                header('Location: profile.php?updated=1');
-                exit;
             }
         }
     }
@@ -103,7 +197,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unlink($user['profile_pic']);
         }
         if ($isAdminAccount) {
-            $_SESSION['admin_overrides'][$userEmail]['admin_pfp'] = null;
+            if (tableExists('admins')) {
+                $db->prepare("UPDATE admins SET admin_pfp=NULL WHERE email=?")->execute([$userEmail]);
+            }
         } else {
             $db->prepare("UPDATE users SET user_pfp=NULL WHERE email=?")->execute([$userEmail]);
         }
@@ -115,8 +211,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Data for rendering ─────────────────────────────────────────
 // FIX: Load orders with their items properly joined
 $orders = [];
+$addresses = [];
 if ($userRole !== 'admin') {
     $orders = loadUserOrders($userEmail);
+    $addresses = loadUserAddresses((string)$dbUser->user_id);
 }
 
 $pic = $dbUser->profile_pic ?? null;
@@ -201,6 +299,67 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             font-size: 1.5rem;
 .navbar-brand span { font-family: 'Playfair Display', serif; }
     }
+
+        .nav-link {
+            position: relative;
+            color: var(--green) !important;
+            font-size: .85rem;
+            padding: .35rem .55rem !important;
+            text-decoration: none;
+        }
+
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            left: .55rem;
+            right: .55rem;
+            bottom: 0;
+            height: 2px;
+            background: var(--green);
+            border-radius: 2px;
+            transform: scaleX(0);
+            transition: transform .2s ease;
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-user-capsule {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 50px;
+            padding: 6px 12px 6px 14px;
+            gap: 8px;
+            border: 1px solid rgba(45,90,45,.12);
+            transition: all .2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        }
+
+        .nav-user-capsule:hover {
+            border-color: rgba(45,90,45,.25);
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
+        }
+
+        .nav-user-capsule img {
+            border: 2.5px solid rgba(45,90,45,.15);
+            transition: border-color .2s ease;
+        }
+
+        .nav-user-capsule:hover img {
+            border-color: rgba(45,90,45,.3);
+        }
+
+        body.dark .nav-user-capsule {
+            background: #1f2937;
+            border-color: rgba(168,212,168,.15);
+        }
+
+        body.dark .nav-user-capsule:hover {
+            background: #2d3748;
+            border-color: rgba(168,212,168,.3);
+        }
 
         .profile-card {
             border: none;
@@ -643,6 +802,66 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             min-height: 500px;
         }
 
+        .settings-nav {
+            display: grid;
+            gap: 8px;
+        }
+
+        .settings-tab-btn {
+            width: 100%;
+            border: 2px solid transparent;
+            background: var(--cream);
+            color: var(--deep);
+            border-radius: 12px;
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: .18s;
+        }
+
+        .settings-tab-btn:hover,
+        .settings-tab-btn.active {
+            background: var(--sage);
+            border-color: var(--mid);
+            color: var(--green);
+        }
+
+        .settings-pane {
+            display: none;
+        }
+
+        .settings-pane.active {
+            display: block;
+        }
+
+        .address-card {
+            border: 2px solid var(--sage);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+            background: #fff;
+        }
+
+        .address-card.default {
+            border-color: var(--green);
+            background: #f8fdf8;
+        }
+
+        .label-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: var(--sage);
+            color: var(--green);
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
         /* ── ORDER STATUS TABS ── */
         .order-tabs {
             display: flex;
@@ -728,15 +947,55 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
 <body>
 
-    <nav class="navbar navbar-light px-4 py-2 fixed-top">
-        <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:#1a2e1a;font-weight:700;"> ZYTHERA </span></a>
-        <div class="ms-auto d-flex gap-2 align-items-center">
-            <?php if ($userRole !== 'admin'): ?>
-                <a href="website.php" class="btn btn-sm btn-outline-success rounded-pill">Shop</a>
-            <?php else: ?>
-                <a href="admin.php" class="btn btn-sm btn-dark rounded-pill">Admin Panel</a>
-            <?php endif; ?>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:var(--deep);font-weight:700;"> ZYTHERA </span></a>
 
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#profileNavMenu" aria-controls="profileNavMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="profileNavMenu">
+                <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
+                    <a href="website.php#products" class="nav-link fw-semibold">Products</a>
+                    <a href="about.php" class="nav-link fw-semibold">About</a>
+                    <a href="website.php#contact" class="nav-link fw-semibold">Contact Us</a>
+
+                    <div class="nav-user-capsule">
+                        <div class="text-end d-none d-md-block">
+                            <p class="mb-0 fw-bold" style="font-size:.78rem;color:var(--green);"><?= htmlspecialchars($userName) ?></p>
+                            <?php if ($loginTime): ?>
+                                <small class="text-muted" style="font-size:.6rem;"><span id="liveTime"></span></small>
+                            <?php endif; ?>
+                        </div>
+                        <div class="dropdown">
+                            <?php $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34); ?>
+                            <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="32" height="32" style="cursor:pointer;object-fit:cover;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius:14px;min-width:190px;">
+                                <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2 text-muted" style="font-size:.85rem;"></i>My Profile</a></li>
+                                <?php if ($userRole === 'admin'): ?>
+                                    <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2 text-muted" style="font-size:.85rem;"></i>Admin Panel</a></li>
+                                <?php endif; ?>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li><a class="dropdown-item py-2 text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <?php if ($userRole !== 'admin'): ?>
+                        <a href="website.php" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="21" r="1" />
+                                <circle cx="20" cy="21" r="1" />
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                            </svg>
+                            <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                                style="font-size:.55rem;background:var(--green);color:#fff;<?= $cartCount == 0 ? 'display:none;' : '' ?>">
+                                <?= $cartCount ?>
+                            </span>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -790,27 +1049,21 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                         </div>
 
                         <div class="p-4">
-                            <div class="section-title"><i class="fas fa-pen" style="color:var(--green);font-size:.9rem;"></i>Edit Profile</div>
-                            <form method="POST">
-                                <div class="mb-3">
-                                    <label class="form-label small fw-semibold" style="color:var(--green);">Full Name</label>
-                                    <input class="form-control" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-semibold" style="color:var(--green);">New Password</label>
-                                    <div class="position-relative">
-                                        <input class="form-control" name="password" type="password" id="pwField"
-                                            placeholder="Min 6 characters" autocomplete="new-password">
-                                        <button type="button" onclick="togglePw()" tabindex="-1"
-                                            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
-                                            <i class="fas fa-eye" id="pwEye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <button name="update_profile" class="btn-green btn w-100">Save Changes</button>
-                            </form>
-
-                            <!-- Member since -->
+                            <div class="section-title"><i class="fas fa-sliders" style="color:var(--green);font-size:.9rem;"></i>Settings</div>
+                            <div class="settings-nav" role="tablist" aria-label="Profile settings">
+                                <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'account' ? 'active' : '' ?>" data-settings-tab="account">
+                                    <i class="fas fa-user"></i>Account
+                                </button>
+                                <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'addresses' ? 'active' : '' ?>" data-settings-tab="addresses">
+                                    <i class="fas fa-location-dot"></i>Addresses
+                                </button>
+                                <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'orders' ? 'active' : '' ?>" data-settings-tab="orders">
+                                    <i class="fas fa-bag-shopping"></i>Orders
+                                </button>
+                                <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'security' ? 'active' : '' ?>" data-settings-tab="security">
+                                    <i class="fas fa-lock"></i>Security
+                                </button>
+                            </div>
                             <?php if (!empty($user['created_at'])): ?>
                             <div class="mt-4 pt-3" style="border-top:2px solid var(--sage);">
                                 <div style="font-size:.75rem;color:#aaa;text-align:center;">
@@ -826,6 +1079,167 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                 <!-- ── RIGHT: MY ORDERS ── -->
                 <div class="orders-col">
                     <div class="section-card" style="height:100%;">
+                        <?php if ($profileError): ?>
+                            <div class="alert alert-danger rounded-4" role="alert">
+                                <i class="fas fa-circle-exclamation me-2"></i><?= htmlspecialchars($profileError) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="settings-pane <?= $activeSettingsTab === 'account' ? 'active' : '' ?>" data-settings-pane="account">
+                            <div class="section-title">
+                                <i class="fas fa-user" style="color:var(--green);"></i>
+                                Account
+                            </div>
+                            <form method="POST" class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">Full Name</label>
+                                    <input class="form-control" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">Email Address</label>
+                                    <input class="form-control" value="<?= htmlspecialchars($user['email']) ?>" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">Phone Number</label>
+                                    <input class="form-control" name="phone_num" value="<?= htmlspecialchars($user['phone_num']) ?>" inputmode="numeric" maxlength="11">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">Birthday</label>
+                                    <input class="form-control" type="date" name="birthday" value="<?= htmlspecialchars($user['birthday']) ?>">
+                                </div>
+                                <div class="col-12">
+                                    <button name="update_account" class="btn-green btn">Save Account</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="settings-pane <?= $activeSettingsTab === 'addresses' ? 'active' : '' ?>" data-settings-pane="addresses">
+                            <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                                <div class="section-title mb-0">
+                                    <i class="fas fa-location-dot" style="color:var(--green);"></i>
+                                    Addresses
+                                </div>
+                                <button type="button" class="btn-green btn btn-sm" onclick="openAddressForm()">
+                                    <i class="fas fa-plus me-1"></i>Add Address
+                                </button>
+                            </div>
+
+                            <div id="addressFormWrap" style="display:<?= (isset($_POST['save_address']) && $profileError) ? 'block' : 'none' ?>;">
+                                <div class="address-card">
+                                    <form method="POST" class="row g-3" id="addressForm">
+                                        <input type="hidden" name="address_id" id="address_id" value="<?= htmlspecialchars($_POST['address_id'] ?? '') ?>">
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold" style="color:var(--green);">Label</label>
+                                            <select class="form-select" name="address_label" id="address_label">
+                                                <?php foreach (['Home','Work','Office','Other'] as $label): ?>
+                                                    <option value="<?= $label ?>"><?= $label ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold" style="color:var(--green);">Phone Number</label>
+                                            <input class="form-control" name="phone_num" id="addr_phone" inputmode="numeric" maxlength="11" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold" style="color:var(--green);">Province</label>
+                                            <select class="form-select" name="province" id="addr_province" required onchange="filterAddressCities()">
+                                                <option value="">Select Province</option>
+                                                <?php foreach ($provinces as $_p): ?>
+                                                    <option value="<?= htmlspecialchars($_p) ?>"><?= htmlspecialchars($_p) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold" style="color:var(--green);">City / Municipality</label>
+                                            <select class="form-select" name="city_municipality" id="addr_city" required onchange="updateAddressZip(); filterAddressBarangays();">
+                                                <option value="">Select City / Municipality</option>
+                                                <?php foreach ($cities as $_c): ?>
+                                                    <option value="<?= htmlspecialchars($_c) ?>"><?= htmlspecialchars($_c) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold" style="color:var(--green);">Barangay</label>
+                                            <select class="form-select" name="barangay" id="addr_barangay" required>
+                                                <option value="">Select Barangay</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label class="form-label small fw-semibold" style="color:var(--green);">House / Street Address</label>
+                                            <input class="form-control" name="st_address" id="addr_street" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold" style="color:var(--green);">ZIP Code</label>
+                                            <input class="form-control" name="zip_code" id="addr_zip" inputmode="numeric" maxlength="4" required>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="d-inline-flex align-items-center gap-2 small fw-semibold" style="color:var(--green);">
+                                                <input type="checkbox" name="is_default" id="addr_default" value="1"> Set as default address
+                                            </label>
+                                        </div>
+                                        <div class="col-12 d-flex gap-2">
+                                            <button class="btn-green btn" name="save_address">Save Address</button>
+                                            <button class="btn btn-outline-secondary rounded-pill px-4" type="button" onclick="closeAddressForm()">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <?php if (empty($addresses)): ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-map-location-dot"></i>
+                                    <p>No saved addresses yet.</p>
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($addresses as $addr): ?>
+                                    <?php $addrJson = htmlspecialchars(json_encode([
+                                        'address_id' => $addr->address_id,
+                                        'address_label' => $addr->address_label ?? 'Home',
+                                        'phone_num' => $addr->phone_num ?? '',
+                                        'province' => $addr->province ?? '',
+                                        'city_municipality' => $addr->city_municipality ?? '',
+                                        'barangay' => $addr->barangay ?? '',
+                                        'st_address' => $addr->st_address ?? '',
+                                        'zip_code' => $addr->zip_code ?? '',
+                                        'is_default' => (int)($addr->is_default ?? 0),
+                                    ]), ENT_QUOTES, 'UTF-8'); ?>
+                                    <div class="address-card <?= (int)($addr->is_default ?? 0) === 1 ? 'default' : '' ?>">
+                                        <div class="d-flex justify-content-between align-items-start gap-3">
+                                            <div>
+                                                <span class="label-pill"><i class="fas fa-tag"></i><?= htmlspecialchars($addr->address_label ?? 'Home') ?></span>
+                                                <?php if ((int)($addr->is_default ?? 0) === 1): ?>
+                                                    <span class="badge rounded-pill text-bg-success ms-1">Default</span>
+                                                <?php endif; ?>
+                                                <div class="fw-bold mt-2" style="color:var(--deep);">
+                                                    <?= htmlspecialchars($addr->st_address) ?>, <?= htmlspecialchars($addr->barangay) ?>
+                                                </div>
+                                                <div class="text-muted small">
+                                                    <?= htmlspecialchars($addr->city_municipality) ?>, <?= htmlspecialchars($addr->province) ?> <?= htmlspecialchars($addr->zip_code) ?>
+                                                </div>
+                                                <div class="text-muted small">
+                                                    <i class="fas fa-phone me-1"></i><?= htmlspecialchars($addr->phone_num) ?>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="editAddress(this)" data-address="<?= $addrJson ?>">Edit</button>
+                                                <?php if ((int)($addr->is_default ?? 0) !== 1): ?>
+                                                    <form method="POST">
+                                                        <input type="hidden" name="address_id" value="<?= htmlspecialchars($addr->address_id) ?>">
+                                                        <button class="btn btn-sm btn-outline-success rounded-pill" name="set_default_address">Set Default</button>
+                                                    </form>
+                                                <?php endif; ?>
+                                                <form method="POST" onsubmit="return confirm('Delete this address?');">
+                                                    <input type="hidden" name="address_id" value="<?= htmlspecialchars($addr->address_id) ?>">
+                                                    <button class="btn btn-sm btn-outline-danger rounded-pill" name="delete_address">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="settings-pane <?= $activeSettingsTab === 'orders' ? 'active' : '' ?>" data-settings-pane="orders">
                         <div class="section-title" style="margin-bottom:16px;">
                             <i class="fas fa-shopping-bag" style="color:var(--green);"></i>
                             My Orders
@@ -923,6 +1337,40 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                             </div>
                         <?php endif; ?>
 
+                        </div>
+
+                        <div class="settings-pane <?= $activeSettingsTab === 'security' ? 'active' : '' ?>" data-settings-pane="security">
+                            <div class="section-title">
+                                <i class="fas fa-lock" style="color:var(--green);"></i>
+                                Security
+                            </div>
+                            <form method="POST" style="max-width:520px;">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">Old Password</label>
+                                    <div class="position-relative">
+                                        <input class="form-control" name="current_password" type="password" id="oldPwField"
+                                            placeholder="Enter old password" autocomplete="current-password" required>
+                                        <button type="button" onclick="togglePw('oldPwField','oldPwEye')" tabindex="-1"
+                                            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
+                                            <i class="fas fa-eye" id="oldPwEye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">New Password</label>
+                                    <div class="position-relative">
+                                        <input class="form-control" name="password" type="password" id="newPwField"
+                                            placeholder="Min 6 characters" autocomplete="new-password" required>
+                                        <button type="button" onclick="togglePw('newPwField','newPwEye')" tabindex="-1"
+                                            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
+                                            <i class="fas fa-eye" id="newPwEye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button name="change_password" class="btn-green btn">Update Password</button>
+                            </form>
+                        </div>
+
                     </div>
                 </div><!-- /orders-col -->
 
@@ -967,13 +1415,24 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                                 <input class="form-control" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label small fw-semibold" style="color:var(--green);">Old Password</label>
+                                <div class="position-relative">
+                                    <input class="form-control" name="current_password" type="password" id="adminOldPwField"
+                                        placeholder="Required when changing password" autocomplete="current-password">
+                                    <button type="button" onclick="togglePw('adminOldPwField','adminOldPwEye')" tabindex="-1"
+                                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
+                                        <i class="fas fa-eye" id="adminOldPwEye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label small fw-semibold" style="color:var(--green);">New Password</label>
                                 <div class="position-relative">
-                                    <input class="form-control" name="password" type="password" id="pwField"
+                                    <input class="form-control" name="password" type="password" id="adminNewPwField"
                                         placeholder="Min 6 characters" autocomplete="new-password">
-                                    <button type="button" onclick="togglePw()" tabindex="-1"
+                                    <button type="button" onclick="togglePw('adminNewPwField','adminNewPwEye')" tabindex="-1"
                                         style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
-                                        <i class="fas fa-eye" id="pwEye"></i>
+                                        <i class="fas fa-eye" id="adminNewPwEye"></i>
                                     </button>
                                 </div>
                             </div>
@@ -995,6 +1454,64 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
         <script>
+        const PROFILE_PROVINCE_CITIES = <?= json_encode($provinceCities, JSON_UNESCAPED_UNICODE) ?>;
+        const PROFILE_CITY_ZIP_CODES = <?= json_encode($cityZipCodes, JSON_UNESCAPED_UNICODE) ?>;
+        const PROFILE_CITY_BARANGAYS = <?= json_encode($cityBarangays, JSON_UNESCAPED_UNICODE) ?>;
+        const PROFILE_ALL_CITIES = <?= json_encode($cities, JSON_UNESCAPED_UNICODE) ?>;
+        let savedProfileBarangay = '';
+
+        function filterAddressCities() {
+            const province = document.getElementById('addr_province')?.value || '';
+            const citySelect = document.getElementById('addr_city');
+            if (!citySelect) return;
+            const previous = citySelect.value;
+            const list = (PROFILE_PROVINCE_CITIES[province] && PROFILE_PROVINCE_CITIES[province].length)
+                ? PROFILE_PROVINCE_CITIES[province]
+                : PROFILE_ALL_CITIES;
+            citySelect.innerHTML = '<option value="">Select City / Municipality</option>';
+            list.forEach(function(city) {
+                const opt = document.createElement('option');
+                opt.value = city;
+                opt.textContent = city;
+                if (city === previous) opt.selected = true;
+                citySelect.appendChild(opt);
+            });
+            if (previous && !list.includes(previous)) citySelect.value = '';
+            updateAddressZip();
+            filterAddressBarangays();
+        }
+
+        function updateAddressZip() {
+            const city = document.getElementById('addr_city')?.value || '';
+            const zip = document.getElementById('addr_zip');
+            if (zip) zip.value = PROFILE_CITY_ZIP_CODES[city] || '';
+        }
+
+        function filterAddressBarangays() {
+            const city = document.getElementById('addr_city')?.value || '';
+            const barangaySelect = document.getElementById('addr_barangay');
+            if (!barangaySelect) return;
+            const previous = barangaySelect.value || savedProfileBarangay;
+            const list = (PROFILE_CITY_BARANGAYS[city] && PROFILE_CITY_BARANGAYS[city].length)
+                ? [...PROFILE_CITY_BARANGAYS[city]].sort()
+                : ['Poblacion', ...Array.from({length:30}, (_, i) => 'Barangay ' + (i + 1))];
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            list.forEach(function(barangay) {
+                const opt = document.createElement('option');
+                opt.value = barangay;
+                opt.textContent = barangay;
+                if (barangay === previous) opt.selected = true;
+                barangaySelect.appendChild(opt);
+            });
+            if (previous && barangaySelect.value !== previous) {
+                const opt = document.createElement('option');
+                opt.value = previous;
+                opt.textContent = previous;
+                opt.selected = true;
+                barangaySelect.appendChild(opt);
+            }
+        }
+
         function filterOrders(tab) {
             // Update active tab
             document.querySelectorAll('.order-tab').forEach(function(btn) {
@@ -1027,6 +1544,89 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                 }
             }
         }
+
+        function showSettingsTab(tab) {
+            document.querySelectorAll('.settings-tab-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.settingsTab === tab);
+            });
+            document.querySelectorAll('.settings-pane').forEach(function(pane) {
+                pane.classList.toggle('active', pane.dataset.settingsPane === tab);
+            });
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', tab);
+            window.history.replaceState({}, '', url);
+        }
+
+        document.querySelectorAll('.settings-tab-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                showSettingsTab(this.dataset.settingsTab);
+            });
+        });
+
+        function openAddressForm() {
+            const wrap = document.getElementById('addressFormWrap');
+            const form = document.getElementById('addressForm');
+            if (form) form.reset();
+            savedProfileBarangay = '';
+            document.getElementById('address_id').value = '';
+            filterAddressCities();
+            if (wrap) wrap.style.display = 'block';
+            wrap?.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+
+        function closeAddressForm() {
+            const wrap = document.getElementById('addressFormWrap');
+            if (wrap) wrap.style.display = 'none';
+        }
+
+        function editAddress(btn) {
+            const data = JSON.parse(btn.dataset.address || '{}');
+            document.getElementById('address_id').value = data.address_id || '';
+            document.getElementById('address_label').value = data.address_label || 'Home';
+            document.getElementById('addr_phone').value = data.phone_num || '';
+            savedProfileBarangay = data.barangay || '';
+            document.getElementById('addr_province').value = data.province || '';
+            filterAddressCities();
+            document.getElementById('addr_city').value = data.city_municipality || '';
+            updateAddressZip();
+            filterAddressBarangays();
+            document.getElementById('addr_barangay').value = data.barangay || '';
+            if (data.barangay && document.getElementById('addr_barangay').value !== data.barangay) {
+                const opt = document.createElement('option');
+                opt.value = data.barangay;
+                opt.textContent = data.barangay;
+                opt.selected = true;
+                document.getElementById('addr_barangay').appendChild(opt);
+            }
+            document.getElementById('addr_zip').value = data.zip_code || PROFILE_CITY_ZIP_CODES[data.city_municipality] || '';
+            document.getElementById('addr_street').value = data.st_address || '';
+            document.getElementById('addr_default').checked = Number(data.is_default || 0) === 1;
+            const wrap = document.getElementById('addressFormWrap');
+            if (wrap) wrap.style.display = 'block';
+            wrap?.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+
+        function togglePw(inputId = 'newPwField', eyeId = 'newPwEye') {
+            const input = document.getElementById(inputId);
+            const eye = document.getElementById(eyeId);
+            if (!input) return;
+            input.type = input.type === 'password' ? 'text' : 'password';
+            if (eye) eye.className = input.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
+
+        function updateProfileNavTime() {
+            const el = document.getElementById('liveTime');
+            if (el) el.textContent = new Date().toLocaleString('en-PH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        setInterval(updateProfileNavTime, 1000);
+        updateProfileNavTime();
         </script>
 
         <?php
@@ -1161,12 +1761,12 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                     }), 300);
                 }
 
-                function togglePw() {
-                    const input = document.getElementById('pwField');
+                function togglePw(inputId = 'newPwField', eyeId = 'newPwEye') {
+                    const input = document.getElementById(inputId);
                     if (!input) return;
                     const show = input.type === 'password';
                     input.type = show ? 'text' : 'password';
-                    const icon = document.querySelector('.fa-eye, .fa-eye-slash');
+                    const icon = document.getElementById(eyeId);
                     if (icon) icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
                 }
             </script>

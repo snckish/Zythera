@@ -12,11 +12,58 @@ if ($userEmail) {
 $userRole   = $_SESSION['role'] ?? 'user';
 $loginTime  = $_SESSION['login_time'] ?? null;
 
-// ── "Get in Touch" contact form ────────────────────────────────
-// Messages are now sent directly to Formspree (https://formspree.io/f/mbdewazl)
-// from the browser, so there's no server-side handling needed here.
+// ── Handle "Get in Touch" contact form ────────────────────────
 $contactSuccess = false;
 $contactError   = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
+  $cName    = trim($_POST['c_name']    ?? '');
+  $cEmail   = trim($_POST['c_email']   ?? '');
+  $cSubject = trim($_POST['c_subject'] ?? '');
+  $cMsg     = trim($_POST['c_message'] ?? '');
+
+  if ($cName && $cEmail && $cMsg) {
+    try {
+      $db2 = getDBConnection();
+      $msgUserId = null;
+      if ($userEmail) {
+        $msgUser = findUserByEmail($userEmail);
+        $msgUserId = $msgUser ? (string)$msgUser->user_id : null;
+      }
+      $newMsgId = generateCustomId('MSG');
+      $ins = $db2->prepare("
+                INSERT INTO messages (msg_id, user_id, full_name, email, subject, msg_content)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+      $ins->execute([$newMsgId, $msgUserId, $cName, $cEmail, $cSubject, $cMsg]);
+      // If request is AJAX, return JSON so client can clear only the message field
+      $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+      if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit;
+      }
+      // Non-AJAX fallback: PRG so the form clears and the message isn't re-submitted
+      header('Location: website.php?contact_sent=1#contact');
+      exit;
+    } catch (PDOException $e) {
+      $contactError = 'Could not send message. Please try again.';
+      $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+      if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => $contactError]);
+        exit;
+      }
+    }
+  } else {
+    $contactError = 'Please fill in your name, email, and message.';
+    $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    if ($isAjax) {
+      header('Content-Type: application/json');
+      echo json_encode(['success' => false, 'error' => $contactError]);
+      exit;
+    }
+  }
+}
 
 // If redirected after successful send, show success message
 if (!empty($_GET['contact_sent'])) {
@@ -857,133 +904,11 @@ body.dark .review-edit-modal textarea:focus {
     }
 
     /* CONTACT */
-    .contact-wrapper {
-      display: grid;
-      grid-template-columns: 1fr 1.4fr;
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card);
-      overflow: hidden;
-      min-height: 540px;
-    }
-
-    @media (max-width: 768px) {
-      .contact-wrapper { grid-template-columns: 1fr; }
-    }
-
-    /* Left info panel */
-    .contact-info-panel {
-      background: var(--green);
-      padding: 52px 44px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .contact-info-panel::before {
-      content: '';
-      position: absolute;
-      bottom: -60px;
-      left: -60px;
-      width: 260px;
-      height: 260px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.07);
-    }
-
-    .contact-info-panel::after {
-      content: '';
-      position: absolute;
-      top: -40px;
-      right: -40px;
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.05);
-    }
-
-    .contact-info-panel h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.8rem;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-
-    .contact-info-panel p.tagline {
-      color: rgba(255,255,255,.75);
-      font-size: .9rem;
-      line-height: 1.6;
-      margin-bottom: 40px;
-    }
-
-    .contact-detail {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 26px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .contact-detail-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      color: #fff;
-      font-size: .95rem;
-    }
-
-    .contact-detail-text strong {
-      display: block;
-      color: #fff;
-      font-size: .85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      margin-bottom: 2px;
-    }
-
-    .contact-detail-text span {
-      color: rgba(255,255,255,.8);
-      font-size: .88rem;
-    }
-
-    .contact-socials {
-      display: flex;
-      gap: 12px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .contact-social-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.15);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .9rem;
-      text-decoration: none;
-      transition: background .2s;
-    }
-
-    .contact-social-btn:hover {
-      background: rgba(255,255,255,.3);
-      color: #fff;
-    }
-
-    /* Right form panel */
     .contact-card {
       background: #fff;
-      padding: 52px 44px;
+      border-radius: var(--radius-card);
+      padding: 48px;
+      box-shadow: var(--shadow-card);
     }
 
     .input-box {
@@ -1211,9 +1136,6 @@ body.dark .review-edit-modal textarea:focus {
           <a href="#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
           <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
-          <?php if ($userEmail && $userRole !== 'admin'): ?>
-            <a href="orders.php" class="nav-link fw-semibold" style="color:var(--green)!important;">My Orders</a>
-          <?php endif; ?>
           <?php if ($userEmail): ?>
             <div class="nav-user-capsule">
               <div class="text-end d-none d-md-block">
@@ -1240,6 +1162,10 @@ body.dark .review-edit-modal textarea:focus {
 
             <!-- Cart icon — hidden for admin -->
             <?php if ($userRole !== 'admin'): ?>
+              <a href="profile.php" class="text-decoration-none d-flex align-items-center justify-content-center" title="Settings" aria-label="Profile settings"
+                style="width:36px;height:36px;border-radius:50%;background:#f0f7f0;border:1px solid rgba(45,90,45,.16);color:var(--green);transition:.2s;">
+                <i class="fas fa-gear" style="font-size:1rem;"></i>
+              </a>
               <a href="javascript:void(0)" onclick="openCart()" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="9" cy="21" r="1" />
@@ -1503,8 +1429,7 @@ body.dark .review-edit-modal textarea:focus {
         }, 1000);
       })();
 
-      // AJAX submit for contact form: sends to Formspree, clears only the
-      // message textarea/subject, and shows a toast
+      // AJAX submit for contact form: clears only the message textarea and shows a toast
       (function() {
         const form = document.getElementById('contactForm');
         const toast = document.getElementById('contactToast');
@@ -1525,29 +1450,26 @@ body.dark .review-edit-modal textarea:focus {
           }
 
           const data = new FormData(this);
-          const enteredEmail = form.querySelector('input[name=c_email]');
-          if (enteredEmail) data.set('_replyto', enteredEmail.value);
+          if (!data.has('send_message')) data.append('send_message', '1');
 
           try {
-            const res = await fetch(form.action, {
+            const res = await fetch('website.php', {
               method: 'POST',
               headers: {
+                'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
               },
               body: data
             });
             const json = await res.json();
-            if (res.ok) {
+            if (json && json.success) {
               const ta = form.querySelector('textarea[name=c_message]');
               const subject = form.querySelector('input[name=c_subject]');
               if (ta) ta.value = '';
               if (subject) subject.value = '';
               showToast("Message sent! We'll get back to you soon.", false);
             } else {
-              const errMsg = (json && json.errors && json.errors[0] && json.errors[0].message)
-                ? json.errors[0].message
-                : 'Could not send message. Please try again.';
-              showToast(errMsg, true);
+              showToast(json.error || 'Could not send message. Please try again.', true);
             }
           } catch (err) {
             showToast('Network error. Please try again later.', true);
@@ -1566,84 +1488,30 @@ body.dark .review-edit-modal textarea:focus {
   <section class="section" id="contact">
     <div class="container">
       <h2 class="section-title text-center">Get in Touch</h2>
-      <div class="row justify-content-center">
-        <div class="col-lg-10">
-          <div class="contact-wrapper">
-
-            <!-- LEFT: Info Panel -->
-            <div class="contact-info-panel">
-              <div>
-                <h3>Let's Talk</h3>
-                <p class="tagline">Have a question about an order, a product, or anything else? We're here to help and would love to hear from you.</p>
-
-                <div class="contact-detail">
-                  <div class="contact-detail-icon"><i class="fas fa-map-marker-alt"></i></div>
-                  <div class="contact-detail-text">
-                    <strong>Visit Us</strong>
-                    <span>123 Zythera Ave, Calamba City, Laguna</span>
-                  </div>
+      <div class="row g-4 justify-content-center">
+        <div class="col-lg-8">
+          <div class="contact-card">
+            <h5 class="fw-bold mb-5" style="font-family:'Playfair Display',serif;color:var(--green);font-size:1.5rem;">Contact Us</h5>
+            <?php if ($contactSuccess): ?>
+            <?php elseif ($contactError): ?>
+              <div style="background:#fee2e2;color:#b91c1c;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
+                <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($contactError) ?>
+              </div>
+            <?php endif; ?>
+            <form id="contactForm" method="POST" action="website.php#contact">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
                 </div>
-
-                <div class="contact-detail">
-                  <div class="contact-detail-icon"><i class="fas fa-envelope"></i></div>
-                  <div class="contact-detail-text">
-                    <strong>Email Us</strong>
-                    <span>hello@zythera.com</span>
-                  </div>
-                </div>
-
-                <div class="contact-detail">
-                  <div class="contact-detail-icon"><i class="fas fa-phone-alt"></i></div>
-                  <div class="contact-detail-text">
-                    <strong>Call Us</strong>
-                    <span>+63 912 345 6789</span>
-                  </div>
-                </div>
-
-                <div class="contact-detail">
-                  <div class="contact-detail-icon"><i class="fas fa-clock"></i></div>
-                  <div class="contact-detail-text">
-                    <strong>Business Hours</strong>
-                    <span>Mon–Sat &nbsp;9:00 AM – 6:00 PM</span>
-                  </div>
+                <div class="col-md-6">
+                  <div class="input-box"><input type="email" name="c_email" placeholder=" " value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>" required><label>Email Address</label></div>
                 </div>
               </div>
-
-              <div class="contact-socials">
-                <a href="#" class="contact-social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="contact-social-btn" title="Instagram"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="contact-social-btn" title="Twitter / X"><i class="fab fa-x-twitter"></i></a>
-                <a href="#" class="contact-social-btn" title="TikTok"><i class="fab fa-tiktok"></i></a>
-              </div>
-            </div>
-
-            <!-- RIGHT: Form -->
-            <div class="contact-card">
-              <h5 class="fw-bold mb-5" style="font-family:'Playfair Display',serif;color:var(--green);font-size:1.5rem;">Message Us</h5>
-              <?php if ($contactSuccess): ?>
-              <?php elseif ($contactError): ?>
-                <div style="background:#fee2e2;color:#b91c1c;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;font-size:.9rem;">
-                  <i class="fas fa-exclamation-circle me-2"></i><?= htmlspecialchars($contactError) ?>
-                </div>
-              <?php endif; ?>
-              <form id="contactForm" method="POST" action="https://formspree.io/f/mbdewazl">
-                <input type="hidden" name="_subject" value="New message from Zythera contact form">
-                <input type="hidden" name="_replyto" value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <div class="input-box"><input type="text" name="c_name" placeholder=" " value="<?= htmlspecialchars($_POST['c_name'] ?? ($userName ?? '')) ?>" required><label>Full Name</label></div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="input-box"><input type="email" name="c_email" placeholder=" " value="<?= htmlspecialchars($_POST['c_email'] ?? ($userEmail ?? '')) ?>" required><label>Email Address</label></div>
-                  </div>
-                </div>
-                <div class="input-box mt-3"><input type="text" name="c_subject" placeholder=" " value="<?= htmlspecialchars($_POST['c_subject'] ?? '') ?>"><label>Subject</label></div>
-                <div class="input-box mt-3"><textarea name="c_message" placeholder=" " required style="min-height:180px;"><?= htmlspecialchars($_POST['c_message'] ?? '') ?></textarea><label>Your Message</label></div>
-                <button type="submit" class="btn w-100 fw-bold text-white rounded-pill py-3 mt-4" style="background:var(--green);font-size:1rem;letter-spacing:0.5px;">Send Message</button>
-              </form>
-              <div id="contactToast" class="toast-fixed" aria-live="polite" aria-atomic="true"></div>
-            </div>
-
+              <div class="input-box mt-3"><input type="text" name="c_subject" placeholder=" " value="<?= htmlspecialchars($_POST['c_subject'] ?? '') ?>"><label>Subject</label></div>
+              <div class="input-box mt-3"><textarea name="c_message" placeholder=" " required style="min-height:180px;"><?= htmlspecialchars($_POST['c_message'] ?? '') ?></textarea><label>Your Message</label></div>
+              <button type="submit" name="send_message" class="btn w-100 fw-bold text-white rounded-pill py-3 mt-4" style="background:var(--green);font-size:1rem;letter-spacing:0.5px;">Send Message</button>
+            </form>
+            <div id="contactToast" class="toast-fixed" aria-live="polite" aria-atomic="true"></div>
           </div>
         </div>
       </div>
@@ -1745,37 +1613,91 @@ body.dark .review-edit-modal textarea:focus {
         </div>
       </div>
 
-      <!-- Select All bar -->
-      <div id="cartSelectAllBar" style="display:none;padding:10px 20px;background:#eef5ee;border-bottom:1px solid #d4e4d4;flex-shrink:0;align-items:center;justify-content:space-between;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.82rem;font-weight:600;color:#1a2e1a;user-select:none;">
-          <input type="checkbox" id="cartSelectAll" onchange="toggleSelectAll(this.checked)"
-            style="width:17px;height:17px;accent-color:#2d5a2d;cursor:pointer;flex-shrink:0;">
-          Select All
-        </label>
-        <span id="cartSelectedCount" style="font-size:.78rem;color:#7aab7a;font-weight:600;"></span>
-      </div>
-
-      <!-- Items list (rendered by JS renderCart()) -->
+      <!-- Items list -->
       <div id="cartItems" style="flex:1;overflow-y:auto;padding:16px;background:#f9f9f6;">
         <?php
         $initSubtotal = 0;
-        foreach ($_SESSION['cart'][$userEmail] ?? [] as $ci)
-          $initSubtotal += (float)($ci['price'] ?? 0) * (int)($ci['qty'] ?? 1);
+        // Build a stock lookup from session inventory
+        $invStock = [];
+        foreach ($_SESSION['inventory'] ?? [] as $invId => $inv) {
+          $invStock[$invId] = (int)$inv->stock;
+        }
+        if ($userEmail && !empty($_SESSION['cart'][$userEmail])):
+          foreach ($_SESSION['cart'][$userEmail] as $ci):
+            $ciPrice  = (float)($ci['price'] ?? 0);
+            $ciQty    = (int)($ci['qty'] ?? 1);
+            $ciId     = (string)($ci['inv_id'] ?? '');
+            $ciTotal  = $ciPrice * $ciQty;
+            $ciStock  = $invStock[$ciId] ?? 99;
+            $initSubtotal += $ciTotal;
+            $stockLabel = $ciStock === 0 ? 'Out of Stock' : ($ciStock <= 5 ? 'Low stock: ' . $ciStock . ' left' : 'In stock: ' . $ciStock);
+            $stockColor = $ciStock === 0 ? '#dc2626' : ($ciStock <= 5 ? '#f59e0b' : '#16a34a');
         ?>
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;
+            box-shadow:0 2px 10px rgba(0,0,0,.06);">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                <input type="checkbox" class="cart-select-checkbox" value="<?= htmlspecialchars($ciId) ?>"
+                  onchange="toggleCartSelection('<?= htmlspecialchars($ciId) ?>', this.checked)"
+                  style="width:18px;height:18px;accent-color:var(--green);flex-shrink:0;cursor:pointer;"
+                  aria-label="Select <?= htmlspecialchars($ci['name'] ?? 'item') ?> for checkout">
+                <img src="<?= htmlspecialchars($ci['image'] ?? '') ?>" alt=""
+                  style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;"
+                  onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-weight:600;color:#1a2e1a;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    <?= htmlspecialchars($ci['name'] ?? '') ?>
+                  </div>
+                  <div style="color:#7aab7a;font-size:.76rem;margin-top:1px;">₱<?= number_format($ciPrice, 2) ?> each</div>
+                  <div style="font-size:.68rem;color:<?= $stockColor ?>;font-weight:600;margin-top:2px;">
+                    <?= $stockLabel ?>
+                  </div>
+                </div>
+                <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;">
+                  ₱<?= number_format($ciTotal, 2) ?>
+                </div>
+              </div>
+              <!-- Qty stepper + remove row -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+                <div style="display:flex;align-items:center;gap:0;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
+                  <button onclick="cartQty('<?= $ciId ?>', 'minus')"
+                    style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
+                  <span id="panel-qty-<?= $ciId ?>" style="width:34px;text-align:center;font-weight:700;font-size:.88rem;color:#1a2e1a;"><?= $ciQty ?></span>
+                  <button onclick="cartQty('<?= $ciId ?>', 'plus')"
+                    style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">+</button>
+                </div>
+                <button onclick="cartQty('<?= $ciId ?>', 'remove')"
+                  style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;"
+                  onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
+                  <i class="fas fa-trash-alt" style="margin-right:4px;"></i>Remove
+                </button>
+              </div>
+            </div>
+          <?php
+          endforeach;
+        else: ?>
+          <div style="text-align:center;padding:60px 20px;color:#bbb;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d4e4d4" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:14px;display:block;margin-left:auto;margin-right:auto;">
+              <circle cx="9" cy="21" r="1" />
+              <circle cx="20" cy="21" r="1" />
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+            </svg>
+            <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
+          </div>
+        <?php endif; ?>
       </div>
 
-      <!-- Footer with selected subtotal + checkout -->
+      <!-- Footer with subtotal + checkout -->
       <div id="cartFooter" style="padding:16px 20px;background:#fff;border-top:2px solid #f0f0eb;flex-shrink:0;<?= ($initSubtotal > 0) ? '' : 'display:none;' ?>">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="font-weight:600;color:#666;font-size:.85rem;">SELECTED SUBTOTAL</span>
-          <span id="cartSubtotal" style="font-weight:800;color:#2d5a2d;font-size:1.15rem;">₱0</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <span style="font-weight:600;color:#666;font-size:.85rem;">SUBTOTAL</span>
+          <span id="cartSubtotal" style="font-weight:800;color:#2d5a2d;font-size:1.15rem;">₱<?= number_format($initSubtotal) ?></span>
         </div>
-        <div id="cartNoSelectionMsg" style="display:none;color:#dc2626;font-size:.75rem;font-weight:600;margin-bottom:8px;text-align:center;">
-          ⚠ Please select at least one item to proceed.
+        <div id="cartSelectionError" style="display:none;color:#b91c1c;background:#fee2e2;border-radius:10px;padding:8px 10px;font-size:.78rem;font-weight:700;margin-bottom:10px;text-align:center;">
+          Please select products first.
         </div>
-        <button onclick="proceedToCheckout()" style="display:block;width:100%;background:var(--green);color:#fff;text-align:center;padding:14px;border-radius:50px;border:none;font-weight:700;font-size:.95rem;cursor:pointer;transition:.2s;">
+        <a href="checkout.php" id="checkoutSelectedBtn" onclick="return goToSelectedCheckout(event)" style="display:block;background:var(--green);color:#fff;text-align:center;padding:14px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;transition:.2s;">
           Checkout Now
-        </button>
+        </a>
       </div>
     </div>
     <div id="cartBackdrop" onclick="closeCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;backdrop-filter:blur(2px);"></div>
@@ -1831,6 +1753,7 @@ body.dark .review-edit-modal textarea:focus {
     let cartItemsJS = <?= json_encode(array_values(array_map(function ($i) {
                         return ['inv_id' => (string)($i['inv_id'] ?? ''), 'name' => $i['name'] ?? '', 'price' => (float)($i['price'] ?? 0), 'qty' => (int)($i['qty'] ?? 1), 'image' => $i['image'] ?? ''];
                       }, $_SESSION['cart'][$userEmail] ?? []))) ?>;
+    let selectedCartIds = new Set(JSON.parse(localStorage.getItem('zythera_selected_cart') || '[]').map(String));
     // Stock map from PHP inventory (inv_id => stock)
     const stockMap = <?= json_encode(array_combine(
                         array_keys($_SESSION['inventory'] ?? []),
@@ -1871,8 +1794,49 @@ body.dark .review-edit-modal textarea:focus {
       document.body.style.overflow = '';
     }
 
-    // ── Selected item IDs set (persists across re-renders) ────────
-    let selectedCartIds = new Set();
+    function syncSelectedCartIds() {
+      const currentIds = new Set(cartItemsJS.map(item => String(item.inv_id)));
+      selectedCartIds = new Set([...selectedCartIds].filter(id => currentIds.has(id)));
+      localStorage.setItem('zythera_selected_cart', JSON.stringify([...selectedCartIds]));
+    }
+
+    function toggleCartSelection(itemId, checked) {
+      itemId = String(itemId);
+      if (checked) selectedCartIds.add(itemId);
+      else selectedCartIds.delete(itemId);
+      syncSelectedCartIds();
+      const err = document.getElementById('cartSelectionError');
+      if (err && selectedCartIds.size > 0) err.style.display = 'none';
+    }
+
+    function goToSelectedCheckout(event) {
+      syncSelectedCartIds();
+      if (selectedCartIds.size === 0) {
+        if (event) event.preventDefault();
+        const err = document.getElementById('cartSelectionError');
+        if (err) {
+          err.textContent = 'Please select products first.';
+          err.style.display = 'block';
+        }
+        openCart();
+        return false;
+      }
+      const selected = encodeURIComponent([...selectedCartIds].join(','));
+      window.location.href = 'checkout.php?selected=' + selected;
+      if (event) event.preventDefault();
+      return false;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      if (new URLSearchParams(window.location.search).get('cart_error') === 'select_items') {
+        const err = document.getElementById('cartSelectionError');
+        if (err) {
+          err.textContent = 'Please select products first.';
+          err.style.display = 'block';
+        }
+        openCart();
+      }
+    });
 
     // ── Re-render cart panel items + subtotal + header count ──────
     function renderCart() {
@@ -1880,10 +1844,12 @@ body.dark .review-edit-modal textarea:focus {
       const footer = document.getElementById('cartFooter');
       const subEl = document.getElementById('cartSubtotal');
       const countEl = document.getElementById('cartItemCount');
-      const selectAllBar = document.getElementById('cartSelectAllBar');
 
-      let totalQty = 0,
+      let subtotal = 0,
+        totalQty = 0,
         distinctCount = cartItemsJS.length;
+
+      syncSelectedCartIds();
 
       if (cartItemsJS.length === 0) {
         container.innerHTML = `
@@ -1897,17 +1863,14 @@ body.dark .review-edit-modal textarea:focus {
             <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
           </div>`;
         if (footer) footer.style.display = 'none';
-        if (selectAllBar) selectAllBar.style.display = 'none';
         if (countEl) countEl.textContent = 'Your cart is empty';
         const badge = document.getElementById('cart-badge');
-        if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
-        selectedCartIds.clear();
+        if (badge) {
+          badge.textContent = '0';
+          badge.style.display = 'none';
+        }
         return;
       }
-
-      // Remove IDs from selectedCartIds that are no longer in cart
-      const currentIds = new Set(cartItemsJS.map(i => String(i.inv_id)));
-      selectedCartIds.forEach(id => { if (!currentIds.has(id)) selectedCartIds.delete(id); });
 
       let html = '';
       cartItemsJS.forEach(item => {
@@ -1915,9 +1878,11 @@ body.dark .review-edit-modal textarea:focus {
         const qty = Number(item.qty) || 1;
         const lineTotal = price * qty;
         const stock = stockMap[item.inv_id] ?? 99;
+        subtotal += lineTotal;
         totalQty += qty;
         const imgSrc = item.image || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop';
-        const isChecked = selectedCartIds.has(String(item.inv_id));
+        const itemId = String(item.inv_id);
+        const checked = selectedCartIds.has(itemId) ? 'checked' : '';
 
         const stockLabel = stock === 0 ? 'Out of Stock' :
           stock <= 5 ? 'Low stock: ' + stock + ' left' :
@@ -1926,18 +1891,14 @@ body.dark .review-edit-modal textarea:focus {
 
         html += `
           <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;
-            box-shadow:0 2px 10px rgba(0,0,0,.06);transition:box-shadow .15s;border:2px solid ${isChecked ? '#2d5a2d' : 'transparent'};"
-            id="cart-card-${item.inv_id}">
-            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
-              <!-- Checkbox -->
-              <label style="display:flex;align-items:center;padding-top:18px;cursor:pointer;flex-shrink:0;">
-                <input type="checkbox" data-cart-id="${item.inv_id}"
-                  onchange="onCartItemCheck('${item.inv_id}', this.checked)"
-                  ${isChecked ? 'checked' : ''}
-                  style="width:17px;height:17px;accent-color:#2d5a2d;cursor:pointer;">
-              </label>
+            box-shadow:0 2px 10px rgba(0,0,0,.06);">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+              <input type="checkbox" class="cart-select-checkbox" value="${escHtml(itemId)}" ${checked}
+                onchange="toggleCartSelection('${escHtml(itemId)}', this.checked)"
+                style="width:18px;height:18px;accent-color:var(--green);flex-shrink:0;cursor:pointer;"
+                aria-label="Select ${escHtml(String(item.name || 'item'))} for checkout">
               <img src="${escHtml(imgSrc)}" alt=""
-                style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;margin-top:2px;"
+                style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;"
                 onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;color:#1a2e1a;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
@@ -1946,11 +1907,11 @@ body.dark .review-edit-modal textarea:focus {
                 <div style="color:#7aab7a;font-size:.76rem;margin-top:1px;">₱${price.toLocaleString('en-PH')} each</div>
                 <div style="font-size:.68rem;color:${stockColor};font-weight:600;margin-top:2px;">${stockLabel}</div>
               </div>
-              <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;padding-top:2px;">
+              <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;">
                 ₱${lineTotal.toLocaleString('en-PH')}
               </div>
             </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;padding-left:27px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
               <div style="display:flex;align-items:center;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
                 <button onclick="cartQty('${item.inv_id}','minus')"
                   style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
@@ -1969,7 +1930,7 @@ body.dark .review-edit-modal textarea:focus {
       });
 
       container.innerHTML = html;
-      if (selectAllBar) selectAllBar.style.display = 'flex';
+      if (subEl) subEl.textContent = '₱' + subtotal.toLocaleString('en-PH');
       if (footer) footer.style.display = 'block';
       if (countEl) {
         countEl.textContent = distinctCount === 1 ? '1 item in cart' : distinctCount + ' items in cart';
@@ -1979,69 +1940,6 @@ body.dark .review-edit-modal textarea:focus {
         badge.textContent = distinctCount;
         badge.style.display = distinctCount > 0 ? '' : 'none';
       }
-      updateCartSelection();
-    }
-
-    // ── Handle individual checkbox change ─────────────────────────
-    function onCartItemCheck(invId, checked) {
-      if (checked) selectedCartIds.add(String(invId));
-      else selectedCartIds.delete(String(invId));
-      updateCartSelection();
-    }
-
-    // ── Toggle select all ─────────────────────────────────────────
-    function toggleSelectAll(checked) {
-      if (checked) cartItemsJS.forEach(i => selectedCartIds.add(String(i.inv_id)));
-      else selectedCartIds.clear();
-      // Update individual checkboxes
-      document.querySelectorAll('input[data-cart-id]').forEach(cb => {
-        cb.checked = checked;
-        const card = document.getElementById('cart-card-' + cb.dataset.cartId);
-        if (card) card.style.borderColor = checked ? '#2d5a2d' : 'transparent';
-      });
-      updateCartSelection();
-    }
-
-    // ── Recompute selected subtotal + UI state ────────────────────
-    function updateCartSelection() {
-      const subEl = document.getElementById('cartSubtotal');
-      const selectAllCb = document.getElementById('cartSelectAll');
-      const selectedCountEl = document.getElementById('cartSelectedCount');
-      const noSelMsg = document.getElementById('cartNoSelectionMsg');
-
-      let selectedSubtotal = 0;
-      let checkedCount = 0;
-      cartItemsJS.forEach(item => {
-        if (selectedCartIds.has(String(item.inv_id))) {
-          selectedSubtotal += (Number(item.price) || 0) * (Number(item.qty) || 1);
-          checkedCount++;
-        }
-        // Keep card border in sync
-        const card = document.getElementById('cart-card-' + item.inv_id);
-        const cb = document.querySelector('input[data-cart-id="' + item.inv_id + '"]');
-        if (card) card.style.borderColor = selectedCartIds.has(String(item.inv_id)) ? '#2d5a2d' : 'transparent';
-        if (cb) cb.checked = selectedCartIds.has(String(item.inv_id));
-      });
-
-      if (subEl) subEl.textContent = '₱' + selectedSubtotal.toLocaleString('en-PH');
-      if (selectedCountEl) selectedCountEl.textContent = checkedCount + ' of ' + cartItemsJS.length + ' selected';
-      if (selectAllCb) {
-        selectAllCb.checked = checkedCount === cartItemsJS.length && cartItemsJS.length > 0;
-        selectAllCb.indeterminate = checkedCount > 0 && checkedCount < cartItemsJS.length;
-      }
-      if (noSelMsg) noSelMsg.style.display = 'none';
-    }
-
-    // ── Proceed to checkout with only selected items ───────────────
-    function proceedToCheckout() {
-      if (selectedCartIds.size === 0) {
-        const noSelMsg = document.getElementById('cartNoSelectionMsg');
-        if (noSelMsg) noSelMsg.style.display = 'block';
-        return;
-      }
-      // Store selected IDs in sessionStorage so checkout.php can filter
-      sessionStorage.setItem('zythera_checkout_ids', JSON.stringify([...selectedCartIds]));
-      window.location.href = 'checkout.php';
     }
 
     // ── Qty stepper in cart sidebar → update_cart.php ────────────

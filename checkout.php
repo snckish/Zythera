@@ -27,6 +27,15 @@ if (!$dbUser) {
 }
 
 $userName = $dbUser->name ?? '';
+$savedAddresses = loadUserAddresses((string)$dbUser->user_id);
+$defaultAddress = null;
+foreach ($savedAddresses as $addr) {
+    if ((int)($addr->is_default ?? 0) === 1) {
+        $defaultAddress = $addr;
+        break;
+    }
+}
+if (!$defaultAddress && !empty($savedAddresses)) $defaultAddress = $savedAddresses[0];
 
 // ── Load cart from DB ─────────────────────────────────────────
 session_write_close();
@@ -40,6 +49,34 @@ if (empty($cart)) {
     exit;
 }
 
+$selectedRaw = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $selectedRaw = trim($_POST['selected_items'] ?? '');
+} elseif (isset($_GET['selected'])) {
+    $selectedRaw = trim($_GET['selected'] ?? '');
+}
+if ($selectedRaw !== '') {
+    $_SESSION['checkout_selected'][$userEmail] = $selectedRaw;
+} else {
+    $selectedRaw = trim($_SESSION['checkout_selected'][$userEmail] ?? '');
+}
+
+$selectedItemIds = array_values(array_unique(array_filter(array_map('trim', explode(',', $selectedRaw)), fn($id) => $id !== '')));
+if (empty($selectedItemIds)) {
+    header('Location: website.php?cart_error=select_items');
+    exit;
+}
+
+$cart = array_values(array_filter($cart, function ($item) use ($selectedItemIds) {
+    return in_array((string)($item['inv_id'] ?? ''), $selectedItemIds, true);
+}));
+
+if (empty($cart)) {
+    unset($_SESSION['checkout_selected'][$userEmail]);
+    header('Location: website.php?cart_error=select_items');
+    exit;
+}
+
 // ── Compute totals ────────────────────────────────────────────
 $subtotal = 0;
 foreach ($cart as $ci) {
@@ -49,137 +86,96 @@ $shipping = $subtotal > 0 ? 150 : 0;
 $total    = $subtotal + $shipping;
 
 // ── Allowed locations ──────────────────────────────────────────
-$provinces = [
-  'Metro Manila','Cavite','Laguna','Batangas','Bulacan','Pampanga','Rizal',
-  'Quezon','Nueva Ecija','Cebu','Davao del Sur','Iloilo','Bohol','Pangasinan',
-  'Bicol Region','Negros Occidental','Negros Oriental','Leyte','Samar','Zamboanga del Sur',
-  'Misamis Oriental','Bukidnon','Cagayan','Isabela','Benguet','Mountain Province',
-  'Tarlac','Zambales','Bataan','Aurora','Quezon City (Standalone)'
-];
-
-$provinceCities = [
-  'Metro Manila' => ['Manila','Quezon City','Makati','Pasig','Taguig','Parañaque','Caloocan','Las Piñas','Mandaluyong','Marikina','Muntinlupa','Navotas','Pasay','Pateros','San Juan','Valenzuela'],
-  'Cavite'      => ['Cavite City','Bacoor','Imus','Dasmariñas','General Trias','Tagaytay','Trece Martires','Silang'],
-  'Laguna'      => ['Calamba','Biñan','San Pedro','Santa Rosa','Cabuyao','Bay','Los Baños','Pagsanjan'],
-  'Batangas'    => ['Batangas City','Lipa','Tanauan','Nasugbu','Rosario'],
-  'Bulacan'     => ['Malolos','Meycauayan','San Jose del Monte','Marilao','Bocaue'],
-  'Pampanga'    => ['San Fernando','Angeles','Mabalacat','Guagua'],
-  'Rizal'       => ['Antipolo','Cainta','Taytay','Binangonan','Angono'],
-  'Quezon'      => ['Lucena','Tayabas','Candelaria','Sariaya'],
-  'Nueva Ecija' => ['Cabanatuan','San Jose','Gapan','Muñoz','Palayan'],
-  'Cebu'        => ['Cebu City','Mandaue','Lapu-Lapu','Talisay','Danao','Carcar'],
-  'Davao del Sur'=> ['Davao City','Digos'],
-  'Iloilo'      => ['Iloilo City','Passi','Pototan'],
-  'Bohol'       => ['Tagbilaran'],
-  'Pangasinan'  => ['Dagupan','Urdaneta','San Carlos','Lingayen','Alaminos'],
-  'Bicol Region' => ['Daet','Vinzons','Labo','Jose Panganiban','Mercedes','Capalonga','Naga','Iriga','Libmanan','Pili','Goa','Sipocot','Legazpi','Ligao','Tabaco','Polangui','Daraga','Sorsogon City','Bulan','Irosin','Masbate City','Cataingan','Virac'],
-  'Negros Occidental'=> ['Bacolod','Bago','Cadiz','La Carlota','Sagay','Sipalay','Talisay','Victorias'],
-  'Negros Oriental' => ['Dumaguete','Bais','Canlaon','Guihulngan','Tanjay'],
-  'Leyte'           => ['Tacloban','Ormoc','Baybay','Palo'],
-  'Samar'           => ['Catbalogan','Calbayog'],
-  'Zamboanga del Sur'=> ['Zamboanga City','Pagadian','Dipolog'],
-  'Misamis Oriental'=> ['Cagayan de Oro','Gingoog','El Salvador'],
-  'Bukidnon'        => ['Malaybalay','Valencia'],
-  'Cagayan'         => ['Tuguegarao','Aparri','Cauayan'],
-  'Isabela'         => ['Ilagan','Cauayan','Santiago'],
-  'Benguet'         => ['Baguio','La Trinidad','Itogon'],
-  'Mountain Province'=> ['Bontoc'],
-  'Tarlac'          => ['Tarlac City','Capas','Paniqui'],
-  'Zambales'        => ['Olongapo','Iba','San Antonio'],
-  'Bataan'          => ['Balanga','Mariveles','Orani'],
-  'Aurora'          => ['Baler'],
-];
-
-$cityZipCodes = [
-  'Manila' => '1000', 'Quezon City' => '1100', 'Makati' => '1200', 'Pasig' => '1600',
-  'Taguig' => '1630', 'Parañaque' => '1700', 'Caloocan' => '1400', 'Las Piñas' => '1740',
-  'Mandaluyong' => '1550', 'Marikina' => '1800', 'Muntinlupa' => '1770', 'Navotas' => '1485',
-  'Pasay' => '1300', 'Pateros' => '1620', 'San Juan' => '1500', 'Valenzuela' => '1440',
-  'Cavite City' => '4100', 'Bacoor' => '4102', 'Imus' => '4103',
-  'Dasmariñas' => '4114', 'General Trias' => '4107', 'Tagaytay' => '4120', 'Trece Martires' => '4109', 'Silang' => '4118',
-  'Santa Rosa' => '4026', 'San Pedro' => '4023', 'Biñan' => '4024', 'Calamba' => '4027',
-  'Cabuyao' => '4025', 'Bay' => '4033', 'Los Baños' => '4030', 'Pagsanjan' => '4008',
-  'Batangas City' => '4200', 'Lipa' => '4217', 'Tanauan' => '4232', 'Nasugbu' => '4211', 'Rosario' => '4225',
-  'Malolos' => '3000', 'Meycauayan' => '3020', 'San Jose del Monte' => '3023', 'Marilao' => '3019', 'Bocaue' => '3018',
-  'San Fernando' => '2000', 'Angeles' => '2009', 'Mabalacat' => '2010', 'Guagua' => '2003',
-  'Antipolo' => '1870', 'Cainta' => '1900', 'Taytay' => '1920', 'Binangonan' => '1940', 'Angono' => '1930',
-  'Lucena' => '4301', 'Tayabas' => '4327', 'Candelaria' => '4323', 'Sariaya' => '4322',
-  'Cabanatuan' => '3100', 'San Jose' => '3121', 'Gapan' => '3105', 'Muñoz' => '3119', 'Palayan' => '3132',
-  'Tuguegarao' => '3500', 'Aparri' => '3515', 'Cauayan' => '3305',
-  'Cebu City' => '6000', 'Mandaue' => '6014', 'Lapu-Lapu' => '6015', 'Talisay' => '6045', 'Danao' => '6004', 'Carcar' => '6019',
-  'Davao City' => '8000', 'Digos' => '8002',
-  'Iloilo City' => '5000', 'Passi' => '5037', 'Pototan' => '5012',
-  'Bacolod' => '6100', 'Bago' => '6101', 'Cadiz' => '6121', 'La Carlota' => '6130', 'Sagay' => '6122', 'Sipalay' => '6113',
-  'Tagbilaran' => '6300',
-  'Dagupan' => '2400', 'Urdaneta' => '2428', 'San Carlos' => '2420', 'Lingayen' => '2401', 'Alaminos' => '2404',
-  'Daet' => '4600', 'Vinzons' => '4601', 'Labo' => '4603',
-  'Jose Panganiban' => '4606', 'Mercedes' => '4604', 'Capalonga' => '4607',
-  'Naga' => '4400', 'Iriga' => '4431', 'Libmanan' => '4407', 'Pili' => '4418', 'Goa' => '4422', 'Sipocot' => '4408',
-  'Legazpi' => '4500', 'Ligao' => '4504', 'Tabaco' => '4511', 'Polangui' => '4506', 'Daraga' => '4501',
-  'Sorsogon City' => '4700', 'Bulan' => '4706', 'Irosin' => '4707',
-  'Masbate City' => '5400', 'Cataingan' => '5405',
-  'Virac' => '4800',
-  'Tacloban' => '6500', 'Ormoc' => '6541', 'Baybay' => '6521', 'Palo' => '6501',
-  'Catbalogan' => '6700', 'Calbayog' => '6710',
-  'Zamboanga City' => '7000', 'Pagadian' => '7016', 'Dipolog' => '7100',
-  'Cagayan de Oro' => '9000', 'Gingoog' => '9014', 'El Salvador' => '9017',
-  'Malaybalay' => '8700', 'Valencia' => '8709',
-  'Ilagan' => '3300', 'Santiago' => '3311',
-  'Baguio' => '2600', 'La Trinidad' => '2601', 'Itogon' => '2604',
-  'Bontoc' => '2616',
-  'Tarlac City' => '2300', 'Capas' => '2315', 'Paniqui' => '2307',
-  'Olongapo' => '2200', 'Iba' => '2201', 'San Antonio' => '2212',
-  'Balanga' => '2100', 'Mariveles' => '2105', 'Orani' => '2112',
-  'Baler' => '3200',
-  'Dumaguete' => '6200', 'Bais' => '6206', 'Canlaon' => '6208', 'Guihulngan' => '6214', 'Tanjay' => '6204',
-];
-
-$cities = array_values(array_unique(array_merge(...array_values($provinceCities))));
-
-$cityBarangays = [
-  'Manila'       => ['Binondo','Ermita','Intramuros','Malate','Paco','Pandacan','Port Area','Quiapo','Sampaloc','San Andres','San Miguel','San Nicolas','Santa Ana','Santa Cruz','Santa Mesa','Tondo'],
-  'Quezon City'  => ['Bagong Pag-asa','Bagumbayan','Batasan Hills','Commonwealth','Cubao','Diliman','Fairview','Holy Spirit','Kamuning','Katipunan','Loyola Heights','Malaya','Novaliches','Project 4','Project 6','Project 7','Quirino 3-A','San Bartolome','Tandang Sora','UP Campus','White Plains'],
-  'Makati'       => ['Bel-Air','Forbes Park','Guadalupe Nuevo','Guadalupe Viejo','Kasilawan','La Paz','Magallanes','Olympia','Palanan','Pembo','Pinagkaisahan','Pio del Pilar','Poblacion','Rembo','San Antonio','San Isidro','San Lorenzo','Santa Cruz','Singkamas','Tejeros','Urdaneta','Valenzuela'],
-  'Pasig'        => ['Bagong Ilog','Bagong Katipunan','Bambang','Buting','Caniogan','Dela Paz','Kalawaan','Kapasigan','Kapitolyo','Malinao','Manggahan','Maybunga','Oranbo','Palatiw','Pinagbuhatan','Pineda','Rosario','Sagad','San Antonio','San Joaquin','San Jose','San Nicolas','Santa Lucia','Santa Rosa','Santo Tomas','Santolan','Sumilang','Ugong'],
-  'Taguig'       => ['Bagumbayan','Bambang','Calzada','Cembo','Central','Comembo','East Rembo','Fort Bonifacio','Katuparan','Ligid-Tipas','Lower Bicutan','Maharlika Village','New Lower Bicutan','North Daang Hari','North Signal Village','Palingon','Pinagsama','San Miguel','Santa Ana','South Cembo','South Daang Hari','South Signal Village','Tanyag','Tuktukan','Upper Bicutan','Ususan','Wawa','West Rembo'],
-  'Parañaque'    => ['Baclaran','BF Homes','Don Bosco','Don Galo','La Huerta','Marcelo Green','Merville','Moonwalk','San Antonio','San Dionisio','San Isidro','San Martin de Porres','Santo Niño','Sun Valley','Tambo','Vitalez'],
-  'Caloocan'     => ['Bagong Barrio','Bagong Silang','Baesa','Camarin','Concepcion','Deparo','Grace Park','Llano','Maypajo','Monumento','Pag-asa','Pangarap','Pullman','San Jose','San Roque','Sangandaan','Tala','Tibag','University Hills','Wakas'],
-  'Las Piñas'    => ['Almanza Dos','Almanza Uno','BF International','Daniel Fajardo','Elias Aldana','Ilaya','Manuyo Dos','Manuyo Uno','Pamplona Dos','Pamplona Tres','Pamplona Uno','Pilar','Pulang Lupa Dos','Pulang Lupa Uno','Talon Dos','Talon Kuatro','Talon Otso','Talon Tres','Talon Uno','Zapote'],
-  'Mandaluyong'  => ['Addition Hills','Bagong Silang','Barangka Drive','Barangka Ilaya','Barangka Itaas','Barangka Ibaba','Buayang Bato','Burol','Daang Bakal','Hagdan Bato Itaas','Hagdan Bato Libis','Harapin Ang Bukas','Highway Hills','Hulo','Mabini-J. Rizal','Malamig','Mandaluyong','Mauway','Namayan','New Zañiga','Old Zañiga','Pag-asa','Plainview','Pleasant Hills','Poblacion','San Andres','San Joaquin','Vergara','Wack-Wack Greenhills'],
-  'Marikina'     => ['Barangka','Calumpang','Concepcion Dos','Concepcion Uno','Fortune','Industrial Valley','Jesus dela Peña','Kalumpang','Malanday','Marikina Heights','Nangka','Parang','San Roque','Santa Elena','Santo Niño','Tañong','Tumana'],
-  'Muntinlupa'   => ['Alabang','Ayala Alabang','Bayanan','Buli','Cupang','Poblacion','Putatan','Sucat','Tunasan'],
-  'Pasay'        => ['Baclaran','Bangkal','Libertad','Malibay','Maricaban','Palanyag','San Isidro','Santa Clara','Villamor'],
-  'San Juan'     => ['Addition Hills','Batis','Corazon de Jesus','Ermitaño','Greenhills','Isabelita','Kabayanan','Little Baguio','Maytunas','Onse','Pasadena','Pedro Cruz','Salapan','San Perfecto','St. Joseph','Tibagan','West Crame'],
-  'Valenzuela'   => ['Arkong Bato','Bagbaguin','Balangkas','Bignay','Bisig','Canumay East','Canumay West','Coloong','Dalandanan','Gen. T. de Leon','Isla','Karuhatan','Lawang Bato','Lingunan','Mabolo','Malanday','Malinta','Mapulang Lupa','Marulas','Maysan','Palasan','Parada','Paso de Blas','Pasolo','Poblacion','Pulo','Punturin','Rincon','Tagalag','Ugong','Viente Reales','Wawang Pulo'],
-  'Bacoor'       => ['Alima','Aniban I','Aniban II','Aniban III','Aniban IV','Aniban V','Banalo','Bayanan','Campo Santo','Daang Bukid','Digman','Dulong Bayan','Habay I','Habay II','Kaingin','Ligas I','Ligas II','Ligas III','Mabolo I','Mabolo II','Mabolo III','Maliksi I','Maliksi II','Maliksi III','Mambog I','Mambog II','Mambog III','Mambog IV','Mambog V','Molino I','Molino II','Molino III','Molino IV','Molino V','Molino VI','Niog I','Niog II','Niog III','Panapaan I','Panapaan II','Panapaan III','Panapaan IV','Panapaan V','Panapaan VI','Panapaan VII','Panapaan VIII','Queens Row Central','Queens Row East','Queens Row West','Real I','Real II','Salinas I','Salinas II','Salinas III','Salinas IV','San Nicolas I','San Nicolas II','San Nicolas III','Sineguelasan','Tabing Dagat','Talaba I','Talaba II','Talaba III','Talaba IV','Talaba V','Talaba VI','Talaba VII','Zapote I','Zapote II','Zapote III','Zapote IV','Zapote V'],
-  'Imus'         => ['Alapan I-A','Alapan I-B','Alapan I-C','Alapan II-A','Alapan II-B','Anabu I-A','Anabu I-B','Anabu I-C','Anabu I-D','Anabu I-E','Anabu I-F','Anabu I-G','Anabu II-A','Anabu II-B','Anabu II-C','Anabu II-D','Anabu II-E','Buhay na Tubig','Carsadang Bago I','Carsadang Bago II','Magdalo','Malagasang I-A','Malagasang I-B','Malagasang I-C','Malagasang I-D','Malagasang I-E','Malagasang I-F','Malagasang I-G','Malagasang II-A','Malagasang II-B','Malagasang II-C','Malagasang II-D','Malagasang II-E','Malagasang II-F','Malagasang II-G','Mariano Espeleta I','Mariano Espeleta II','Mariano Espeleta III','Palico I','Palico II','Palico III','Palico IV','Pasong Buaya I','Pasong Buaya II','Poblacion I-A','Poblacion I-B','Poblacion II-A','Poblacion II-B','Poblacion III-A','Poblacion III-B','Tanzang Luma I','Tanzang Luma II','Tanzang Luma III','Tanzang Luma IV','Tanzang Luma V','Tanzang Luma VI','Tinabunan','Toclong I-A','Toclong I-B','Toclong I-C','Toclong II-A','Toclong II-B'],
-  'Dasmariñas'   => ['Burol I','Burol II','Burol III','Burol Main','Datu Esmael','Emmanuel Bergado I','Emmanuel Bergado II','Fatima I','Fatima II','Fatima III','Habay','Langkaan I','Langkaan II','Luzviminda I','Luzviminda II','Maguay','Maliksi I','Maliksi II','Maliksi III','Paliparan I','Paliparan II','Paliparan III','Sabang','Salawag','Salitran I','Salitran II','Salitran III','Salitran IV','Sampaloc I','Sampaloc II','Sampaloc III','Sampaloc IV','Sampaloc V','San Agustin I','San Agustin II','San Agustin III','San Jose','San Lorenzo Ruiz I','San Lorenzo Ruiz II','San Miguel','San Simon','Santissimo Rosario','Santo Cristo I','Santo Cristo II','Zone I Poblacion','Zone II Poblacion','Zone III Poblacion'],
-  'General Trias'=> ['Alingaro','Arnaldo','Bacao I','Bacao II','Bagumbayan','Biclatan','Buenavista I','Buenavista II','Buenavista III','Corregidor','Dulong Bayan','Gov. Ferrer','Javalera','Manggahan','Navarro','Ninety Ninth','Panungyanan','Pasong Camachile I','Pasong Camachile II','Pasong Kawayan I','Pasong Kawayan II','Pinagtipunan','Poblacion I','Poblacion II','Poblacion III','Prinza','Sab-a Basin','San Francisco','San Gabriel','San Juan I','San Juan II','Santiago','Tapia','Tejero','Vibora'],
-  'Tagaytay'     => ['Asisan','Bagong Tubig','Calabuso','Diokno','Francisco','Guinhawa North','Guinhawa South','Iruhin Central','Iruhin East','Iruhin West','Kaybagal Central','Kaybagal East','Kaybagal North','Kaybagal South','Mag-asawang Ilat','Maharlika East','Maharlika West','Mendez Crossing East','Mendez Crossing West','Mitayin','Neogan','Patutong Malaki North','Patutong Malaki South','Sambong','San Jose','Silang Junction North','Silang Junction South','Sungay East','Sungay West','Tolentino East','Tolentino West','Zambal'],
-  'Calamba'      => ['Bagong Kalsada','Banadero','Banlic','Barandal','Batino','Bubuyan','Bucal','Bunggo','Burol','Camaligan','Canlubang','Kay-anlog','La Mesa','Laguerta','Lawa','Lecheria','Lingga','Looc','Mabato','Makiling','Majada Out','Majada Labas','Minola','Paciano Rizal','Palingon','Palo-Alto','Pansol','Parian','Prinza','Punta','Puting Lupa','Real','Saimsim','Sampiruhan','San Cristobal','San Jose','San Juan','Sirang Lupa','Sucol','Tulo','Turbina','Ulango','Uwisan'],
-  'Biñan'        => ['Biñan','Canlalay','Casile','De La Paz','Ganado','Loma','Luis Luz','Malaban','Malamig','Mamplasan','Platero','Poblacion','San Antonio','San Francisco','San Jose','San Vicente','Santo Domingo','Santo Niño','Santo Tomas','Soro-soro','Timbao','Tubigan','Zapote'],
-  'San Pedro'    => ['Bagong Silang','Calendola','Chrysanthemum','Cuyab','Estrella','Fatima','G.S.I.S.','Landayan','Langgam','Laram','Magsaysay','Maharlika','Narra','Nueva','Pacita 1','Pacita 2','Poblacion','Riverside','Sampaguita','San Antonio','United Bayanihan','United Better Living'],
-  'Santa Rosa'   => ['Aplaya','Balibago','Caingin','Dila','Dita','Don Jose','Ibaba','Kanluran','Labas','Macabling','Malitlit','Malusak','Market Area','Pooc','Pulong Santa Cruz','Sinalhan','Tagapo'],
-  'Cabuyao'      => ['Baclaran','Banay-Banay','Banlic','Bigaa','Butong','Casile','Diezmo','Gulod','Mamatid','Marinig','Niugan','Pittland','Pulo','San Isidro','Sala'],
-  'Batangas City'=> ['Alangilan','Arce','Balagtas','Balete','Banaba Center','Bilogo','Bolbok','Bukal','Calicanto','Cuta','Dalig','Dela Paz','Dela Paz Proper','Domoclay','Dumuclay','Gulod Itaas','Gulod Labas','Ilihan','Kumintang Ibaba','Kumintang Ilaya','Libjo','Maapaz','Mahabang Parang','Malamig','Marunos','Mataas na Lupa','Matamis','Matlang','Pag-asa','Paharang Kanluran','Paharang Silangan','Palahanan I','Palahanan II','Pamilhan','Puting Bato East','Puting Bato West','Sambat','San Isidro','San Jose Sico','San Pedro','Simlong','Sirang Lupa','Tulo','Wawa'],
-  'Lipa'         => ['Adya','Anilao','Anilao-Labac','Antipolo Del Norte','Antipolo Del Sur','Bagong Pook','Balintawak','Banaybanay','Bolbok','Bulacan','Bungahan','Calamias','Cumba','Dagatan','Duhatan','Halang','Inosluban','Kayumanggi','Latag','Lodlod','Lumbang','Mabini','Malagonlong','Malitlit','Marawoy','Mataas Na Lupa','Morado','Pinagkawitan','Pinagtongulan','Plaridel','Quezon','Rizal','Sabang','Sampaguita','San Benito','San Carlos','San Celestino','San Francisco','San Guillermo','San Isidro','San Jose','San Lucas','San Salvador','San Sebastian','Santo Niño','Sapac','Sico','Talisay','Tambo','Tangob','Tanguay','Tibig','Tinatagan','Tuy','Wawa'],
-  'Antipolo'     => ['Bagong Nayon','Beverly Hills','Calawis','Cupang','Dalig','Dela Paz','Inarawan','Mambugan','Mayamot','Muyong','San Isidro','San Jose','San Juan','San Luis','San Roque','Santa Cruz','Santo Niño','Sinag','Tartaria'],
-  'Cainta'       => ['Banting','Dayap','Karangalan Village','Niño Jesus','Parang','Poblacion','San Andres','San Juan','Santo Domingo','Santo Niño'],
-  'Taytay'       => ['Dolores','Muzon','Poblacion','San Isidro','San Juan','Santa Ana'],
-  'Cebu City'    => ['Adlaon','Agsungot','Apas','Babag','Bacayan','Banilad','Basak Pardo','Basak San Nicolas','Binaliw','Bonbon','Budlaan','Busay','Calamba','Cambinocot','Capitol Site','Carreta','Central','Cogon Pardo','Cogon Ramos','Day-as','Duljo','Ermita','Guadalupe','Guba','Hippodromo','Inayawan','Kalubihan','Kalunasan','Kamagayan','Kasambagan','Kinasang-an','Labangon','Lahug','Lorega','Lusaran','Luz','Mabini','Mabolo','Malubog','Mambaling','Mohon','Pardo','Pari-an','Paril','Pasil','Pit-os','Pulangbato','Punta Princesa','Quiot Pardo','Sambag I','Sambag II','San Antonio','San Jose','San Nicolas Central','San Nicolas Proper','San Roque','Santa Cruz','Santo Niño','Sapangdaku','Sawang Calero','Sinsin','Sompotan','T. Padilla','Tabunan','Tagba-o','Taptap','Tejero','Tinago','Tisa','To-ong Pardo','Tuburan','Tungkop'],
-  'Mandaue'      => ['Alang-alang','Bakilid','Banilad','Basak','Cambaro','Canduman','Casili','Casuntingan','Centro','Cubacub','Guizo','Ibabao-Estancia','Jagobiao','Labogon','Looc','Maguikay','Mahiga','Mantuyong','Opao','Pakna-an','Paknaan','Subangdaku','Tabok','Tawason','Tingub','Tipolo','Umapad'],
-  'Davao City'   => ['Agdao','Bago Aplaya','Bago Gallera','Bago Oshiro','Baliok','Bangkas Heights','Bantol','Baracatan','Biao Escuela','Biao Guianga','Biao Joaquin','Binugao','Bucana','Buda','Buhangin','Bunawan','Cabantian','Cadalian','Calinan','Callawa','Camansi','Carmen','Catalunan Grande','Catalunan Pequeño','Catigan','Cawayan','Centro','Communal','Crossing Bayabas','Dacudao','Dalag','Dalagdag','Daliao','Datu Salumay','Dumoy','Eden','Fatima','Gatungan','Gov. Paciano Bangoy','Gov. Vicente Duterte','Gumalang','Ilang','Indangan','Lacson','Lamanan','Lampianao','Langub','Lapu-lapu','Las Palmas','Lasang','Leon Garcia Sr.','Lizada','Los Amigos','Lubogan','Lumiad','Ma-a','Mabuhay','Magsaysay','Magtuod','Mahayag','Malabog','Malagos','Malalag','Manambulan','Mandug','Manuel Guianga','Mapula','Marapangi','Matina Aplaya','Matina Biao','Matina Crossing','Matina Pangi','Megkawayan','Mintal','Mudiang','Mulig','New Carmen','New Valencia','Panacan','Paradise Embak','Paquibato','Piapi','Poblacion','Puan','Puting Bato','Riverside','Salapawan','Salaysay','Saloy','San Antonio','San Isidro','Santos','Sasa','Sirib','Suawan','Subasta','Tacunan','Tagakpan','Tagluno','Tagurano','Talandang','Talomo','Talomo River','Tamayong','Tambobong','Tamugan','Tapak','Tawan-Tawan','Tibuloy','Tibungco','Tidman','Tigatto','Toril','Tugbok','Tungkalan','Ubalde','Ula','Unidos','Wangan','Wilfredo Aquino','Wines'],
-  'Iloilo City'  => ['Aguinaldo','Airport','Alday','Arevalo','Balabago','Balantang','Bakhaw','Benedicto','Bo. Obrero','Bolilao','Boulevard','Bonifacio','Buenavista','Buntatala','Burgos Poblacion','Calaparan','Calumpang','Compania','Cuartero','Danao','Del Lima','Demoledor','Desamparados','Divinagracia','Dungon A','Dungon B','Dungon C','East Timawa','Edganzon','El 98','Fajardo','Geronimo','Gloria','Gustilo','Hibao-an Norte','Hibao-an Sur','Hinactacan','Ingore','Jalandoni Estate','Jalandoni-Wilson','Javellana','Jereos','Kahirupan','Kauswagan','Laguda','Lapuz Norte','Lapuz Sur','Leganes','Libertad-Santa Isabel','Libertad','Lio-an','Loboc','Lopez Jaena Norte','Lopez Jaena Sur','Luna','M.V. Hechanova','Mabolo','Magsaysay','Mansaya-Lapuz','Montinola','Nabitasan','North Baluarte','North Fundidor','Oasis','Palapala','Pale Benedicto Rizal','Pelago','Pison-Labao','Poblacion Molo','Progreso','Punong','Quezon','Quintin Salas','Rizal Palapala I','Rizal Palapala II','Roxas Village','Sambag','Sampaguita','San Agustin','San Felix','San Isidro Norte','San Isidro Sur','San Jose','San Juan','Santa Cruz','Santo Niño Norte','Santo Niño Sur','Santo Rosario','Seminario','Simon Ledesma','Sooc','Taal','Tabucan','Tacas','Tagbac','Tanza-Baybay','Tap-oc','Timawa Tanza I','Timawa Tanza II','Ungka I','Ungka II','Veterans Village','Villa Anita','West Habog-habog','West Timawa','Yulo Drive','Yulo-Arroyo','Zulueta-Delgado'],
-  'Tagbilaran'   => ['Bool','Booy','Cogon','Dampas','Dao','Manga','Mansasa','Poblacion I','Poblacion II','Poblacion III','San Isidro','Taloto','Tiptip','Ubujan'],
-  'Dagupan'      => ['Bacayao Norte','Bacayao Sur','Barangay I (Poblacion)','Barangay II (Poblacion)','Barangay III (Poblacion)','Barangay IV (Poblacion)','Bonuan Binloc','Bonuan Boquig','Bonuan Gueset','Calmay','Carael','Caranglaan','Herrero','Lasip Chico','Lasip Grande','Lomboy','Lucao','Malued','Mamalingling','Mangin','Mayombo','Pantal','Pogo Chico','Pogo Grande','Pugaro Suit','Salapingao','Tambac','Tapuac','Tebeng'],
-  'Naga'         => ['Abella','Bagumbayan Norte','Bagumbayan Sur','Balatas','Calauag','Cararayan','Carolina','Concepcion Grande','Concepcion Pequeño','Dayangdang','Del Rosario','Dinaga','Igualdad Interior','Lerma','Liboton','Mabolo','Pacol','Panicuason','Peñafrancia','Sabang','San Felipe','San Francisco','Santa Cruz','Tabuco','Tinago','Triangulo'],
-];
+require __DIR__ . '/includes/location_data.php';
 
 // ── Handle checkout form submission ───────────────────────────
 $errors      = [];
 $orderPlaced = false;
 
+function savePaymentProofUpload(array $file, array &$errors): ?string {
+    $uploadError = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($uploadError === UPLOAD_ERR_NO_FILE) {
+        $errors[] = 'Please attach your proof of payment (screenshot/receipt).';
+        return null;
+    }
+    if ($uploadError !== UPLOAD_ERR_OK) {
+        $uploadMessages = [
+            UPLOAD_ERR_INI_SIZE   => 'Proof of payment is larger than the server upload limit.',
+            UPLOAD_ERR_FORM_SIZE  => 'Proof of payment is larger than the form upload limit.',
+            UPLOAD_ERR_PARTIAL    => 'Proof of payment upload was interrupted. Please choose the image again.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server upload folder is missing.',
+            UPLOAD_ERR_CANT_WRITE => 'Server could not write the uploaded proof.',
+            UPLOAD_ERR_EXTENSION  => 'Server blocked the proof upload.',
+        ];
+        $errors[] = $uploadMessages[$uploadError] ?? 'Proof of payment upload failed. Please choose the image again.';
+        return null;
+    }
+    if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+        $errors[] = 'Proof of payment upload could not be verified. Please try again.';
+        return null;
+    }
+
+    $fileSize = (int)($file['size'] ?? 0);
+    if ($fileSize <= 0) {
+        $errors[] = 'Proof of payment image is empty. Please choose another file.';
+        return null;
+    }
+    if ($fileSize > 5 * 1024 * 1024) {
+        $errors[] = 'Proof of payment image must be under 5MB.';
+        return null;
+    }
+
+    $allowedTypes = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/gif'  => 'gif',
+        'image/webp' => 'webp',
+    ];
+    $fileType = '';
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo) {
+            $fileType = (string)finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+        }
+    }
+    if ($fileType === '' && function_exists('mime_content_type')) {
+        $fileType = (string)mime_content_type($file['tmp_name']);
+    }
+    if ($fileType === '' && function_exists('getimagesize')) {
+        $imageInfo = @getimagesize($file['tmp_name']);
+        $fileType = (string)($imageInfo['mime'] ?? '');
+    }
+    if (!isset($allowedTypes[$fileType])) {
+        $errors[] = 'Proof of payment must be an image (JPG, PNG, GIF, WebP).';
+        return null;
+    }
+
+    $proofDir = __DIR__ . '/uploads/proofs';
+    if (!is_dir($proofDir) && !mkdir($proofDir, 0755, true)) {
+        $errors[] = 'Could not prepare the proof upload folder.';
+        return null;
+    }
+    if (!is_writable($proofDir)) {
+        @chmod($proofDir, 0755);
+    }
+    if (!is_writable($proofDir)) {
+        $errors[] = 'Proof upload folder is not writable.';
+        return null;
+    }
+
+    $proofName = 'proof_' . bin2hex(random_bytes(8)) . '.' . $allowedTypes[$fileType];
+    $target    = $proofDir . '/' . $proofName;
+    if (!move_uploaded_file($file['tmp_name'], $target)) {
+        $errors[] = 'Failed to upload proof of payment. Please try again.';
+        return null;
+    }
+
+    return 'uploads/proofs/' . $proofName;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $savedAddressId = trim($_POST['saved_address_id'] ?? '');
     $fullName    = trim($_POST['full_name']    ?? '');
     $phone       = trim($_POST['phone']        ?? '');
     $address     = trim($_POST['address']      ?? '');
@@ -191,31 +187,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $refNo       = trim($_POST['ref_no']       ?? '');
     $notes       = trim($_POST['notes']        ?? '');
 
+    if ($savedAddressId !== '') {
+        $savedAddress = getUserAddress((string)$dbUser->user_id, $savedAddressId);
+        if ($savedAddress) {
+            $phone    = trim($savedAddress->phone_num ?? '');
+            $address  = trim($savedAddress->st_address ?? '');
+            $barangay = trim($savedAddress->barangay ?? '');
+            $province = trim($savedAddress->province ?? '');
+            $city     = trim($savedAddress->city_municipality ?? '');
+            $zip      = trim($savedAddress->zip_code ?? '');
+        } else {
+            $errors[] = 'Selected saved address could not be found.';
+        }
+    }
+
     $proofPath = null;
     $eWalletMethods = ['GCash', 'Maya', 'Bank Transfer'];
     if (in_array($payMethod, $eWalletMethods, true)) {
-        if (!empty($_FILES['pay_proof']['name'])) {
-            $allowedTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp'];
-            $fileType = mime_content_type($_FILES['pay_proof']['tmp_name']);
-            $fileSize = $_FILES['pay_proof']['size'];
-            if (!in_array($fileType, $allowedTypes, true)) {
-                $errors[] = 'Proof of payment must be an image (JPG, PNG, GIF, WebP).';
-            } elseif ($fileSize > 5 * 1024 * 1024) {
-                $errors[] = 'Proof of payment image must be under 5MB.';
-            } else {
-                $ext       = pathinfo($_FILES['pay_proof']['name'], PATHINFO_EXTENSION);
-                $proofName = 'proof_' . uniqid() . '.' . strtolower($ext);
-                $proofDir  = __DIR__ . '/uploads/proofs/';
-                if (!is_dir($proofDir)) mkdir($proofDir, 0755, true);
-                $proofPath = 'uploads/proofs/' . $proofName;
-                if (!move_uploaded_file($_FILES['pay_proof']['tmp_name'], $proofDir . $proofName)) {
-                    $errors[] = 'Failed to upload proof of payment. Please try again.';
-                    $proofPath = null;
-                }
-            }
-        } else {
-            $errors[] = 'Please attach your proof of payment (screenshot/receipt).';
-        }
+        $proofPath = savePaymentProofUpload($_FILES['pay_proof'] ?? [], $errors);
         if (empty($errors) && !$refNo) {
             $errors[] = 'Please enter your reference / transaction number.';
         }
@@ -317,7 +306,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            clearCartForUser($userEmail);
+            removeCartItemsForUser($userEmail, $selectedItemIds);
+            unset($_SESSION['checkout_selected'][$userEmail]);
 
             $db->commit();
 
@@ -337,10 +327,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } catch (Exception $e) {
             if ($db->inTransaction()) $db->rollBack();
+            if ($proofPath && is_file(__DIR__ . '/' . $proofPath)) {
+                @unlink(__DIR__ . '/' . $proofPath);
+            }
             $errors[] = "Checkout processing failed: " . $e->getMessage();
         }
     }
 }
+
+$checkoutAddress = [
+    'phone' => $_POST['phone'] ?? ($defaultAddress->phone_num ?? ''),
+    'province' => $_POST['province'] ?? ($defaultAddress->province ?? ''),
+    'city' => $_POST['city'] ?? ($defaultAddress->city_municipality ?? ''),
+    'barangay' => $_POST['barangay'] ?? ($defaultAddress->barangay ?? ''),
+    'address' => $_POST['address'] ?? ($defaultAddress->st_address ?? ''),
+    'zip' => $_POST['zip'] ?? ($defaultAddress->zip_code ?? ''),
+    'selected_id' => $_POST['saved_address_id'] ?? ($defaultAddress->address_id ?? ''),
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -371,6 +374,12 @@ body{background:var(--cream);min-height:100vh;padding-top:70px;}
 
 .checkout-card{background:#fff;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,.07);padding:28px;margin-bottom:20px;}
 .checkout-card h5{font-family:'Playfair Display',serif;color:var(--deep);font-size:1.15rem;margin-bottom:20px;}
+
+.saved-address-grid{display:grid;gap:10px;margin-bottom:18px;}
+.saved-address-option{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--sage);border-radius:14px;padding:13px 14px;background:#fff;cursor:pointer;transition:.18s;}
+.saved-address-option:hover,.saved-address-option.selected{border-color:var(--green);background:#f8fdf8;}
+.saved-address-option input{accent-color:var(--green);margin-top:4px;}
+.addr-label{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:var(--sage);color:var(--green);font-size:.7rem;font-weight:800;padding:3px 9px;margin-bottom:5px;}
 
 .field{position:relative;margin-bottom:18px;}
 .field input,.field select,.field textarea{
@@ -481,6 +490,7 @@ footer .footer-brand{font-family:'Playfair Display',serif;color:var(--green);fon
 
   <form method="POST" id="checkoutForm" enctype="multipart/form-data">
     <input type="hidden" name="place_order" value="1">
+    <input type="hidden" name="selected_items" id="selected_items" value="<?= htmlspecialchars(implode(',', $selectedItemIds)) ?>">
   <div class="row g-4">
 
     <!-- LEFT: Delivery + Payment -->
@@ -490,72 +500,43 @@ footer .footer-brand{font-family:'Playfair Display',serif;color:var(--green);fon
       <div class="checkout-card">
         <h5><i class="fas fa-map-marker-alt me-2" style="color:var(--green);"></i>Delivery Details</h5>
 
-        <!-- 1. Full Name -->
-        <div class="field">
-          <input type="text" id="full_name" name="full_name"
-            value="<?= htmlspecialchars($_POST['full_name'] ?? $userName) ?>"
-            placeholder=" " required>
-          <label>Full Name *</label>
-          <div id="fullNameError" class="live-error">&nbsp;</div>
-        </div>
+        <?php if ($defaultAddress): ?>
+          <div class="saved-address-grid" id="savedAddressGrid">
+            <div class="saved-address-option selected" style="cursor:default;">
+              <input type="radio" name="saved_address_id" value="<?= htmlspecialchars((string)$defaultAddress->address_id) ?>" checked>
+              <div>
+                <span class="addr-label"><i class="fas fa-tag"></i><?= htmlspecialchars($defaultAddress->address_label ?? 'Home') ?></span>
+                <?php if ((int)($defaultAddress->is_default ?? 0) === 1): ?>
+                  <span class="badge rounded-pill text-bg-success ms-1">Default</span>
+                <?php endif; ?>
+                <div style="font-weight:700;color:var(--deep);font-size:.9rem;margin-top:6px;">
+                  <?= htmlspecialchars($defaultAddress->st_address ?? '') ?>, <?= htmlspecialchars($defaultAddress->barangay ?? '') ?>
+                </div>
+                <div style="font-size:.78rem;color:#777;">
+                  <?= htmlspecialchars($defaultAddress->city_municipality ?? '') ?>, <?= htmlspecialchars($defaultAddress->province ?? '') ?> <?= htmlspecialchars($defaultAddress->zip_code ?? '') ?>
+                </div>
+                <div style="font-size:.78rem;color:#777;margin-top:3px;">
+                  <i class="fas fa-phone me-1"></i><?= htmlspecialchars($defaultAddress->phone_num ?? '') ?>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:.78rem;color:#777;margin:-6px 0 18px;">
+            To change your delivery address, update your default address in <a href="profile.php?tab=addresses" style="color:var(--green);font-weight:700;">Profile</a>.
+          </div>
+        <?php else: ?>
+          <div class="alert alert-warning" style="border-radius:14px;font-size:.88rem;">
+            Please add a delivery address in <a href="profile.php?tab=addresses" class="alert-link">Profile</a> before checking out.
+          </div>
+        <?php endif; ?>
 
-        <!-- 2. Phone Number -->
-        <div class="field">
-          <input type="tel" name="phone" id="phone" placeholder=" " required
-            value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>">
-          <label>Phone Number *</label>
-          <div id="phoneError" class="live-error">&nbsp;</div>
-        </div>
-
-        <!-- 3. Province -->
-        <div class="field">
-          <select name="province" id="province" required onchange="filterCities()">
-            <option value=""> Select Province </option>
-            <?php foreach ($provinces as $_p): ?>
-              <option value="<?= htmlspecialchars($_p) ?>"
-                <?= ($_POST['province'] ?? '') === $_p ? 'selected' : '' ?>>
-                <?= htmlspecialchars($_p) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-          <label>Province *</label>
-        </div>
-
-        <!-- 4. City / Municipality -->
-        <div class="field">
-          <select name="city" id="city" required onchange="updateZipCode(); filterBarangays();">
-            <option value=""> Select City / Municipality </option>
-            <?php foreach ($cities as $_c): ?>
-              <option value="<?= htmlspecialchars($_c) ?>"
-                <?= ($_POST['city'] ?? '') === $_c ? 'selected' : '' ?>>
-                <?= htmlspecialchars($_c) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-          <label>City / Municipality *</label>
-        </div>
-
-        <!-- 5. Barangay -->
-        <div class="field">
-          <select name="barangay" id="barangay" required>
-            <option value=""> Select Barangay </option>
-          </select>
-          <label>Barangay *</label>
-        </div>
-
-        <!-- 6. House No. / Street Address -->
-        <div class="field">
-          <input type="text" name="address" id="address" placeholder=" " required
-            value="<?= htmlspecialchars($_POST['address'] ?? '') ?>">
-          <label>House No. / Building / Street Address *</label>
-        </div>
-
-        <!-- 7. Postal Code (auto-fill) -->
-        <div class="field">
-          <input type="text" id="zip" name="zip" placeholder=" " readonly
-            value="<?= htmlspecialchars($_POST['zip'] ?? '') ?>">
-          <label>Postal Code (auto-filled)</label>
-        </div>
+        <input type="hidden" id="full_name" name="full_name" value="<?= htmlspecialchars($_POST['full_name'] ?? $userName) ?>">
+        <input type="hidden" name="phone" id="phone" value="<?= htmlspecialchars($checkoutAddress['phone']) ?>">
+        <input type="hidden" name="province" id="province" value="<?= htmlspecialchars($checkoutAddress['province']) ?>">
+        <input type="hidden" name="city" id="city" value="<?= htmlspecialchars($checkoutAddress['city']) ?>">
+        <input type="hidden" name="barangay" id="barangay" value="<?= htmlspecialchars($checkoutAddress['barangay']) ?>">
+        <input type="hidden" name="address" id="address" value="<?= htmlspecialchars($checkoutAddress['address']) ?>">
+        <input type="hidden" id="zip" name="zip" value="<?= htmlspecialchars($checkoutAddress['zip']) ?>">
 
         <!-- 8. Delivery Notes -->
         <div class="field">
@@ -765,12 +746,14 @@ const PROVINCE_CITIES  = <?= json_encode($provinceCities,  JSON_UNESCAPED_UNICOD
 const CITY_ZIP_CODES   = <?= json_encode($cityZipCodes,    JSON_UNESCAPED_UNICODE) ?>;
 const CITY_BARANGAYS   = <?= json_encode($cityBarangays,   JSON_UNESCAPED_UNICODE) ?>;
 const ALL_CITIES       = <?= json_encode($cities,          JSON_UNESCAPED_UNICODE) ?>;
-const SAVED_BARANGAY   = <?= json_encode($_POST['barangay'] ?? '') ?>;
+const SAVED_BARANGAY   = <?= json_encode($checkoutAddress['barangay'] ?? '') ?>;
 
 // ── Province → City filter ────────────────────────────────────
 function filterCities() {
-  const province   = document.getElementById('province').value;
+  const provinceEl = document.getElementById('province');
   const citySelect = document.getElementById('city');
+  if (!provinceEl || !citySelect || citySelect.tagName !== 'SELECT') return;
+  const province   = provinceEl.value;
   const savedCity  = citySelect.value;
 
   const list = (PROVINCE_CITIES[province] && PROVINCE_CITIES[province].length)
@@ -792,14 +775,16 @@ function filterCities() {
 
 // ── City → ZIP auto-fill ──────────────────────────────────────
 function updateZipCode() {
-  const city = document.getElementById('city').value;
-  document.getElementById('zip').value = CITY_ZIP_CODES[city] || '';
+  const city = document.getElementById('city')?.value || '';
+  const zip = document.getElementById('zip');
+  if (zip) zip.value = CITY_ZIP_CODES[city] || zip.value || '';
 }
 
 // ── City → Barangay filter ────────────────────────────────────
 function filterBarangays() {
-  const city     = document.getElementById('city').value;
+  const city     = document.getElementById('city')?.value || '';
   const sel      = document.getElementById('barangay');
+  if (!sel || sel.tagName !== 'SELECT') return;
   const previous = sel.value;
 
   let list = (CITY_BARANGAYS[city] && CITY_BARANGAYS[city].length)
@@ -814,6 +799,35 @@ function filterBarangays() {
     sel.appendChild(opt);
   });
 }
+
+document.querySelectorAll('.saved-address-option').forEach(label => {
+  label.addEventListener('click', () => {
+    document.querySelectorAll('.saved-address-option').forEach(el => el.classList.remove('selected'));
+    label.classList.add('selected');
+    const radio = label.querySelector('input[type=radio]');
+    if (radio) radio.checked = true;
+    const data = JSON.parse(label.dataset.address || '{}');
+    document.getElementById('phone').value = data.phone || '';
+    document.getElementById('province').value = data.province || '';
+    filterCities();
+    document.getElementById('city').value = data.city || '';
+    updateZipCode();
+    filterBarangays();
+    const brgy = document.getElementById('barangay');
+    if (brgy) {
+      brgy.value = data.barangay || '';
+      if (data.barangay && brgy.value !== data.barangay) {
+        const opt = document.createElement('option');
+        opt.value = data.barangay;
+        opt.textContent = data.barangay;
+        opt.selected = true;
+        brgy.appendChild(opt);
+      }
+    }
+    document.getElementById('address').value = data.address || '';
+    document.getElementById('zip').value = data.zip || CITY_ZIP_CODES[data.city] || '';
+  });
+});
 
 // ── Payment panel toggle ──────────────────────────────────────
 const PAY_GROUPS = ['gcash','maya','bank'];
@@ -963,31 +977,14 @@ document.addEventListener('DOMContentLoaded', function() {
 let checkoutCart = <?= json_encode(array_values(array_map(function($i){
     return ['inv_id'=>(string)($i['inv_id']??''),'name'=>$i['name']??'','price'=>(float)($i['price']??0),'qty'=>(int)($i['qty']??1),'image'=>$i['image']??''];
 }, $cart))) ?>;
+const CHECKOUT_SELECTED_IDS = new Set(<?= json_encode(array_values($selectedItemIds)) ?>.map(String));
 const SHIPPING_FEE = 150;
-
-// ── Filter cart to only selected items from website.php ──────
-(function applySelectedItems() {
-  try {
-    const raw = sessionStorage.getItem('zythera_checkout_ids');
-    if (raw) {
-      const ids = JSON.parse(raw);
-      if (Array.isArray(ids) && ids.length > 0) {
-        const idSet = new Set(ids.map(String));
-        const filtered = checkoutCart.filter(i => idSet.has(String(i.inv_id)));
-        if (filtered.length > 0) checkoutCart = filtered;
-      }
-      sessionStorage.removeItem('zythera_checkout_ids');
-    }
-  } catch(_) {}
-})();
-
-// Initial render of order summary with (possibly filtered) cart
-document.addEventListener('DOMContentLoaded', function() { rebuildOrderSummary(checkoutCart); });
 
 function numFmt(n)    { return Number(n).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0}); }
 function escHtml(s)   { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function rebuildOrderSummary(cart) {
+  cart = (cart || []).filter(item => CHECKOUT_SELECTED_IDS.has(String(item.inv_id)));
   const container  = document.querySelector('.checkout-card div[style*="overflow-y:auto"]');
   const subtotalEl = document.querySelector('.order-total-row:nth-child(1) span:last-child');
   const shippingEl = document.querySelector('.order-total-row:nth-child(2) span:last-child');
@@ -1008,26 +1005,18 @@ function rebuildOrderSummary(cart) {
   if(totalEl)    totalEl.textContent='₱'+numFmt(total);
 }
 
-// Track which IDs are in the filtered checkout view
-const checkoutSelectedIds = new Set(checkoutCart.map(i => String(i.inv_id)));
-
-function filterCartToSelected(fullCart) {
-  if (checkoutSelectedIds.size === 0) return fullCart;
-  return fullCart.filter(i => checkoutSelectedIds.has(String(i.inv_id)));
-}
-
 try {
   const bc=new BroadcastChannel('zythera_cart');
-  bc.addEventListener('message',e=>{ if(e.data?.type==='cart_updated'&&Array.isArray(e.data.cart)){ checkoutCart=filterCartToSelected(e.data.cart); rebuildOrderSummary(checkoutCart); } });
+  bc.addEventListener('message',e=>{ if(e.data?.type==='cart_updated'&&Array.isArray(e.data.cart)){ checkoutCart=e.data.cart.filter(item => CHECKOUT_SELECTED_IDS.has(String(item.inv_id))); rebuildOrderSummary(checkoutCart); } });
 } catch(_){}
 
 setInterval(()=>{
   if(document.hidden) return;
   fetch('getcart.php',{credentials:'same-origin'}).then(r=>r.json()).then(data=>{
     if(data.success&&Array.isArray(data.cart)){
-      const filtered=filterCartToSelected(data.cart);
       const sig=a=>a.map(i=>i.inv_id+':'+i.qty).join(',');
-      if(sig(filtered)!==sig(checkoutCart)){ checkoutCart=filtered; rebuildOrderSummary(checkoutCart); }
+      const selectedCart = data.cart.filter(item => CHECKOUT_SELECTED_IDS.has(String(item.inv_id)));
+      if(sig(selectedCart)!==sig(checkoutCart)){ checkoutCart=selectedCart; rebuildOrderSummary(checkoutCart); }
     }
   }).catch(()=>{});
 },5000);
