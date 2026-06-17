@@ -1598,8 +1598,11 @@ body.dark .review-edit-modal textarea:focus {
             <small id="cartItemCount" style="opacity:.75;font-size:.75rem;">
               <?php
               $initCount = 0;
-              if ($userEmail && !empty($_SESSION['cart'][$userEmail]))
+              $initDistinctCount = 0;
+              if ($userEmail && !empty($_SESSION['cart'][$userEmail])) {
+                $initDistinctCount = count($_SESSION['cart'][$userEmail]);
                 foreach ($_SESSION['cart'][$userEmail] as $ci) $initCount += (int)($ci['qty'] ?? 1);
+              }
               echo $initCount === 0 ? 'Your cart is empty' : $initCount . ' item' . ($initCount === 1 ? '' : 's') . ' in cart';
               ?>
             </small>
@@ -1611,6 +1614,19 @@ body.dark .review-edit-modal textarea:focus {
             </svg>
           </button>
         </div>
+      </div>
+
+      <!-- Select-All bar — only appears once there are 2+ distinct products in the cart.
+           Styled to match the nav's utility-icon look (soft green pill, same border/colors
+           as the Settings button) so it reads as a toolbar action, not just another row. -->
+      <div id="cartSelectAllBar" style="display:<?= $initDistinctCount >= 2 ? 'flex' : 'none' ?>;align-items:center;justify-content:space-between;
+        padding:10px 18px;background:#f0f7f0;border-bottom:1px solid rgba(45,90,45,.16);flex-shrink:0;">
+        <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.82rem;font-weight:700;color:var(--green);margin:0;">
+          <input type="checkbox" id="cartSelectAllCheckbox" onchange="toggleSelectAll(this.checked)"
+            style="width:17px;height:17px;accent-color:var(--green);cursor:pointer;">
+          Select All
+        </label>
+        <span id="cartSelectAllCount" style="font-size:.74rem;color:#5a8a5a;font-weight:600;"></span>
       </div>
 
       <!-- Items list -->
@@ -1805,8 +1821,46 @@ body.dark .review-edit-modal textarea:focus {
       if (checked) selectedCartIds.add(itemId);
       else selectedCartIds.delete(itemId);
       syncSelectedCartIds();
+      updateSelectAllUI();
       const err = document.getElementById('cartSelectionError');
       if (err && selectedCartIds.size > 0) err.style.display = 'none';
+    }
+
+    // ── Select-All toolbar: check/uncheck every item at once ──────
+    function toggleSelectAll(checked) {
+      document.querySelectorAll('.cart-select-checkbox').forEach(cb => {
+        cb.checked = checked;
+      });
+      cartItemsJS.forEach(item => {
+        const id = String(item.inv_id);
+        if (checked) selectedCartIds.add(id);
+        else selectedCartIds.delete(id);
+      });
+      syncSelectedCartIds();
+      updateSelectAllUI();
+      const err = document.getElementById('cartSelectionError');
+      if (err && selectedCartIds.size > 0) err.style.display = 'none';
+    }
+
+    // Keeps the Select-All checkbox (checked/indeterminate), its visibility,
+    // and the "x of y selected" label in sync with the current selection.
+    function updateSelectAllUI() {
+      const bar = document.getElementById('cartSelectAllBar');
+      const cb = document.getElementById('cartSelectAllCheckbox');
+      const countEl = document.getElementById('cartSelectAllCount');
+      if (!bar || !cb) return;
+
+      const total = cartItemsJS.length;
+      if (total < 2) {
+        bar.style.display = 'none';
+        return;
+      }
+      bar.style.display = 'flex';
+
+      const selectedCount = cartItemsJS.filter(i => selectedCartIds.has(String(i.inv_id))).length;
+      cb.checked = total > 0 && selectedCount === total;
+      cb.indeterminate = selectedCount > 0 && selectedCount < total;
+      if (countEl) countEl.textContent = selectedCount + ' of ' + total + ' selected';
     }
 
     function goToSelectedCheckout(event) {
@@ -1869,6 +1923,7 @@ body.dark .review-edit-modal textarea:focus {
           badge.textContent = '0';
           badge.style.display = 'none';
         }
+        updateSelectAllUI();
         return;
       }
 
@@ -1940,6 +1995,7 @@ body.dark .review-edit-modal textarea:focus {
         badge.textContent = distinctCount;
         badge.style.display = distinctCount > 0 ? '' : 'none';
       }
+      updateSelectAllUI();
     }
 
     // ── Qty stepper in cart sidebar → update_cart.php ────────────

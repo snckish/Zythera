@@ -756,18 +756,6 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             background: #b91c1c;
         }
 
-        .alert-banner {
-            padding: 12px 20px;
-            font-size: .88rem;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .alert-banner.success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
         footer {
             background: #f5f2ec;
             padding: 22px 20px;
@@ -919,6 +907,99 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
             color: var(--green);
         }
 
+        /* ── LOGOUT CONFIRMATION MODAL ── */
+        .logout-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.6);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        .logout-modal-overlay.active { display: flex; }
+
+        .logout-modal {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px 28px;
+            width: min(420px, calc(100vw - 32px));
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+            text-align: center;
+            animation: logoutSlideDown .3s ease-out;
+        }
+
+        @keyframes logoutSlideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logout-modal h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--deep);
+            font-size: 1.3rem;
+            margin: 0 0 12px 0;
+            font-weight: 700;
+        }
+
+        .logout-modal p {
+            color: #666;
+            font-size: .95rem;
+            margin: 0 0 24px 0;
+            line-height: 1.5;
+        }
+
+        body.dark .logout-modal { background: #1f2937; }
+        body.dark .logout-modal h2 { color: #a8d4a8; }
+        body.dark .logout-modal p { color: #cbd5e1; }
+        body.dark .logout-cancel-btn { background: #2d3748; color: #cbd5e1; }
+        body.dark .logout-cancel-btn:hover { background: #374151; }
+
+        .logout-modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .logout-modal-buttons button {
+            padding: 12px 28px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            font-size: .9rem;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .logout-cancel-btn { background: #f0ece4; color: #555; }
+        .logout-cancel-btn:hover { background: #e2ddd4; }
+
+        .logout-confirm-btn { background: var(--green); color: #fff; min-width: 120px; }
+        .logout-confirm-btn:hover { background: var(--deep); }
+        .logout-confirm-btn:active { transform: scale(0.98); }
+
+        /* ── TOAST NOTIFICATIONS (used by the cart panel) ── */
+        .toast-fixed {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--green);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: .86rem;
+            z-index: 10001;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: .3s;
+            pointer-events: none;
+            max-width: 300px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .2);
+        }
+        .toast-fixed.show { opacity: 1; transform: translateY(0); }
+        .toast-fixed.error { background: #dc2626; }
+
         /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
             .two-col-layout {
@@ -976,13 +1057,13 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                                     <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2 text-muted" style="font-size:.85rem;"></i>Admin Panel</a></li>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider my-1"></li>
-                                <li><a class="dropdown-item py-2 text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
+                                <li><a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="openLogoutModal()"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
                             </ul>
                         </div>
                     </div>
 
                     <?php if ($userRole !== 'admin'): ?>
-                        <a href="website.php" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
+                        <a href="javascript:void(0)" onclick="openCart()" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="9" cy="21" r="1" />
                                 <circle cx="20" cy="21" r="1" />
@@ -1000,12 +1081,17 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
     </nav>
 
     <?php if (isset($_GET['updated'])): ?>
-        <div class="alert-banner success" style="margin-top:56px;">
-            <i class="fas fa-check-circle me-2"></i>Profile updated successfully.
-        </div>
-    <?php else: ?>
-        <div style="height:56px;"></div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof showToast === 'function') showToast('Profile updated successfully.');
+                // Drop ?updated=1 from the URL so refreshing doesn't re-show the toast
+                const url = new URL(window.location.href);
+                url.searchParams.delete('updated');
+                window.history.replaceState({}, '', url.pathname + (url.search || '') + url.hash);
+            });
+        </script>
     <?php endif; ?>
+    <div style="height:56px;"></div>
 
     <div class="page-wrapper">
         <div class="container py-4" style="max-width:1200px;">
@@ -1771,6 +1857,469 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                 }
             </script>
         <?php endif; ?>
+
+        <!-- ── CART SLIDE-OUT PANEL — hidden for admin ── -->
+        <?php if ($userRole !== 'admin'):
+            $initCartCount = 0;
+            $initCartDistinct = 0;
+            $initCartSubtotal = 0;
+            if (!empty($_SESSION['cart'][$userEmail])) {
+                $initCartDistinct = count($_SESSION['cart'][$userEmail]);
+                foreach ($_SESSION['cart'][$userEmail] as $ci) {
+                    $initCartCount += (int)($ci['qty'] ?? 1);
+                    $initCartSubtotal += (float)($ci['price'] ?? 0) * (int)($ci['qty'] ?? 1);
+                }
+            }
+        ?>
+            <div id="cartPanel" style="
+          position:fixed;top:0;right:-110vw;width:min(400px,100vw);height:100vh;
+          background:#fff;z-index:10000;box-shadow:-8px 0 40px rgba(0,0,0,.18);
+          display:flex;flex-direction:column;transition:right .35s cubic-bezier(.4,0,.2,1);
+          border-radius:20px 0 0 20px;overflow:hidden;">
+
+                <!-- Header -->
+                <div style="background:linear-gradient(135deg,#1a2e1a,#2d5a2d);color:#fff;padding:20px 22px 16px;flex-shrink:0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <h5 style="margin:0;font-family:'Playfair Display',serif;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="9" cy="21" r="1" />
+                                    <circle cx="20" cy="21" r="1" />
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                                </svg>
+                                My Cart
+                            </h5>
+                            <small id="cartItemCount" style="opacity:.75;font-size:.75rem;">
+                                <?= $initCartCount === 0 ? 'Your cart is empty' : $initCartCount . ' item' . ($initCartCount === 1 ? '' : 's') . ' in cart' ?>
+                            </small>
+                        </div>
+                        <button onclick="closeCart()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Select-All bar — only appears once there are 2+ distinct products in the cart -->
+                <div id="cartSelectAllBar" style="display:<?= $initCartDistinct >= 2 ? 'flex' : 'none' ?>;align-items:center;justify-content:space-between;
+            padding:10px 18px;background:#f0f7f0;border-bottom:1px solid rgba(45,90,45,.16);flex-shrink:0;">
+                    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.82rem;font-weight:700;color:var(--green);margin:0;">
+                        <input type="checkbox" id="cartSelectAllCheckbox" onchange="toggleSelectAll(this.checked)"
+                            style="width:17px;height:17px;accent-color:var(--green);cursor:pointer;">
+                        Select All
+                    </label>
+                    <span id="cartSelectAllCount" style="font-size:.74rem;color:#5a8a5a;font-weight:600;"></span>
+                </div>
+
+                <!-- Items list -->
+                <div id="cartItems" style="flex:1;overflow-y:auto;padding:16px;background:#f9f9f6;">
+                    <?php if (!empty($_SESSION['cart'][$userEmail])):
+                        foreach ($_SESSION['cart'][$userEmail] as $ci):
+                            $ciPrice  = (float)($ci['price'] ?? 0);
+                            $ciQty    = (int)($ci['qty'] ?? 1);
+                            $ciId     = (string)($ci['inv_id'] ?? '');
+                            $ciTotal  = $ciPrice * $ciQty;
+                            $ciStock  = $stockMap[$ciId] ?? 99;
+                            $stockLabel = $ciStock === 0 ? 'Out of Stock' : ($ciStock <= 5 ? 'Low stock: ' . $ciStock . ' left' : 'In stock: ' . $ciStock);
+                            $stockColor = $ciStock === 0 ? '#dc2626' : ($ciStock <= 5 ? '#f59e0b' : '#16a34a');
+                    ?>
+                        <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;
+                box-shadow:0 2px 10px rgba(0,0,0,.06);">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                                <input type="checkbox" class="cart-select-checkbox" value="<?= htmlspecialchars($ciId) ?>"
+                                    onchange="toggleCartSelection('<?= htmlspecialchars($ciId) ?>', this.checked)"
+                                    style="width:18px;height:18px;accent-color:var(--green);flex-shrink:0;cursor:pointer;"
+                                    aria-label="Select <?= htmlspecialchars($ci['name'] ?? 'item') ?> for checkout">
+                                <img src="<?= htmlspecialchars($ci['image'] ?? '') ?>" alt=""
+                                    style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;"
+                                    onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-weight:600;color:#1a2e1a;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                        <?= htmlspecialchars($ci['name'] ?? '') ?>
+                                    </div>
+                                    <div style="color:#7aab7a;font-size:.76rem;margin-top:1px;">₱<?= number_format($ciPrice, 2) ?> each</div>
+                                    <div style="font-size:.68rem;color:<?= $stockColor ?>;font-weight:600;margin-top:2px;">
+                                        <?= $stockLabel ?>
+                                    </div>
+                                </div>
+                                <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;">
+                                    ₱<?= number_format($ciTotal, 2) ?>
+                                </div>
+                            </div>
+                            <!-- Qty stepper + remove row -->
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+                                <div style="display:flex;align-items:center;gap:0;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
+                                    <button onclick="cartQty('<?= $ciId ?>', 'minus')"
+                                        style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
+                                    <span id="panel-qty-<?= $ciId ?>" style="width:34px;text-align:center;font-weight:700;font-size:.88rem;color:#1a2e1a;"><?= $ciQty ?></span>
+                                    <button onclick="cartQty('<?= $ciId ?>', 'plus')"
+                                        style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">+</button>
+                                </div>
+                                <button onclick="cartQty('<?= $ciId ?>', 'remove')"
+                                    style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;"
+                                    onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
+                                    <i class="fas fa-trash-alt" style="margin-right:4px;"></i>Remove
+                                </button>
+                            </div>
+                        </div>
+                    <?php
+                        endforeach;
+                    else: ?>
+                        <div style="text-align:center;padding:60px 20px;color:#bbb;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d4e4d4" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:14px;display:block;margin-left:auto;margin-right:auto;">
+                                <circle cx="9" cy="21" r="1" />
+                                <circle cx="20" cy="21" r="1" />
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                            </svg>
+                            <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Footer with subtotal + checkout -->
+                <div id="cartFooter" style="padding:16px 20px;background:#fff;border-top:2px solid #f0f0eb;flex-shrink:0;<?= ($initCartSubtotal > 0) ? '' : 'display:none;' ?>">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                        <span style="font-weight:600;color:#666;font-size:.85rem;">SUBTOTAL</span>
+                        <span id="cartSubtotal" style="font-weight:800;color:#2d5a2d;font-size:1.15rem;">₱<?= number_format($initCartSubtotal) ?></span>
+                    </div>
+                    <div id="cartSelectionError" style="display:none;color:#b91c1c;background:#fee2e2;border-radius:10px;padding:8px 10px;font-size:.78rem;font-weight:700;margin-bottom:10px;text-align:center;">
+                        Please select products first.
+                    </div>
+                    <a href="checkout.php" id="checkoutSelectedBtn" onclick="return goToSelectedCheckout(event)" style="display:block;background:var(--green);color:#fff;text-align:center;padding:14px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;transition:.2s;">
+                        Checkout Now
+                    </a>
+                </div>
+            </div>
+            <div id="cartBackdrop" onclick="closeCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;backdrop-filter:blur(2px);"></div>
+        <?php endif; /* end admin cart hide */ ?>
+
+        <div id="toast-msg" class="toast-fixed"></div>
+
+        <script>
+            // ── Cart state seeded from PHP session + live DB via fetch ──
+            let cartItemsJS = <?= json_encode(array_values(array_map(function ($i) {
+                                return ['inv_id' => (string)($i['inv_id'] ?? ''), 'name' => $i['name'] ?? '', 'price' => (float)($i['price'] ?? 0), 'qty' => (int)($i['qty'] ?? 1), 'image' => $i['image'] ?? ''];
+                            }, $_SESSION['cart'][$userEmail] ?? []))) ?>;
+            let selectedCartIds = new Set(JSON.parse(localStorage.getItem('zythera_selected_cart') || '[]').map(String));
+            // Stock map from PHP inventory (inv_id => stock)
+            const stockMapJS = <?= json_encode($stockMap) ?>;
+
+            // On page load, always sync cart from DB so badge is accurate
+            (function syncCartOnLoad() {
+                <?php if ($userRole !== 'admin'): ?>
+                fetch('getcart.php', { credentials: 'same-origin' })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.cart) {
+                            cartItemsJS = data.cart;
+                            const badge = document.getElementById('cart-badge');
+                            if (badge) {
+                                badge.textContent = data.total_items;
+                                badge.style.display = data.total_items > 0 ? '' : 'none';
+                            }
+                            renderCart();
+                        }
+                    }).catch(() => {});
+                <?php endif; ?>
+            })();
+
+            // ── Open / Close cart panel ───────────────────────────────────
+            function openCart() {
+                document.getElementById('cartPanel').style.right = '0';
+                document.getElementById('cartBackdrop').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeCart() {
+                document.getElementById('cartPanel').style.right = '-110vw';
+                document.getElementById('cartBackdrop').style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            function syncSelectedCartIds() {
+                const currentIds = new Set(cartItemsJS.map(item => String(item.inv_id)));
+                selectedCartIds = new Set([...selectedCartIds].filter(id => currentIds.has(id)));
+                localStorage.setItem('zythera_selected_cart', JSON.stringify([...selectedCartIds]));
+            }
+
+            function toggleCartSelection(itemId, checked) {
+                itemId = String(itemId);
+                if (checked) selectedCartIds.add(itemId);
+                else selectedCartIds.delete(itemId);
+                syncSelectedCartIds();
+                updateSelectAllUI();
+                const err = document.getElementById('cartSelectionError');
+                if (err && selectedCartIds.size > 0) err.style.display = 'none';
+            }
+
+            // ── Select-All toolbar: check/uncheck every item at once ──────
+            function toggleSelectAll(checked) {
+                document.querySelectorAll('.cart-select-checkbox').forEach(cb => { cb.checked = checked; });
+                cartItemsJS.forEach(item => {
+                    const id = String(item.inv_id);
+                    if (checked) selectedCartIds.add(id);
+                    else selectedCartIds.delete(id);
+                });
+                syncSelectedCartIds();
+                updateSelectAllUI();
+                const err = document.getElementById('cartSelectionError');
+                if (err && selectedCartIds.size > 0) err.style.display = 'none';
+            }
+
+            // Keeps the Select-All checkbox (checked/indeterminate), its visibility,
+            // and the "x of y selected" label in sync with the current selection.
+            function updateSelectAllUI() {
+                const bar = document.getElementById('cartSelectAllBar');
+                const cb = document.getElementById('cartSelectAllCheckbox');
+                const countEl = document.getElementById('cartSelectAllCount');
+                if (!bar || !cb) return;
+
+                const total = cartItemsJS.length;
+                if (total < 2) {
+                    bar.style.display = 'none';
+                    return;
+                }
+                bar.style.display = 'flex';
+
+                const selectedCount = cartItemsJS.filter(i => selectedCartIds.has(String(i.inv_id))).length;
+                cb.checked = total > 0 && selectedCount === total;
+                cb.indeterminate = selectedCount > 0 && selectedCount < total;
+                if (countEl) countEl.textContent = selectedCount + ' of ' + total + ' selected';
+            }
+
+            function goToSelectedCheckout(event) {
+                syncSelectedCartIds();
+                if (selectedCartIds.size === 0) {
+                    if (event) event.preventDefault();
+                    const err = document.getElementById('cartSelectionError');
+                    if (err) {
+                        err.textContent = 'Please select products first.';
+                        err.style.display = 'block';
+                    }
+                    openCart();
+                    return false;
+                }
+                const selected = encodeURIComponent([...selectedCartIds].join(','));
+                window.location.href = 'checkout.php?selected=' + selected;
+                if (event) event.preventDefault();
+                return false;
+            }
+
+            // ── Re-render cart panel items + subtotal + header count ──────
+            function renderCart() {
+                const container = document.getElementById('cartItems');
+                const footer = document.getElementById('cartFooter');
+                const subEl = document.getElementById('cartSubtotal');
+                const countEl = document.getElementById('cartItemCount');
+
+                let subtotal = 0, totalQty = 0, distinctCount = cartItemsJS.length;
+
+                syncSelectedCartIds();
+
+                if (cartItemsJS.length === 0) {
+                    container.innerHTML = `
+            <div style="text-align:center;padding:60px 20px;color:#bbb;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none"
+                stroke="#d4e4d4" stroke-width="1.5" stroke-linecap="round"
+                style="margin-bottom:14px;display:block;margin-left:auto;margin-right:auto;">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
+            </div>`;
+                    if (footer) footer.style.display = 'none';
+                    if (countEl) countEl.textContent = 'Your cart is empty';
+                    const badge = document.getElementById('cart-badge');
+                    if (badge) {
+                        badge.textContent = '0';
+                        badge.style.display = 'none';
+                    }
+                    updateSelectAllUI();
+                    return;
+                }
+
+                let html = '';
+                cartItemsJS.forEach(item => {
+                    const price = Number(item.price) || 0;
+                    const qty = Number(item.qty) || 1;
+                    const lineTotal = price * qty;
+                    const stock = stockMapJS[item.inv_id] ?? 99;
+                    subtotal += lineTotal;
+                    totalQty += qty;
+                    const imgSrc = item.image || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop';
+                    const itemId = String(item.inv_id);
+                    const checked = selectedCartIds.has(itemId) ? 'checked' : '';
+
+                    const stockLabel = stock === 0 ? 'Out of Stock' :
+                        stock <= 5 ? 'Low stock: ' + stock + ' left' :
+                        'In stock: ' + stock;
+                    const stockColor = stock === 0 ? '#dc2626' : stock <= 5 ? '#f59e0b' : '#16a34a';
+
+                    html += `
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;
+              box-shadow:0 2px 10px rgba(0,0,0,.06);">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                <input type="checkbox" class="cart-select-checkbox" value="${escHtml(itemId)}" ${checked}
+                  onchange="toggleCartSelection('${escHtml(itemId)}', this.checked)"
+                  style="width:18px;height:18px;accent-color:var(--green);flex-shrink:0;cursor:pointer;"
+                  aria-label="Select ${escHtml(String(item.name || 'item'))} for checkout">
+                <img src="${escHtml(imgSrc)}" alt=""
+                  style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;"
+                  onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-weight:600;color:#1a2e1a;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    ${escHtml(String(item.name))}
+                  </div>
+                  <div style="color:#7aab7a;font-size:.76rem;margin-top:1px;">₱${price.toLocaleString('en-PH')} each</div>
+                  <div style="font-size:.68rem;color:${stockColor};font-weight:600;margin-top:2px;">${stockLabel}</div>
+                </div>
+                <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;">
+                  ₱${lineTotal.toLocaleString('en-PH')}
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+                <div style="display:flex;align-items:center;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
+                  <button onclick="cartQty('${item.inv_id}','minus')"
+                    style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
+                  <span id="panel-qty-${item.inv_id}"
+                    style="width:34px;text-align:center;font-weight:700;font-size:.88rem;color:#1a2e1a;">${qty}</span>
+                  <button onclick="cartQty('${item.inv_id}','plus')"
+                    style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">+</button>
+                </div>
+                <button onclick="cartQty('${item.inv_id}','remove')"
+                  style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;"
+                  onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
+                  <i class="fas fa-trash-alt" style="margin-right:4px;"></i>Remove
+                </button>
+              </div>
+            </div>`;
+                });
+
+                container.innerHTML = html;
+                if (subEl) subEl.textContent = '₱' + subtotal.toLocaleString('en-PH');
+                if (footer) footer.style.display = 'block';
+                if (countEl) countEl.textContent = distinctCount === 1 ? '1 item in cart' : distinctCount + ' items in cart';
+                const badge = document.getElementById('cart-badge');
+                if (badge) {
+                    badge.textContent = distinctCount;
+                    badge.style.display = distinctCount > 0 ? '' : 'none';
+                }
+                updateSelectAllUI();
+            }
+
+            // ── Qty stepper in cart sidebar → update_cart.php ────────────
+            function cartQty(itemId, action) {
+                if (action === 'plus') {
+                    const item = cartItemsJS.find(i => String(i.inv_id) === String(itemId));
+                    const max = stockMapJS[itemId] ?? 9999;
+                    if (item && Number(item.qty) >= max) {
+                        showToast('Maximum stock (' + max + ') already in cart.', 'error');
+                        return;
+                    }
+                }
+
+                fetch('update_cart.php', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'item_id=' + encodeURIComponent(itemId) + '&qty_action=' + encodeURIComponent(action)
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        showToast(data.message || 'Could not update cart.', 'error');
+                        return;
+                    }
+                    cartItemsJS = data.cart || [];
+                    renderCart();
+                    try {
+                        const bc = new BroadcastChannel('zythera_cart');
+                        bc.postMessage({ type: 'cart_updated', cart: cartItemsJS });
+                        bc.close();
+                    } catch (e) { /* BroadcastChannel not supported — no-op */ }
+                })
+                .catch(() => showToast('Could not update cart. Try again.', 'error'));
+            }
+
+            function escHtml(s) {
+                return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            function showToast(msg, type = 'success') {
+                const t = document.getElementById('toast-msg');
+                if (!t) return;
+                t.textContent = msg;
+                t.className = 'toast-fixed show' + (type === 'error' ? ' error' : '');
+                setTimeout(() => t.classList.remove('show'), 3500);
+            }
+
+            // Live-sync cart if changed in another tab (e.g. checkout page)
+            try {
+                const cartBc = new BroadcastChannel('zythera_cart');
+                cartBc.onmessage = (e) => {
+                    if (e.data && e.data.type === 'cart_updated') {
+                        cartItemsJS = e.data.cart || [];
+                        renderCart();
+                    }
+                };
+            } catch (e) { /* BroadcastChannel not supported — no-op */ }
+        </script>
+
+        <!-- Logout Confirmation Modal -->
+        <div id="logoutModalOverlay" class="logout-modal-overlay">
+            <div class="logout-modal">
+                <h2>Log Out Confirmation</h2>
+                <p>Are you sure you want to log out of your account?</p>
+                <div class="logout-modal-buttons">
+                    <button type="button" class="logout-cancel-btn" onclick="closeLogoutModal(event)">
+                        Stay
+                    </button>
+                    <button type="button" class="logout-confirm-btn" onclick="performLogout()">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openLogoutModal() {
+                const overlay = document.getElementById('logoutModalOverlay');
+                if (overlay) {
+                    overlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+
+            function closeLogoutModal(event) {
+                const overlay = document.getElementById('logoutModalOverlay');
+                if (overlay) {
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+
+            function performLogout() {
+                const confirmBtn = document.querySelector('.logout-confirm-btn');
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = 'Logging out...';
+                }
+                window.location.href = 'logout.php';
+            }
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeLogoutModal();
+            });
+
+            // Close modal on outside click
+            document.addEventListener('click', function(e) {
+                const overlay = document.getElementById('logoutModalOverlay');
+                if (overlay && e.target === overlay) closeLogoutModal(e);
+            });
+        </script>
 
 </body>
 
