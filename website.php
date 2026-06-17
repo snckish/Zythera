@@ -1745,84 +1745,37 @@ body.dark .review-edit-modal textarea:focus {
         </div>
       </div>
 
-      <!-- Items list -->
+      <!-- Select All bar -->
+      <div id="cartSelectAllBar" style="display:none;padding:10px 20px;background:#eef5ee;border-bottom:1px solid #d4e4d4;flex-shrink:0;align-items:center;justify-content:space-between;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.82rem;font-weight:600;color:#1a2e1a;user-select:none;">
+          <input type="checkbox" id="cartSelectAll" onchange="toggleSelectAll(this.checked)"
+            style="width:17px;height:17px;accent-color:#2d5a2d;cursor:pointer;flex-shrink:0;">
+          Select All
+        </label>
+        <span id="cartSelectedCount" style="font-size:.78rem;color:#7aab7a;font-weight:600;"></span>
+      </div>
+
+      <!-- Items list (rendered by JS renderCart()) -->
       <div id="cartItems" style="flex:1;overflow-y:auto;padding:16px;background:#f9f9f6;">
         <?php
         $initSubtotal = 0;
-        // Build a stock lookup from session inventory
-        $invStock = [];
-        foreach ($_SESSION['inventory'] ?? [] as $invId => $inv) {
-          $invStock[$invId] = (int)$inv->stock;
-        }
-        if ($userEmail && !empty($_SESSION['cart'][$userEmail])):
-          foreach ($_SESSION['cart'][$userEmail] as $ci):
-            $ciPrice  = (float)($ci['price'] ?? 0);
-            $ciQty    = (int)($ci['qty'] ?? 1);
-            $ciId     = (string)($ci['inv_id'] ?? '');
-            $ciTotal  = $ciPrice * $ciQty;
-            $ciStock  = $invStock[$ciId] ?? 99;
-            $initSubtotal += $ciTotal;
-            $stockLabel = $ciStock === 0 ? 'Out of Stock' : ($ciStock <= 5 ? 'Low stock: ' . $ciStock . ' left' : 'In stock: ' . $ciStock);
-            $stockColor = $ciStock === 0 ? '#dc2626' : ($ciStock <= 5 ? '#f59e0b' : '#16a34a');
+        foreach ($_SESSION['cart'][$userEmail] ?? [] as $ci)
+          $initSubtotal += (float)($ci['price'] ?? 0) * (int)($ci['qty'] ?? 1);
         ?>
-            <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;
-            box-shadow:0 2px 10px rgba(0,0,0,.06);">
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-                <img src="<?= htmlspecialchars($ci['image'] ?? '') ?>" alt=""
-                  style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;"
-                  onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
-                <div style="flex:1;min-width:0;">
-                  <div style="font-weight:600;color:#1a2e1a;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                    <?= htmlspecialchars($ci['name'] ?? '') ?>
-                  </div>
-                  <div style="color:#7aab7a;font-size:.76rem;margin-top:1px;">₱<?= number_format($ciPrice, 2) ?> each</div>
-                  <div style="font-size:.68rem;color:<?= $stockColor ?>;font-weight:600;margin-top:2px;">
-                    <?= $stockLabel ?>
-                  </div>
-                </div>
-                <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;">
-                  ₱<?= number_format($ciTotal, 2) ?>
-                </div>
-              </div>
-              <!-- Qty stepper + remove row -->
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
-                <div style="display:flex;align-items:center;gap:0;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
-                  <button onclick="cartQty('<?= $ciId ?>', 'minus')"
-                    style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
-                  <span id="panel-qty-<?= $ciId ?>" style="width:34px;text-align:center;font-weight:700;font-size:.88rem;color:#1a2e1a;"><?= $ciQty ?></span>
-                  <button onclick="cartQty('<?= $ciId ?>', 'plus')"
-                    style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">+</button>
-                </div>
-                <button onclick="cartQty('<?= $ciId ?>', 'remove')"
-                  style="background:none;border:none;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;"
-                  onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
-                  <i class="fas fa-trash-alt" style="margin-right:4px;"></i>Remove
-                </button>
-              </div>
-            </div>
-          <?php
-          endforeach;
-        else: ?>
-          <div style="text-align:center;padding:60px 20px;color:#bbb;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d4e4d4" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:14px;display:block;margin-left:auto;margin-right:auto;">
-              <circle cx="9" cy="21" r="1" />
-              <circle cx="20" cy="21" r="1" />
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-            </svg>
-            <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
-          </div>
-        <?php endif; ?>
       </div>
 
-      <!-- Footer with subtotal + checkout -->
+      <!-- Footer with selected subtotal + checkout -->
       <div id="cartFooter" style="padding:16px 20px;background:#fff;border-top:2px solid #f0f0eb;flex-shrink:0;<?= ($initSubtotal > 0) ? '' : 'display:none;' ?>">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <span style="font-weight:600;color:#666;font-size:.85rem;">SUBTOTAL</span>
-          <span id="cartSubtotal" style="font-weight:800;color:#2d5a2d;font-size:1.15rem;">₱<?= number_format($initSubtotal) ?></span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-weight:600;color:#666;font-size:.85rem;">SELECTED SUBTOTAL</span>
+          <span id="cartSubtotal" style="font-weight:800;color:#2d5a2d;font-size:1.15rem;">₱0</span>
         </div>
-        <a href="checkout.php" style="display:block;background:var(--green);color:#fff;text-align:center;padding:14px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;transition:.2s;">
+        <div id="cartNoSelectionMsg" style="display:none;color:#dc2626;font-size:.75rem;font-weight:600;margin-bottom:8px;text-align:center;">
+          ⚠ Please select at least one item to proceed.
+        </div>
+        <button onclick="proceedToCheckout()" style="display:block;width:100%;background:var(--green);color:#fff;text-align:center;padding:14px;border-radius:50px;border:none;font-weight:700;font-size:.95rem;cursor:pointer;transition:.2s;">
           Checkout Now
-        </a>
+        </button>
       </div>
     </div>
     <div id="cartBackdrop" onclick="closeCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;backdrop-filter:blur(2px);"></div>
@@ -1918,15 +1871,18 @@ body.dark .review-edit-modal textarea:focus {
       document.body.style.overflow = '';
     }
 
+    // ── Selected item IDs set (persists across re-renders) ────────
+    let selectedCartIds = new Set();
+
     // ── Re-render cart panel items + subtotal + header count ──────
     function renderCart() {
       const container = document.getElementById('cartItems');
       const footer = document.getElementById('cartFooter');
       const subEl = document.getElementById('cartSubtotal');
       const countEl = document.getElementById('cartItemCount');
+      const selectAllBar = document.getElementById('cartSelectAllBar');
 
-      let subtotal = 0,
-        totalQty = 0,
+      let totalQty = 0,
         distinctCount = cartItemsJS.length;
 
       if (cartItemsJS.length === 0) {
@@ -1941,14 +1897,17 @@ body.dark .review-edit-modal textarea:focus {
             <p style="font-size:.9rem;line-height:1.6;">Your cart is empty.<br>Add some furniture!</p>
           </div>`;
         if (footer) footer.style.display = 'none';
+        if (selectAllBar) selectAllBar.style.display = 'none';
         if (countEl) countEl.textContent = 'Your cart is empty';
         const badge = document.getElementById('cart-badge');
-        if (badge) {
-          badge.textContent = '0';
-          badge.style.display = 'none';
-        }
+        if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+        selectedCartIds.clear();
         return;
       }
+
+      // Remove IDs from selectedCartIds that are no longer in cart
+      const currentIds = new Set(cartItemsJS.map(i => String(i.inv_id)));
+      selectedCartIds.forEach(id => { if (!currentIds.has(id)) selectedCartIds.delete(id); });
 
       let html = '';
       cartItemsJS.forEach(item => {
@@ -1956,9 +1915,9 @@ body.dark .review-edit-modal textarea:focus {
         const qty = Number(item.qty) || 1;
         const lineTotal = price * qty;
         const stock = stockMap[item.inv_id] ?? 99;
-        subtotal += lineTotal;
         totalQty += qty;
         const imgSrc = item.image || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop';
+        const isChecked = selectedCartIds.has(String(item.inv_id));
 
         const stockLabel = stock === 0 ? 'Out of Stock' :
           stock <= 5 ? 'Low stock: ' + stock + ' left' :
@@ -1967,10 +1926,18 @@ body.dark .review-edit-modal textarea:focus {
 
         html += `
           <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;
-            box-shadow:0 2px 10px rgba(0,0,0,.06);">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            box-shadow:0 2px 10px rgba(0,0,0,.06);transition:box-shadow .15s;border:2px solid ${isChecked ? '#2d5a2d' : 'transparent'};"
+            id="cart-card-${item.inv_id}">
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
+              <!-- Checkbox -->
+              <label style="display:flex;align-items:center;padding-top:18px;cursor:pointer;flex-shrink:0;">
+                <input type="checkbox" data-cart-id="${item.inv_id}"
+                  onchange="onCartItemCheck('${item.inv_id}', this.checked)"
+                  ${isChecked ? 'checked' : ''}
+                  style="width:17px;height:17px;accent-color:#2d5a2d;cursor:pointer;">
+              </label>
               <img src="${escHtml(imgSrc)}" alt=""
-                style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;"
+                style="width:54px;height:54px;object-fit:cover;border-radius:10px;flex-shrink:0;background:#d4e4d4;margin-top:2px;"
                 onerror="this.src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop'">
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;color:#1a2e1a;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
@@ -1979,11 +1946,11 @@ body.dark .review-edit-modal textarea:focus {
                 <div style="color:#7aab7a;font-size:.76rem;margin-top:1px;">₱${price.toLocaleString('en-PH')} each</div>
                 <div style="font-size:.68rem;color:${stockColor};font-weight:600;margin-top:2px;">${stockLabel}</div>
               </div>
-              <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;">
+              <div style="font-weight:700;color:#2d5a2d;white-space:nowrap;font-size:.92rem;padding-top:2px;">
                 ₱${lineTotal.toLocaleString('en-PH')}
               </div>
             </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;padding-left:27px;">
               <div style="display:flex;align-items:center;border:1.5px solid #d4e4d4;border-radius:8px;overflow:hidden;">
                 <button onclick="cartQty('${item.inv_id}','minus')"
                   style="width:30px;height:30px;border:none;background:#d4e4d4;color:#2d5a2d;font-weight:700;font-size:1rem;cursor:pointer;line-height:1;">−</button>
@@ -2002,7 +1969,7 @@ body.dark .review-edit-modal textarea:focus {
       });
 
       container.innerHTML = html;
-      if (subEl) subEl.textContent = '₱' + subtotal.toLocaleString('en-PH');
+      if (selectAllBar) selectAllBar.style.display = 'flex';
       if (footer) footer.style.display = 'block';
       if (countEl) {
         countEl.textContent = distinctCount === 1 ? '1 item in cart' : distinctCount + ' items in cart';
@@ -2012,6 +1979,69 @@ body.dark .review-edit-modal textarea:focus {
         badge.textContent = distinctCount;
         badge.style.display = distinctCount > 0 ? '' : 'none';
       }
+      updateCartSelection();
+    }
+
+    // ── Handle individual checkbox change ─────────────────────────
+    function onCartItemCheck(invId, checked) {
+      if (checked) selectedCartIds.add(String(invId));
+      else selectedCartIds.delete(String(invId));
+      updateCartSelection();
+    }
+
+    // ── Toggle select all ─────────────────────────────────────────
+    function toggleSelectAll(checked) {
+      if (checked) cartItemsJS.forEach(i => selectedCartIds.add(String(i.inv_id)));
+      else selectedCartIds.clear();
+      // Update individual checkboxes
+      document.querySelectorAll('input[data-cart-id]').forEach(cb => {
+        cb.checked = checked;
+        const card = document.getElementById('cart-card-' + cb.dataset.cartId);
+        if (card) card.style.borderColor = checked ? '#2d5a2d' : 'transparent';
+      });
+      updateCartSelection();
+    }
+
+    // ── Recompute selected subtotal + UI state ────────────────────
+    function updateCartSelection() {
+      const subEl = document.getElementById('cartSubtotal');
+      const selectAllCb = document.getElementById('cartSelectAll');
+      const selectedCountEl = document.getElementById('cartSelectedCount');
+      const noSelMsg = document.getElementById('cartNoSelectionMsg');
+
+      let selectedSubtotal = 0;
+      let checkedCount = 0;
+      cartItemsJS.forEach(item => {
+        if (selectedCartIds.has(String(item.inv_id))) {
+          selectedSubtotal += (Number(item.price) || 0) * (Number(item.qty) || 1);
+          checkedCount++;
+        }
+        // Keep card border in sync
+        const card = document.getElementById('cart-card-' + item.inv_id);
+        const cb = document.querySelector('input[data-cart-id="' + item.inv_id + '"]');
+        if (card) card.style.borderColor = selectedCartIds.has(String(item.inv_id)) ? '#2d5a2d' : 'transparent';
+        if (cb) cb.checked = selectedCartIds.has(String(item.inv_id));
+      });
+
+      if (subEl) subEl.textContent = '₱' + selectedSubtotal.toLocaleString('en-PH');
+      if (selectedCountEl) selectedCountEl.textContent = checkedCount + ' of ' + cartItemsJS.length + ' selected';
+      if (selectAllCb) {
+        selectAllCb.checked = checkedCount === cartItemsJS.length && cartItemsJS.length > 0;
+        selectAllCb.indeterminate = checkedCount > 0 && checkedCount < cartItemsJS.length;
+      }
+      if (noSelMsg) noSelMsg.style.display = 'none';
+    }
+
+    // ── Proceed to checkout with only selected items ───────────────
+    function proceedToCheckout() {
+      if (selectedCartIds.size === 0) {
+        const noSelMsg = document.getElementById('cartNoSelectionMsg');
+        if (noSelMsg) noSelMsg.style.display = 'block';
+        return;
+      }
+      // Store selected IDs in sessionStorage so checkout.php can filter
+      sessionStorage.setItem('zythera_checkout_ids', JSON.stringify([...selectedCartIds]));
+      window.location.href = 'checkout.php';
     }
 
     // ── Qty stepper in cart sidebar → update_cart.php ────────────

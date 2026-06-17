@@ -965,6 +965,25 @@ let checkoutCart = <?= json_encode(array_values(array_map(function($i){
 }, $cart))) ?>;
 const SHIPPING_FEE = 150;
 
+// ── Filter cart to only selected items from website.php ──────
+(function applySelectedItems() {
+  try {
+    const raw = sessionStorage.getItem('zythera_checkout_ids');
+    if (raw) {
+      const ids = JSON.parse(raw);
+      if (Array.isArray(ids) && ids.length > 0) {
+        const idSet = new Set(ids.map(String));
+        const filtered = checkoutCart.filter(i => idSet.has(String(i.inv_id)));
+        if (filtered.length > 0) checkoutCart = filtered;
+      }
+      sessionStorage.removeItem('zythera_checkout_ids');
+    }
+  } catch(_) {}
+})();
+
+// Initial render of order summary with (possibly filtered) cart
+document.addEventListener('DOMContentLoaded', function() { rebuildOrderSummary(checkoutCart); });
+
 function numFmt(n)    { return Number(n).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0}); }
 function escHtml(s)   { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -989,17 +1008,26 @@ function rebuildOrderSummary(cart) {
   if(totalEl)    totalEl.textContent='₱'+numFmt(total);
 }
 
+// Track which IDs are in the filtered checkout view
+const checkoutSelectedIds = new Set(checkoutCart.map(i => String(i.inv_id)));
+
+function filterCartToSelected(fullCart) {
+  if (checkoutSelectedIds.size === 0) return fullCart;
+  return fullCart.filter(i => checkoutSelectedIds.has(String(i.inv_id)));
+}
+
 try {
   const bc=new BroadcastChannel('zythera_cart');
-  bc.addEventListener('message',e=>{ if(e.data?.type==='cart_updated'&&Array.isArray(e.data.cart)){ checkoutCart=e.data.cart; rebuildOrderSummary(checkoutCart); } });
+  bc.addEventListener('message',e=>{ if(e.data?.type==='cart_updated'&&Array.isArray(e.data.cart)){ checkoutCart=filterCartToSelected(e.data.cart); rebuildOrderSummary(checkoutCart); } });
 } catch(_){}
 
 setInterval(()=>{
   if(document.hidden) return;
   fetch('getcart.php',{credentials:'same-origin'}).then(r=>r.json()).then(data=>{
     if(data.success&&Array.isArray(data.cart)){
+      const filtered=filterCartToSelected(data.cart);
       const sig=a=>a.map(i=>i.inv_id+':'+i.qty).join(',');
-      if(sig(data.cart)!==sig(checkoutCart)){ checkoutCart=data.cart; rebuildOrderSummary(checkoutCart); }
+      if(sig(filtered)!==sig(checkoutCart)){ checkoutCart=filtered; rebuildOrderSummary(checkoutCart); }
     }
   }).catch(()=>{});
 },5000);
