@@ -356,12 +356,13 @@ a {
   }
 
   /* ── Cart & Settings icon links: row layout with label ── */
-  /* Override the inline style="width:36px;height:36px;..." */
+  /* Override inline style="width:36px;height:36px;border-radius:50%;justify-content:center" */
   .navbar-collapse a[title="Cart"],
   .navbar-collapse a[aria-label="Profile settings"] {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
+    justify-content: flex-start !important;
     gap: 10px !important;
     padding: 11px 14px !important;
     border-radius: 10px !important;
@@ -371,8 +372,6 @@ a {
     text-decoration: none !important;
     color: var(--green) !important;
     background: transparent !important;
-    border-radius: 50% !important;  /* reset the circle shape */
-    border-radius: 10px !important;
     border: none !important;
     box-sizing: border-box !important;
   }
@@ -616,4 +615,49 @@ a {
     font-size: 1.25rem !important;
     letter-spacing: 1.5px !important;
   }
+}
+
+/* ================================================================
+   NAVBAR — checkout.php  (no toggler, brand + 2 buttons only)
+   ================================================================
+   Brand LEFT, buttons RIGHT — always one row, never wrap.
+   Override the flex-wrap:wrap that other navbars need.
+   ================================================================ */
+
+/* Target checkout navbar by absence of .navbar-toggler using :has() */
+.navbar:not(:has(.navbar-toggler)) > .container,
+.navbar:not(:has(.navbar-toggler)) > .container-fluid {
+  flex-wrap: nowrap !important;
+  align-items: center;
+}
+
+/* Buttons group: shrink, stay on one row */
+.navbar:not(:has(.navbar-toggler)) .ms-auto.d-flex {
+  flex-shrink: 1;
+  flex-wrap: nowrap !important;
+  gap: 6px !important;
+}
+
+/* Each button: stay on one line, compress if needed */
+.navbar:not(:has(.navbar-toggler)) .ms-auto.d-flex > a.btn {
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+/* Very small phones: tighten padding slightly */
+@media (max-width: 399.98px) {
+  .navbar:not(:has(.navbar-toggler)) .ms-auto.d-flex > a.btn {
+    font-size: .78rem !important;
+    padding: 5px 10px !important;
+  }
+}
+
+/* Checkout: brand always pinned LEFT, buttons pushed to RIGHT */
+.navbar:not(:has(.navbar-toggler)) .navbar-brand {
+  margin-right: auto !important;
+  order: 0;
+}
+
+.navbar:not(:has(.navbar-toggler)) .ms-auto.d-flex {
+  margin-left: 0 !important;  /* ms-auto already handles spacing via brand's margin-right */
 }
