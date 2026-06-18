@@ -1055,6 +1055,9 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                     <a href="website.php#products" class="nav-link fw-semibold">Products</a>
                     <a href="about.php" class="nav-link fw-semibold">About</a>
                     <a href="website.php#contact" class="nav-link fw-semibold">Contact Us</a>
+                    <?php if ($userRole !== 'admin'): ?>
+                        <a href="profile.php?tab=orders" class="nav-link fw-semibold">My Orders</a>
+                    <?php endif; ?>
 
                     <div class="nav-user-capsule">
                         <div class="text-end d-none d-md-block">
@@ -1159,7 +1162,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                                     <i class="fas fa-location-dot"></i>Addresses
                                 </button>
                                 <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'orders' ? 'active' : '' ?>" data-settings-tab="orders">
-                                    <i class="fas fa-bag-shopping"></i>Orders
+                                    <i class="fas fa-bag-shopping"></i>My Orders
                                 </button>
                                 <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'security' ? 'active' : '' ?>" data-settings-tab="security">
                                     <i class="fas fa-lock"></i>Security

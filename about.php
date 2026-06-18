@@ -352,6 +352,9 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
           <a href="website.php#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
           <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
           <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
+          <?php if ($userEmail && $userRole !== 'admin'): ?>
+            <a href="profile.php?tab=orders" class="nav-link fw-semibold" style="color:var(--green)!important;">My Orders</a>
+          <?php endif; ?>
           <?php if ($userEmail): ?>
             <div class="nav-user-capsule">
               <div class="text-end d-none d-md-block">
