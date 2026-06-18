@@ -151,16 +151,21 @@ function savePaymentProofUpload(array $file, array &$errors): ?string {
         return null;
     }
 
-    $proofDir = __DIR__ . '/uploads/proofs';
-    if (!is_dir($proofDir) && !mkdir($proofDir, 0755, true)) {
-        $errors[] = 'Could not prepare the proof upload folder.';
-        return null;
+    $uploadsDir = __DIR__ . '/uploads';
+    if (!is_dir($uploadsDir)) {
+        @mkdir($uploadsDir, 0777, true);
+    }
+    @chmod($uploadsDir, 0777);
+
+    $proofDir = $uploadsDir . '/proofs';
+    if (!is_dir($proofDir)) {
+        @mkdir($proofDir, 0777, true);
     }
     if (!is_writable($proofDir)) {
-        @chmod($proofDir, 0755);
+        @chmod($proofDir, 0777);
     }
     if (!is_writable($proofDir)) {
-        $errors[] = 'Proof upload folder is not writable.';
+        $errors[] = 'Proof upload folder is not writable. Please run: chmod -R 777 uploads/ on your server.';
         return null;
     }
 
@@ -910,6 +915,11 @@ function resetCardErrors() {
 document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
   const btn    = this.querySelector('.btn-place');
   const errs   = [];
+
+  // Check if a saved address radio is selected (has a value)
+  const savedAddrRadio = this.querySelector('input[name=saved_address_id]:checked');
+  const usingSavedAddress = savedAddrRadio && savedAddrRadio.value !== '';
+
   const phone  = (document.getElementById('phone')?.value||'').trim();
   const prov   = (document.getElementById('province')?.value||'').trim();
   const city   = (document.getElementById('city')?.value||'').trim();
@@ -918,13 +928,16 @@ document.getElementById('checkoutForm')?.addEventListener('submit', function(e) 
   const zip    = (document.getElementById('zip')?.value||'').trim();
   const payVal = this.querySelector('input[name=pay_method]:checked')?.value||'';
 
-  if (!prov)  errs.push('Please select a province.');
-  if (!city)  errs.push('Please select a city.');
-  if (!brgy)  errs.push('Please select a barangay.');
-  if (!addr)  errs.push('Please enter your house / street address.');
+  // Only validate address fields if NOT using a saved address
+  if (!usingSavedAddress) {
+    if (!prov)  errs.push('Please select a province.');
+    if (!city)  errs.push('Please select a city.');
+    if (!brgy)  errs.push('Please select a barangay.');
+    if (!addr)  errs.push('Please enter your house / street address.');
+    if (!zip)   errs.push('Postal code could not be auto-filled. Please select a valid city.');
+    if (!/^[0-9]{10,11}$/.test(phone)) errs.push('Phone must be 10–11 digits.');
+  }
   if (!payVal) errs.push('Please select a payment method.');
-  if (!/^[0-9]{10,11}$/.test(phone)) errs.push('Phone must be 10–11 digits.');
-  if (!zip) errs.push('Postal code could not be auto-filled. Please select a valid city.');
 
   const eWalletMethods = ['GCash','Maya','Bank Transfer'];
   if (eWalletMethods.includes(payVal)) {

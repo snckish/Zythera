@@ -174,23 +174,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
             if (in_array($ext, $allowed)) {
-                if (!is_dir('uploads/profile_pics')) mkdir('uploads/profile_pics', 0777, true);
-                $newName = uniqid('profile_', true) . '.' . $ext;
-                $target  = 'uploads/profile_pics/' . $newName;
-                if (move_uploaded_file($file['tmp_name'], $target)) {
-                    if ($isAdminAccount) {
-                        if (tableExists('admins')) {
-                            $db->prepare("UPDATE admins SET admin_pfp=? WHERE email=?")->execute([$target, $userEmail]);
-                        }
-                    } else {
-                        $db->prepare("UPDATE users SET user_pfp=? WHERE email=?")->execute([$target, $userEmail]);
-                    }
-                    header('Location: profile.php?updated=1');
-                    exit;
+                $uploadsDir = __DIR__ . '/uploads';
+                if (!is_dir($uploadsDir)) { @mkdir($uploadsDir, 0777, true); }
+                @chmod($uploadsDir, 0777);
+
+                $picDir = $uploadsDir . '/profile_pics';
+                if (!is_dir($picDir)) {
+                    @mkdir($picDir, 0777, true);
                 }
-            }
-        }
-    }
+                if (!is_writable($picDir)) {
+                    @chmod($picDir, 0777);
+                }
+                if (!is_writable($picDir)) {
+                    $profileError = 'Profile picture upload folder is not writable. Please run: chmod -R 777 uploads/ on your server.';
+                } else {
+                    $newName = uniqid('profile_', true) . '.' . $ext;
+                    $target  = $picDir . '/' . $newName;
+                    if (move_uploaded_file($file['tmp_name'], $target)) {
+                        $target = 'uploads/profile_pics/' . $newName;
+                        if ($isAdminAccount) {
+                            if (tableExists('admins')) {
+                                $db->prepare("UPDATE admins SET admin_pfp=? WHERE email=?")->execute([$target, $userEmail]);
+                            }
+                        } else {
+                            $db->prepare("UPDATE users SET user_pfp=? WHERE email=?")->execute([$target, $userEmail]);
+                        }
+                        header('Location: profile.php?updated=1');
+                        exit;
+                    }
+                } // end is_writable check
+            } // end in_array allowed
+        } // end file['error'] === 0
+    } // end upload_pic
 
     if (isset($_POST['remove_pic'])) {
         if (!empty($user['profile_pic']) && file_exists($user['profile_pic'])) {
@@ -1166,8 +1181,9 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                 <div class="orders-col">
                     <div class="section-card" style="height:100%;">
                         <?php if ($profileError): ?>
-                            <div class="alert alert-danger rounded-4" role="alert">
-                                <i class="fas fa-circle-exclamation me-2"></i><?= htmlspecialchars($profileError) ?>
+                            <div role="alert" style="display:flex;align-items:flex-start;gap:10px;background:#fff0f0;border:1.5px solid #f5c2c2;border-radius:14px;padding:14px 16px;margin-bottom:18px;color:#b91c1c;font-size:.85rem;line-height:1.5;">
+                                <i class="fas fa-circle-exclamation" style="flex-shrink:0;margin-top:2px;font-size:1rem;"></i>
+                                <span><?= htmlspecialchars($profileError) ?></span>
                             </div>
                         <?php endif; ?>
 

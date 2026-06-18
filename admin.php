@@ -506,12 +506,7 @@ if ($adminRole !== 'admin') {
         body.dark .table-bordered { border-color: #2e4a2e !important; }
         body.dark .table-bordered td,
         body.dark .table-bordered th { border-color: #2e4a2e !important; }
-        /* Messages table */
-        body.dark #section-messages .table td,
-        body.dark #section-messages .table th { color: #e8f5e8 !important; background-color: #1a2a1a !important; }
-        body.dark #section-messages .table thead tr th { background-color: #1e3a1e !important; color: #c8e8c8 !important; }
-        body.dark #section-messages .table td.fw-semibold { color: #ffffff !important; }
-        body.dark #section-messages .table td[style*="color:#999"] { color: #8ab88a !important; }
+
 
         /* Search bar */
         body.dark .search-wrap input {
@@ -851,16 +846,9 @@ if ($adminRole !== 'admin') {
         <button class="sidebar-link" onclick="showSection('reviews')" id="nav-reviews">
             <i class="fas fa-star"></i> Reviews
         </button>
-        <button class="sidebar-link" onclick="showSection('messages')" id="nav-messages">
-            <i class="fas fa-envelope"></i> Messages
-        </button>
-
         <div class="sidebar-label" style="margin-top:8px;">Store</div>
         <a href="website.php" class="sidebar-link">
             <i class="fas fa-store"></i> View Store
-        </a>
-        <a href="profile.php" class="sidebar-link">
-            <i class="fas fa-user-circle"></i> My Profile
         </a>
     </nav>
 
@@ -1528,57 +1516,6 @@ if ($searchQuery !== '') {
 </div>
 </div><!-- /section-reviews -->
 
-<!-- ── SECTION: Messages ── -->
-<div id="section-messages" style="display:none;">
-<?php
-$contactMsgs = [];
-try {
-    $db2 = getDBConnection();
-    $contactStmt = $db2->query("SELECT * FROM messages ORDER BY created_at DESC");
-    $contactMsgs = $contactStmt->fetchAll();
-} catch (Exception $e) {
-    // Tables may not exist yet.
-}
-?>
-<div class="card p-4 mt-3">
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <div style="width:44px;height:44px;background:var(--sage-light);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-            <i class="fas fa-envelope" style="color:var(--deep-green);font-size:1.1rem;"></i>
-        </div>
-        <div>
-            <h5 class="fw-bold mb-0" style="color:var(--deep-green);">Customer Messages</h5>
-        </div>
-    </div>
-    <?php if (empty($contactMsgs)): ?>
-    <div class="text-center py-5 text-muted">
-        <i class="fas fa-envelope-open fa-3x mb-3 opacity-25"></i>
-        <p>No messages received yet.</p>
-    </div>
-    <?php else: ?>
-    <div class="table-responsive">
-    <table class="table align-middle" style="font-size:.88rem;">
-        <thead>
-            <tr>
-                <th>Name</th><th>Email</th><th>Subject</th><th>Message</th><th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($contactMsgs as $m): ?>
-        <tr>
-            <td class="fw-semibold"><?= htmlspecialchars($m->full_name ?? '') ?></td>
-            <td><?= htmlspecialchars($m->email ?? '') ?></td>
-            <td><?= htmlspecialchars($m->subject ?? '') ?></td>
-            <td style="max-width:260px;white-space:pre-wrap;word-break:break-word;"><?= htmlspecialchars($m->message ?? '') ?></td>
-            <td style="white-space:nowrap;color:#999;"><?= htmlspecialchars($m->created_at ?? '') ?></td>
-        </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-    </div>
-    <?php endif; ?>
-</div>
-</div><!-- /section-messages -->
-
 </div><!-- /container -->
 </div><!-- /main-content -->
 
@@ -1601,12 +1538,11 @@ const sectionTitles = {
     analytics:  'Analytics Dashboard',
     orders:     'Order History',
     users:      'User Summary',
-    reviews:    'User Reviews',
-    messages:   'Customer Messages',
+    reviews:    'User Reviews'
 };
 
 function showSection(name) {
-    ['inventory','addproduct','analytics','orders','users','reviews','messages'].forEach(s => {
+    ['inventory','addproduct','analytics','orders','users','reviews'].forEach(s => {
         document.getElementById('section-' + s).style.display = s === name ? '' : 'none';
     });
     document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
