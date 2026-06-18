@@ -280,6 +280,7 @@ function getStepIndex(string $status): int {
   }
 })();
 </script>
+<link rel="stylesheet" href="responsive.css">
 </head>
 <body style="display:flex;flex-direction:column;min-height:100vh;">
 

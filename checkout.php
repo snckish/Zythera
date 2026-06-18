@@ -461,6 +461,7 @@ footer .footer-brand{font-family:'Playfair Display',serif;color:var(--green);fon
   }
 })();
 </script>
+<link rel="stylesheet" href="responsive.css">
 </head>
 <body>
 

@@ -1119,6 +1119,7 @@ body.dark .review-edit-modal textarea:focus {
       }
     })();
   </script>
+  <link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>

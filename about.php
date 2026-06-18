@@ -336,6 +336,7 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
   }
 })();
 </script>
+<link rel="stylesheet" href="responsive.css">
 </head>
 <body>
 

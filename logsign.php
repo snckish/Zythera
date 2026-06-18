@@ -690,6 +690,7 @@ function toggleDark(){
   if(btn) btn.textContent = dark ? 'Light Mode' : 'Dark Mode';
 }
 </script>
+<link rel="stylesheet" href="responsive.css">
 </head>
 <body>
 

@@ -187,6 +187,7 @@ function getStepIndex(string $status): int {
     footer { background: #f5f2ec; padding: 22px 20px; display: flex; align-items: center; justify-content: center; gap: 12px; border-top: 1px solid #e8e4dc; margin-top: auto; }
     footer .footer-brand { font-family: 'Playfair Display', serif; color: var(--green); font-size: 1rem; letter-spacing: 4px; }
 </style>
+<link rel="stylesheet" href="responsive.css">
 </head>
 <body style="display:flex;flex-direction:column;min-height:100vh;">
 

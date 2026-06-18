@@ -344,6 +344,50 @@ if ($adminRole !== 'admin') {
             top: 0;
             z-index: 100;
         }
+
+        /* ── Sidebar toggle (mobile / tablet) ── */
+        .sidebar-toggle-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,0,0,.08);
+            background: var(--white);
+            color: var(--deep-green);
+            font-size: 1.05rem;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 199;
+        }
+        .sidebar-backdrop.show { display: block; }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform .28s ease;
+                width: 260px;
+            }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .sidebar-toggle-btn { display: inline-flex; }
+            .top-navbar { padding: 0.7rem 1rem; flex-wrap: wrap; row-gap: 10px; }
+            .user-capsule { padding: 4px 4px 4px 12px; }
+            .user-info-text { max-width: 150px; }
+            .user-name { font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        }
+        @media (max-width: 420px) {
+            .user-info-text { display: none; }
+            .user-capsule { padding: 4px; border-radius: 50%; border: none; background: transparent; box-shadow: none !important; }
+        }
+
         body.dark .sidebar-link,
         body.dark .sidebar-link.active,
         body.dark .sidebar-label,
@@ -444,6 +488,11 @@ if ($adminRole !== 'admin') {
             border-bottom-color: rgba(255,255,255,.08) !important;
         }
         body.dark #sectionTitle { color: #a8d5a8 !important; }
+        body.dark .sidebar-toggle-btn {
+            background: #1e3a1e !important;
+            border-color: rgba(255,255,255,.1) !important;
+            color: #a8d5a8 !important;
+        }
 
         /* User capsule */
         body.dark .user-capsule {
@@ -808,6 +857,9 @@ if ($adminRole !== 'admin') {
     </div>
 </div>
 
+<!-- ── SIDEBAR BACKDROP (mobile) ── -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
 <!-- ── SIDEBAR ── -->
 <div class="sidebar" id="adminSidebar">
     <div class="sidebar-brand">
@@ -873,6 +925,7 @@ if ($adminRole !== 'admin') {
 
 <nav class="top-navbar d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-3">
+        <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle menu" type="button"><i class="fas fa-bars"></i></button>
         <h6 class="mb-0 fw-bold" style="color:var(--deep-green);font-family:'Playfair Display',serif;font-size:1.1rem;letter-spacing:.5px;">
             <span id="sectionTitle">Product Inventory</span>
         </h6>
@@ -1551,7 +1604,20 @@ function showSection(name) {
     const titleEl = document.getElementById('sectionTitle');
     if (titleEl) titleEl.textContent = sectionTitles[name] || '';
     if (name === 'addproduct') resetForm();
+    // Auto-close the off-canvas sidebar after choosing a section on mobile/tablet
+    if (window.innerWidth <= 991.98) closeSidebar();
 }
+
+// ── Mobile sidebar toggle ──────────────────────────────────────
+function toggleSidebar() {
+    document.getElementById('adminSidebar').classList.toggle('show');
+    document.getElementById('sidebarBackdrop').classList.toggle('show');
+}
+function closeSidebar() {
+    document.getElementById('adminSidebar').classList.remove('show');
+    document.getElementById('sidebarBackdrop').classList.remove('show');
+}
+
 
 // ── Edit product: switch to Add Product section then fill form ─
 function editProduct(id, name, size, color, price, desc, stock, category, image) {

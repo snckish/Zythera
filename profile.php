@@ -1039,6 +1039,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
   }
 })();
 </script>
+<link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>
