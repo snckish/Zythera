@@ -417,7 +417,12 @@ a {
 
 @media (max-width: 767.98px) {
   .site-footer {
-    padding-top: 40px;
+    padding-top: 36px;
+  }
+
+  /* All columns stack full-width, tight uniform gap */
+  .site-footer .row {
+    row-gap: 20px !important;
   }
 
   .site-footer .footer-tagline {
@@ -427,21 +432,33 @@ a {
   .site-footer .footer-social {
     flex-wrap: wrap;
     justify-content: flex-start;
+    margin-top: 10px !important;
   }
 
-  /* col-6 columns stay side-by-side, left-aligned */
-  .site-footer .col-6,
+  /* All text left-aligned */
   .site-footer .footer-col-title,
   .site-footer .footer-link {
     text-align: left !important;
   }
 
-  .site-footer .footer-link {
-    font-size: .87rem;
-    padding: 6px 0;
+  /* Column title: tight bottom gap */
+  .site-footer .footer-col-title {
+    margin-bottom: 10px;
   }
 
-  /* Bottom copyright row */
+  /* Links: compact vertical rhythm */
+  .site-footer .footer-link {
+    font-size: .87rem;
+    padding: 5px 0;
+    line-height: 1.4;
+  }
+
+  /* Divider: closer to content */
+  .site-footer .footer-divider {
+    margin: 20px 0 0;
+  }
+
+  /* Bottom copyright row: centered */
   .site-footer .footer-bottom {
     flex-direction: column;
     align-items: center;
@@ -449,14 +466,6 @@ a {
     text-align: center;
     gap: 4px;
     padding: 14px 0;
-  }
-}
-
-@media (max-width: 479.98px) {
-  .site-footer .row > .col-6 {
-    flex: 0 0 100%;
-    max-width: 100%;
-    text-align: left !important;
   }
 }
 
@@ -633,4 +642,113 @@ a {
 
 .navbar:not(:has(.navbar-toggler)) .ms-auto.d-flex {
   margin-left: 0 !important;  /* ms-auto already handles spacing via brand's margin-right */
+}
+/* ── Unified Navbar — Mobile Responsive ── */
+@media (max-width: 991.98px) {
+  .navbar .navbar-collapse {
+    background: rgba(255,255,255,.98);
+    border-top: 1px solid rgba(45,90,45,.08);
+    padding: 8px 12px 14px;
+    margin-top: 8px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  }
+
+  /* Every nav-item: consistent height, no extra margin */
+  .navbar-collapse .nav-item {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Every nav-link: fixed line-height so all items same height */
+  .navbar .nav-link {
+    display: flex !important;
+    align-items: center !important;
+    height: 46px !important;
+    padding: 0 14px !important;
+    border-radius: 10px !important;
+    font-size: .93rem !important;
+    line-height: 1 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .navbar .nav-link::after { display: none; }
+
+  /* Dropdown toggle: same height, chevron stays inline */
+  .navbar-collapse .dropdown-toggle.zythera-menu-toggle {
+    height: 46px !important;
+  }
+
+  .navbar .dropdown-menu {
+    box-shadow: none !important;
+    border: 1px solid rgba(45,90,45,.10) !important;
+    background: #f7faf7;
+    border-radius: 10px !important;
+    margin: 2px 0 4px !important;
+    padding: 4px !important;
+  }
+  .navbar .dropdown-menu .dropdown-item {
+    border-radius: 8px;
+    padding: 10px 14px !important;
+    font-size: .88rem;
+  }
+
+  /* User capsule: fixed height row */
+  .nav-user-capsule {
+    height: 54px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 14px !important;
+    background: rgba(45,90,45,.05) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(45,90,45,.10) !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 4px 0 !important;
+  }
+  .nav-user-capsule > div {
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Cart: same fixed height as nav-links */
+  .nav-cart-btn {
+    margin: 0;
+    width: 100% !important;
+    height: 46px !important;
+    background: none !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0 14px !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+  }
+  /* Remove ::before — label already injected via ::after above */
+  .nav-cart-btn::before {
+    content: none !important;
+  }
+
+  .navbar .btn.rounded-pill {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 46px !important;
+    margin: 4px 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .navbar-nav {
+    gap: 2px !important;
+  }
 }

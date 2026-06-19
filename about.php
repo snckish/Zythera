@@ -35,52 +35,108 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
 
   <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg fixed-top">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="website.php"><span style="font-family: 'Playfair Display', serif; color: var(--deep); font-weight: 700;"> ZYTHERA </span></a>
+  <div class="container">
 
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navMenu">
-        <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
-          <a href="website.php#products" class="nav-link fw-semibold" style="color:var(--green)!important;">Products</a>
-          <a href="about.php" class="nav-link fw-semibold" style="color:var(--green)!important;">About</a>
-          <a href="website.php#contact" class="nav-link fw-semibold" style="color:var(--green)!important;">Contact Us</a>
-          <?php if ($userEmail && $userRole !== 'admin'): ?>
-            <a href="profile.php?tab=orders" class="nav-link fw-semibold" style="color:var(--green)!important;">My Orders</a>
-          <?php endif; ?>
-          <?php if ($userEmail): ?>
-            <div class="nav-user-capsule">
+    <a class="navbar-brand fw-bold" href="website.php">
+      <span style="font-family:'Playfair Display',serif;color:var(--deep);font-weight:700;letter-spacing:2px;"> ZYTHERA </span>
+    </a>
+
+    <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+
+        <!-- Home -->
+        <li class="nav-item">
+          <a href="website.php" class="nav-link fw-semibold">Home</a>
+        </li>
+
+        <!-- Menu dropdown -->
+        <li class="nav-item dropdown">
+          <a href="#" class="nav-link fw-semibold dropdown-toggle zythera-menu-toggle" id="menuDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Menu
+          </a>
+          <ul class="dropdown-menu shadow border-0 zythera-dropdown" aria-labelledby="menuDropdown">
+            <li><a class="dropdown-item" href="about.php">About</a></li>
+            <li><a class="dropdown-item" href="website.php#contact">Contact Us</a></li>
+            <li><a class="dropdown-item" href="website.php#products">Products</a></li>
+          </ul>
+        </li>
+
+        <?php if ($userEmail && $userRole !== 'admin'): ?>
+        <!-- My Orders -->
+        <li class="nav-item">
+          <a href="profile.php?tab=orders" class="nav-link fw-semibold">My Orders</a>
+        </li>
+        <?php endif; ?>
+
+        <?php if ($userEmail): ?>
+        <!-- Profile Capsule -->
+        <li class="nav-item">
+          <div class="nav-user-capsule dropdown">
+            <div class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" style="cursor:pointer;" aria-expanded="false">
               <div class="text-end d-none d-md-block">
-                <p class="mb-0 fw-bold" style="font-size:.78rem;color:var(--green);"><?= htmlspecialchars($userName) ?></p>
+                <p class="mb-0 fw-bold" style="font-size:.75rem;color:var(--green);line-height:1.2;"><?= htmlspecialchars($userName) ?></p>
                 <?php if ($loginTime): ?>
-                  <small class="text-muted" style="font-size:.6rem;"><span id="liveTime"></span></small>
+                  <small class="text-muted" style="font-size:.58rem;"><span id="liveTime"></span></small>
                 <?php endif; ?>
               </div>
-              <div class="dropdown">
-                <?php
-                    $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34);
-                ?>
-                <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="32" height="32" style="cursor:pointer;border:2px solid rgba(45,90,45,.2);object-fit:cover;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius:14px;min-width:190px;">
-                  <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2 text-muted" style="font-size:.85rem;"></i>My Profile</a></li>
-                  <?php if ($userRole === 'admin'): ?>
-                    <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2 text-muted" style="font-size:.85rem;"></i>Admin Panel</a></li>
-                  <?php endif; ?>
-                  <li><hr class="dropdown-divider my-1"></li>
-                  <li><a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="openLogoutModal()"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
-                </ul>
-              </div>
+              <?php $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34); ?>
+              <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="32" height="32"
+                style="object-fit:cover;border:2px solid rgba(45,90,45,.2);" alt="<?= htmlspecialchars($userName) ?>">
             </div>
-          <?php else: ?>
-            <a href="logsign.php" class="btn btn-success btn-sm rounded-pill px-4 fw-semibold">Log In</a>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
-  </nav>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 zythera-dropdown mt-2" style="min-width:190px;">
+              <?php if ($userRole !== 'admin'): ?>
+                <li><a class="dropdown-item py-2" href="profile.php">My Profile</a></li>
+              <?php endif; ?>
+              <?php if ($userRole === 'admin'): ?>
+                <li><a class="dropdown-item py-2" href="admin.php">Admin Panel</a></li>
+              <?php endif; ?>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li><a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="openLogoutModal()">Logout</a></li>
+            </ul>
+          </div>
+        </li>
 
-  <!-- Logout Confirmation Modal -->
+        <?php if ($userRole !== 'admin'): ?>
+        <!-- Cart -->
+        <li class="nav-item">
+          <a href="javascript:void(0)" onclick="openCart()" class="nav-cart-btn position-relative" title="Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+              style="font-size:.5rem;background:var(--green);color:#fff;<?= $cartCount == 0 ? 'display:none;' : '' ?>">
+              <?= $cartCount ?>
+            </span>
+          </a>
+        </li>
+        <?php endif; ?>
+
+        <?php else: ?>
+        <!-- Guest: Log In + Cart -->
+        <li class="nav-item">
+          <a href="logsign.php" class="btn btn-success btn-sm rounded-pill px-4 fw-semibold ms-1">Log In</a>
+        </li>
+        <li class="nav-item">
+          <a href="logsign.php" class="nav-cart-btn position-relative ms-1" title="Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+          </a>
+        </li>
+        <?php endif; ?>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Logout Confirmation Modal -->
 <div id="logoutModalOverlay" class="logout-modal-overlay">
     <div class="logout-modal">
         <h2>Log Out Confirmation</h2>

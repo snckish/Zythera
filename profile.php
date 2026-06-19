@@ -274,61 +274,108 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 <body>
 
     <nav class="navbar navbar-expand-lg fixed-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="website.php"><span style="font-family:'Playfair Display',serif;color:var(--deep);font-weight:700;"> ZYTHERA </span></a>
+  <div class="container">
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#profileNavMenu" aria-controls="profileNavMenu" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="profileNavMenu">
-                <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
-                    <a href="website.php#products" class="nav-link fw-semibold">Products</a>
-                    <a href="about.php" class="nav-link fw-semibold">About</a>
-                    <a href="website.php#contact" class="nav-link fw-semibold">Contact Us</a>
-                    <?php if ($userRole !== 'admin'): ?>
-                        <a href="profile.php?tab=orders" class="nav-link fw-semibold">My Orders</a>
-                    <?php endif; ?>
+    <a class="navbar-brand fw-bold" href="website.php">
+      <span style="font-family:'Playfair Display',serif;color:var(--deep);font-weight:700;letter-spacing:2px;"> ZYTHERA </span>
+    </a>
 
-                    <div class="nav-user-capsule">
-                        <div class="text-end d-none d-md-block">
-                            <p class="mb-0 fw-bold" style="font-size:.78rem;color:var(--green);"><?= htmlspecialchars($userName) ?></p>
-                            <?php if ($loginTime): ?>
-                                <small class="text-muted" style="font-size:.6rem;"><span id="liveTime"></span></small>
-                            <?php endif; ?>
-                        </div>
-                        <div class="dropdown">
-                            <?php $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34); ?>
-                            <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="32" height="32" style="cursor:pointer;object-fit:cover;" data-bs-toggle="dropdown" alt="<?= htmlspecialchars($userName) ?>">
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius:14px;min-width:190px;">
-                                <li><a class="dropdown-item py-2" href="profile.php"><i class="fas fa-user me-2 text-muted" style="font-size:.85rem;"></i>My Profile</a></li>
-                                <?php if ($userRole === 'admin'): ?>
-                                    <li><a class="dropdown-item py-2" href="admin.php"><i class="fas fa-user-shield me-2 text-muted" style="font-size:.85rem;"></i>Admin Panel</a></li>
-                                <?php endif; ?>
-                                <li><hr class="dropdown-divider my-1"></li>
-                                <li><a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="openLogoutModal()"><i class="fas fa-sign-out-alt me-2" style="font-size:.85rem;"></i>Logout</a></li>
-                            </ul>
-                        </div>
-                    </div>
+    <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-                    <?php if ($userRole !== 'admin'): ?>
-                        <a href="javascript:void(0)" onclick="openCart()" class="position-relative text-decoration-none d-flex align-items-center" title="Cart" style="color:var(--green);">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="9" cy="21" r="1" />
-                                <circle cx="20" cy="21" r="1" />
-                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                            </svg>
-                            <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                                style="font-size:.55rem;background:var(--green);color:#fff;<?= $cartCount == 0 ? 'display:none;' : '' ?>">
-                                <?= $cartCount ?>
-                            </span>
-                        </a>
-                    <?php endif; ?>
-                </div>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+
+        <!-- Home -->
+        <li class="nav-item">
+          <a href="website.php" class="nav-link fw-semibold">Home</a>
+        </li>
+
+        <!-- Menu dropdown -->
+        <li class="nav-item dropdown">
+          <a href="#" class="nav-link fw-semibold dropdown-toggle zythera-menu-toggle" id="menuDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Menu
+          </a>
+          <ul class="dropdown-menu shadow border-0 zythera-dropdown" aria-labelledby="menuDropdown">
+            <li><a class="dropdown-item" href="about.php">About</a></li>
+            <li><a class="dropdown-item" href="website.php#contact">Contact Us</a></li>
+            <li><a class="dropdown-item" href="website.php#products">Products</a></li>
+          </ul>
+        </li>
+
+        <?php if ($userEmail && $userRole !== 'admin'): ?>
+        <!-- My Orders -->
+        <li class="nav-item">
+          <a href="profile.php?tab=orders" class="nav-link fw-semibold">My Orders</a>
+        </li>
+        <?php endif; ?>
+
+        <?php if ($userEmail): ?>
+        <!-- Profile Capsule -->
+        <li class="nav-item">
+          <div class="nav-user-capsule dropdown">
+            <div class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" style="cursor:pointer;" aria-expanded="false">
+              <div class="text-end d-none d-md-block">
+                <p class="mb-0 fw-bold" style="font-size:.75rem;color:var(--green);line-height:1.2;"><?= htmlspecialchars($userName) ?></p>
+                <?php if ($loginTime): ?>
+                  <small class="text-muted" style="font-size:.58rem;"><span id="liveTime"></span></small>
+                <?php endif; ?>
+              </div>
+              <?php $navPic = getAvatarURL($uObj->profile_pic ?? null, $uObj->email ?? null, $userName, 34); ?>
+              <img src="<?= htmlspecialchars($navPic) ?>" class="rounded-circle" width="32" height="32"
+                style="object-fit:cover;border:2px solid rgba(45,90,45,.2);" alt="<?= htmlspecialchars($userName) ?>">
             </div>
-        </div>
-    </nav>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 zythera-dropdown mt-2" style="min-width:190px;">
+              <?php if ($userRole !== 'admin'): ?>
+                <li><a class="dropdown-item py-2" href="profile.php">My Profile</a></li>
+              <?php endif; ?>
+              <?php if ($userRole === 'admin'): ?>
+                <li><a class="dropdown-item py-2" href="admin.php">Admin Panel</a></li>
+              <?php endif; ?>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li><a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="openLogoutModal()">Logout</a></li>
+            </ul>
+          </div>
+        </li>
 
-    <?php if (isset($_GET['updated'])): ?>
+        <?php if ($userRole !== 'admin'): ?>
+        <!-- Cart -->
+        <li class="nav-item">
+          <a href="javascript:void(0)" onclick="openCart()" class="nav-cart-btn position-relative" title="Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+              style="font-size:.5rem;background:var(--green);color:#fff;<?= $cartCount == 0 ? 'display:none;' : '' ?>">
+              <?= $cartCount ?>
+            </span>
+          </a>
+        </li>
+        <?php endif; ?>
+
+        <?php else: ?>
+        <!-- Guest: Log In + Cart -->
+        <li class="nav-item">
+          <a href="logsign.php" class="btn btn-success btn-sm rounded-pill px-4 fw-semibold ms-1">Log In</a>
+        </li>
+        <li class="nav-item">
+          <a href="logsign.php" class="nav-cart-btn position-relative ms-1" title="Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+          </a>
+        </li>
+        <?php endif; ?>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<?php if (isset($_GET['updated'])): ?>
         
     <?php endif; ?>
     <div style="height:56px;"></div>
@@ -377,17 +424,14 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                         <div class="p-4">
                             <div class="section-title"><i class="fas fa-sliders" style="color:var(--green);font-size:.9rem;"></i>Settings</div>
                             <div class="settings-nav" role="tablist" aria-label="Profile settings">
-                                <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'account' ? 'active' : '' ?>" data-settings-tab="account">
-                                    <i class="fas fa-user"></i>Account
+                                <button type="button" class="settings-tab-btn <?= ($activeSettingsTab === 'account' || $activeSettingsTab === 'security') ? 'active' : '' ?>" data-settings-tab="account">
+                                    <i class="fas fa-user-shield"></i>Account & Security
                                 </button>
                                 <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'addresses' ? 'active' : '' ?>" data-settings-tab="addresses">
                                     <i class="fas fa-location-dot"></i>Addresses
                                 </button>
                                 <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'orders' ? 'active' : '' ?>" data-settings-tab="orders">
                                     <i class="fas fa-bag-shopping"></i>My Orders
-                                </button>
-                                <button type="button" class="settings-tab-btn <?= $activeSettingsTab === 'security' ? 'active' : '' ?>" data-settings-tab="security">
-                                    <i class="fas fa-lock"></i>Security
                                 </button>
                             </div>
                             <?php if (!empty($user['created_at'])): ?>
@@ -412,10 +456,10 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                             </div>
                         <?php endif; ?>
 
-                        <div class="settings-pane <?= $activeSettingsTab === 'account' ? 'active' : '' ?>" data-settings-pane="account">
+                        <div class="settings-pane <?= ($activeSettingsTab === 'account' || $activeSettingsTab === 'security') ? 'active' : '' ?>" data-settings-pane="account">
                             <div class="section-title">
-                                <i class="fas fa-user" style="color:var(--green);"></i>
-                                Account
+                                <i class="fas fa-user-shield" style="color:var(--green);"></i>
+                                Account & Security
                             </div>
                             <form method="POST" class="row g-3">
                                 <div class="col-md-6">
@@ -437,6 +481,38 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
                                 <div class="col-12">
                                     <button name="update_account" class="btn-green btn">Save Account</button>
                                 </div>
+                            </form>
+
+                            <!-- Security sub-section merged here -->
+                            <hr style="border-color:var(--sage);margin:28px 0 24px;">
+                            <div class="section-title" style="margin-bottom:16px;">
+                                <i class="fas fa-lock" style="color:var(--green);"></i>
+                                Change Password
+                            </div>
+                            <form method="POST" style="max-width:520px;">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">Old Password</label>
+                                    <div class="position-relative">
+                                        <input class="form-control" name="current_password" type="password" id="oldPwField"
+                                            placeholder="Enter old password" autocomplete="current-password" required>
+                                        <button type="button" onclick="togglePw('oldPwField','oldPwEye')" tabindex="-1"
+                                            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
+                                            <i class="fas fa-eye" id="oldPwEye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold" style="color:var(--green);">New Password</label>
+                                    <div class="position-relative">
+                                        <input class="form-control" name="password" type="password" id="newPwField"
+                                            placeholder="Min 6 characters" autocomplete="new-password" required>
+                                        <button type="button" onclick="togglePw('newPwField','newPwEye')" tabindex="-1"
+                                            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
+                                            <i class="fas fa-eye" id="newPwEye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button name="change_password" class="btn-green btn">Update Password</button>
                             </form>
                         </div>
 
@@ -666,37 +742,6 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
                         </div>
 
-                        <div class="settings-pane <?= $activeSettingsTab === 'security' ? 'active' : '' ?>" data-settings-pane="security">
-                            <div class="section-title">
-                                <i class="fas fa-lock" style="color:var(--green);"></i>
-                                Security
-                            </div>
-                            <form method="POST" style="max-width:520px;">
-                                <div class="mb-3">
-                                    <label class="form-label small fw-semibold" style="color:var(--green);">Old Password</label>
-                                    <div class="position-relative">
-                                        <input class="form-control" name="current_password" type="password" id="oldPwField"
-                                            placeholder="Enter old password" autocomplete="current-password" required>
-                                        <button type="button" onclick="togglePw('oldPwField','oldPwEye')" tabindex="-1"
-                                            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
-                                            <i class="fas fa-eye" id="oldPwEye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-semibold" style="color:var(--green);">New Password</label>
-                                    <div class="position-relative">
-                                        <input class="form-control" name="password" type="password" id="newPwField"
-                                            placeholder="Min 6 characters" autocomplete="new-password" required>
-                                        <button type="button" onclick="togglePw('newPwField','newPwEye')" tabindex="-1"
-                                            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--green);cursor:pointer;">
-                                            <i class="fas fa-eye" id="newPwEye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <button name="change_password" class="btn-green btn">Update Password</button>
-                            </form>
-                        </div>
 
                     </div>
                 </div><!-- /orders-col -->
