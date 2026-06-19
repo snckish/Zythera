@@ -560,3 +560,14 @@
     .logout-confirm-btn:active {
       transform: scale(0.98);
     }
+
+    /* ── Admin panel has its own sticky top-navbar (not a fixed
+         navbar like the storefront pages), so the shared mobile
+         "body { padding-top: 68px }" rule in responsive.css does
+         not apply here — it just leaves an empty gap above the
+         header. Cancel it out. ── */
+    @media (max-width: 767.98px) {
+      body {
+        padding-top: 0 !important;
+      }
+    }

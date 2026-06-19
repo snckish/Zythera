@@ -749,6 +749,21 @@ a {
     box-sizing: border-box !important;
   }
   .navbar-nav {
-    gap: 2px !important;
+    gap: 7px !important;
+  }
+
+  /* Cart sits above the profile capsule in the mobile menu */
+  .navbar-collapse .li-cart {
+    order: 5;
+  }
+  .navbar-collapse .li-profile {
+    order: 6;
+  }
+}
+
+/* ── Hide Home link in mobile dropdown ── */
+@media (max-width: 991.98px) {
+  .navbar-collapse .nav-home {
+    display: none !important;
   }
 }

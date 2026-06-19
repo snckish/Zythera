@@ -1,3 +1,7 @@
+/* ── Smooth scrolling ── */
+html {
+  scroll-behavior: smooth;
+}
 
 /* ── Unified Navbar Styles ── */
 .navbar {
@@ -340,12 +344,12 @@
 
     /* ── PRODUCT CARD ── */
     .product-card {
-      border: none;
+      border: 2px solid rgba(45, 90, 45, 0.45);
       border-radius: var(--radius-card);
       overflow: hidden;
       background: #fff;
       box-shadow: var(--shadow-card);
-      transition: transform var(--transition), box-shadow var(--transition);
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -354,6 +358,7 @@
     .product-card:hover {
       transform: translateY(-5px);
       box-shadow: var(--shadow-hover);
+      border-color: var(--green);
     }
 
     .product-card img {
@@ -375,6 +380,15 @@
       font-size: 1rem;
       font-weight: 600;
       line-height: 1.35;
+    }
+
+    .product-desc {
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: calc(1.5em * 3);
     }
 
     .product-price {
@@ -867,6 +881,7 @@
       border-radius: var(--radius-card);
       padding: 48px;
       box-shadow: var(--shadow-card);
+      border: 2px solid rgba(45, 90, 45, 0.45);
     }
 
     .input-box {

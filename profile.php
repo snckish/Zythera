@@ -288,20 +288,19 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
 
         <!-- Home -->
-        <li class="nav-item">
+        <li class="nav-item nav-home">
           <a href="website.php" class="nav-link fw-semibold">Home</a>
         </li>
 
-        <!-- Menu dropdown -->
-        <li class="nav-item dropdown">
-          <a href="#" class="nav-link fw-semibold dropdown-toggle zythera-menu-toggle" id="menuDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Menu
-          </a>
-          <ul class="dropdown-menu shadow border-0 zythera-dropdown" aria-labelledby="menuDropdown">
-            <li><a class="dropdown-item" href="about.php">About</a></li>
-            <li><a class="dropdown-item" href="website.php#contact">Contact Us</a></li>
-            <li><a class="dropdown-item" href="website.php#products">Products</a></li>
-          </ul>
+        <!-- About / Contact Us / Products -->
+        <li class="nav-item">
+          <a href="about.php" class="nav-link fw-semibold">About</a>
+        </li>
+        <li class="nav-item">
+          <a href="website.php#contact" class="nav-link fw-semibold">Contact Us</a>
+        </li>
+        <li class="nav-item">
+          <a href="website.php#products" class="nav-link fw-semibold">Products</a>
         </li>
 
         <?php if ($userEmail && $userRole !== 'admin'): ?>
@@ -313,7 +312,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
         <?php if ($userEmail): ?>
         <!-- Profile Capsule -->
-        <li class="nav-item">
+        <li class="nav-item li-profile">
           <div class="nav-user-capsule dropdown">
             <div class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" style="cursor:pointer;" aria-expanded="false">
               <div class="text-end d-none d-md-block">
@@ -341,7 +340,7 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
         <?php if ($userRole !== 'admin'): ?>
         <!-- Cart -->
-        <li class="nav-item">
+        <li class="nav-item li-cart">
           <a href="javascript:void(0)" onclick="openCart()" class="nav-cart-btn position-relative" title="Cart">
             <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
