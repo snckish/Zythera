@@ -140,135 +140,15 @@ function getStepIndex(string $status): int {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZYTHERA | Order Details</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root{--logo-font:'Playfair Display',serif;--ui-font:'Roboto',sans-serif;--text-font:'Merriweather',serif}
-  body{font-family:var(--ui-font);}
-  h1,h2,h3,h4,h5,.navbar-brand,.brand-name,.section-title,.page-header h2,footer .footer-brand{font-family:var(--logo-font);}
-  p,small,.caption,.text-muted{font-family:var(--text-font);}
-</style>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="dark-mode.css">
 <script src="dark-mode.js"></script>
-<style>
-    :root {
-        --green: #2d5a2d;
-        --sage: #d4e4d4;
-        --cream: #f5f2ec;
-        --deep: #1a2e1a;
-        --mid: #7aab7a;
-        --terra: #bc8a7b;
-    }
-    * { font-family: var(--ui-font); box-sizing: border-box; }
-    body { background: var(--cream); display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
-    .navbar { background: #fff; box-shadow: 0 1px 12px rgba(0,0,0,.07); }
-    .navbar-brand { font-family: 'Playfair Display', serif; color: var(--green) !important; letter-spacing: 4px; font-size: 1.5rem; }
 
-    .page-header { padding: 32px 0 8px; }
-    .page-header h2 { font-family: 'Playfair Display', serif; color: var(--deep); margin: 0; }
-    .section-label { font-size: .68rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 4px; }
+<link rel="stylesheet" href="responsive.css">
 
-    .section-card {
-        background: #fff;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.05);
-    }
-
-    .order-box {
-        border: 2px solid var(--sage);
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 14px;
-        transition: .2s;
-    }
-    .order-box:hover { border-color: var(--mid); }
-
-    .order-status {
-        display: inline-block;
-        font-size: .68rem;
-        font-weight: 700;
-        padding: 4px 12px;
-        border-radius: 20px;
-        letter-spacing: .5px;
-        text-transform: uppercase;
-    }
-    .st-pending    { background: #fef9c3; color: #b45309; }
-    .st-processing { background: #dbeafe; color: #1d4ed8; }
-    .st-shipped    { background: #e0f2fe; color: #0369a1; }
-    .st-completed,
-    .st-delivered  { background: #dcfce7; color: #16a34a; }
-    .st-cancelled  { background: #fee2e2; color: #b91c1c; }
-
-    /* ── Timeline ── */
-    .timeline-wrap {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        padding: 18px 0 8px;
-        position: relative;
-    }
-    /* Grey base track — spans between first and last dot centres */
-    .timeline-wrap::before {
-        content: '';
-        position: absolute;
-        top: 34px; /* vertically centres on the 32px dot (18px padding + 16px = 34px) */
-        left: calc(100% / 8);        /* centre of step 1 (of 4) */
-        width: calc(100% * 6 / 8);   /* from step 1 centre to step 4 centre */
-        height: 3px;
-        background: var(--sage);
-        z-index: 0;
-    }
-    /* Green progress track — overlays the grey track */
-    .timeline-progress {
-        position: absolute;
-        top: 34px;
-        left: calc(100% / 8);
-        height: 3px;
-        background: var(--green);
-        z-index: 1;
-        transition: width .4s ease;
-    }
-
-    .tl-step { flex: 1; text-align: center; position: relative; z-index: 2; }
-    .tl-dot {
-        width: 32px; height: 32px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 8px; font-size: .82rem;
-        border: 3px solid var(--sage); background: #fff;
-        transition: .3s; position: relative; z-index: 2;
-    }
-    .tl-dot.done   { background: var(--green); border-color: var(--green); color: #fff; }
-    .tl-dot.active { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 0 0 5px rgba(45,90,45,.18); animation: pulse 1.8s infinite; }
-    .tl-dot.future { background: #fff; border-color: var(--sage); color: #ccc; }
-    .tl-label { font-size: .72rem; font-weight: 600; color: var(--deep); }
-    .tl-label.future { color: #bbb; }
-    @keyframes pulse { 0%,100%{box-shadow:0 0 0 4px rgba(45,90,45,.18);}50%{box-shadow:0 0 0 8px rgba(45,90,45,.08);} }
-
-    .cancelled-bar { display: flex; align-items: center; gap: 10px; background: #fef2f2; border-radius: 14px; padding: 14px 18px; color: #b91c1c; font-weight: 600; font-size: .88rem; border: 1px solid #fecaca; margin-bottom: 8px; }
-
-    .totals-box { background: var(--cream); border-radius: 14px; padding: 14px 18px; margin-top: 4px; }
-    .totals-row { display: flex; justify-content: space-between; font-size: .85rem; color: #777; padding: 3px 0; }
-    .totals-row.grand { font-size: 1rem; font-weight: 800; color: var(--green); border-top: 2px solid var(--sage); padding-top: 10px; margin-top: 6px; }
-
-    .empty-state { text-align: center; padding: 60px 20px; color: #bbb; }
-    .empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; }
-
-    /* ── Review section ── */
-    .review-star-group { display: flex; gap: 6px; font-size: 2rem; color: #d1d5db; }
-    .review-star-group label { cursor: pointer; transition: color .15s; }
-    .review-star-group input[type="radio"] { display: none; }
-    .review-star-group input[type="radio"]:checked ~ label,
-    .review-star-group label:hover,
-    .review-star-group label:hover ~ label { color: var(--green); }
-    /* RTL trick so :checked ~ works correctly */
-    .review-star-group { flex-direction: row-reverse; justify-content: flex-end; }
-
-    footer { background: #f5f2ec; padding: 22px 20px; display: flex; align-items: center; justify-content: center; gap: 12px; border-top: 1px solid #e8e4dc; margin-top: auto; }
-    footer .footer-brand { font-family: 'Playfair Display', serif; color: var(--green); font-size: 1rem; letter-spacing: 4px; }
-</style>
-<script>
+  <link rel="stylesheet" href="assets/css/order.css">
+  <script>
 /* ZYTHERA dark mode — apply before paint to prevent flash */
 (function(){
   if(localStorage.getItem('zythera_dark')==='1'){
@@ -280,7 +160,6 @@ function getStepIndex(string $status): int {
   }
 })();
 </script>
-<link rel="stylesheet" href="responsive.css">
 </head>
 <body style="display:flex;flex-direction:column;min-height:100vh;">
 
@@ -355,7 +234,6 @@ function getStepIndex(string $status): int {
       'cancelled'              => 'st-cancelled',
       default                  => 'st-pending',
     };
-
 
     $progressPct = 0;
     if (!$isCancelled) {
@@ -621,219 +499,34 @@ Any feedback for us?"
 <!-- jsPDF + html2canvas for client-side PDF receipt generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNa5m3fW6VYqk1+g6z3Kx1Yb3bA8gQXk3YJm1XJZ0q5Qk6YFzE6YjH0j1xK9Qm2L5h2w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-+qXK2mWzV4p2J5s9sV6jQ1x1v9y8g3r0lR5t8V6s2r7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script>
-/* ── Star rating hover effect ── */
-(function () {
-  const group = document.getElementById('starGroup');
-  if (!group) return;
-  const labels = [...group.querySelectorAll('label')].reverse(); // re-reverse for display order
-  labels.forEach((lbl, i) => {
-    lbl.addEventListener('mouseenter', () => {
-      labels.forEach((l, j) => l.style.color = j <= i ? '#2d5a2d' : '#d1d5db');
-    });
-    lbl.addEventListener('mouseleave', () => {
-      labels.forEach(l => l.style.color = '');
-    });
-  });
-})();
 
-/* ── Live status polling ── */
-function pollOrderStatus() {
-  fetch('get_order.php', { credentials: 'same-origin' })
-    .then(r => r.json())
-    .then(data => {
-      if (!data.orders) return;
-      data.orders.forEach(o => {
-        const badge = document.querySelector('[data-order-id="' + o.order_id + '"] .dyn-status-badge');
-        if (badge) {
-          badge.textContent = o.status;
-          badge.className = 'order-status dyn-status-badge ' + statusClass(o.status);
-        }
-        const msg = document.querySelector('[data-order-id="' + o.order_id + '"] .dyn-status-msg');
-        if (msg) msg.textContent = statusMsg(o.status);
-      });
-    }).catch(() => {});
-}
-
-function statusClass(s) {
-  const m = { pending:'st-pending', processing:'st-processing', shipped:'st-shipped', delivered:'st-delivered', completed:'st-delivered', cancelled:'st-cancelled' };
-  return m[s.toLowerCase()] || 'st-pending';
-}
-function statusMsg(s) {
-  const m = {
-    'Pending':    'Your order has been received and is awaiting confirmation.',
-    'Processing': 'We\'re preparing your furniture for shipment.',
-    'Shipped':    'Your order is on its way! Estimated arrival in 3–7 business days.',
-    'Delivered':  'Your order has been delivered. Enjoy your new furniture!',
-    'Completed':  'Order completed. Thank you for shopping with us!',
-    'Cancelled':  'This order was cancelled.',
-  };
-  return m[s] || 'Your order is being processed.';
-}
-
-function downloadReceipt() {
-  const data = window.orderReceiptData || {};
-  const receiptHTML = `
-  <div style="font-family: var(--ui-font); color:#1a3a2e; padding:40px 30px; max-width:620px; background:#ffffff;">
-    <!-- Header with logo and brand -->
-    <div style="text-align:center;margin-bottom:30px;border-bottom:3px solid #2d5a2d;padding-bottom:20px;">
-      <div style="font-size:32px;font-weight:800;font-family:'Playfair Display',serif;color:#1a2e1a;letter-spacing:2px;margin-bottom:4px;"> ZYTHERA </div>
-      <div style="font-size:13px;color:#666;letter-spacing:1px;font-weight:500;">FURNITURE • OFFICIAL RECEIPT</div>
-    </div>
-
-    <!-- Order Details Row -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;font-size:13px;">
-      <div style="background:#f5f5f5;padding:12px 14px;border-radius:6px;border-left:4px solid #2d5a2d;">
-        <div style="color:#666;font-size:11px;font-weight:600;margin-bottom:4px;text-transform:uppercase;">Order Number</div>
-        <div style="font-weight:700;color:#1a3a2e;font-size:14px;">${data.orderId || 'N/A'}</div>
-      </div>
-      <div style="background:#f5f5f5;padding:12px 14px;border-radius:6px;border-left:4px solid #2d5a2d;">
-        <div style="color:#666;font-size:11px;font-weight:600;margin-bottom:4px;text-transform:uppercase;">Order Date</div>
-        <div style="font-weight:700;color:#1a3a2e;font-size:14px;">${data.date || 'N/A'}</div>
-      </div>
-    </div>
-
-    <!-- Delivery & Payment Info -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;font-size:13px;">
-      <div>
-        <div style="color:#2d5a2d;font-weight:700;font-size:12px;margin-bottom:10px;text-transform:uppercase;">Delivery Information</div>
-        <div style="background:#fafafa;padding:12px;border-radius:6px;line-height:1.6;font-size:13px;color:#1a3a2e;">
-          <div style="font-weight:600;">${data.fullName || ''}</div>
-          <div>${data.address || ''}${data.barangay ? ', ' + data.barangay : ''}${data.city ? ', ' + data.city : ''}${data.province ? ', ' + data.province : ''}${data.zip ? ' ' + data.zip : ''}</div>
-          <div style="margin-top:6px;color:#666;">${data.phone || ''}</div>
-        </div>
-      </div>
-      <div>
-        <div style="color:#2d5a2d;font-weight:700;font-size:12px;margin-bottom:10px;text-transform:uppercase;">Payment Method</div>
-        <div style="background:#f0fdf4;padding:12px;border-radius:6px;border-left:3px solid #2d5a2d;font-size:13px;color:#1a3a2e;font-weight:600;">${data.payMethod || 'N/A'}</div>
-      </div>
-    </div>
-
-    <!-- Items Table -->
-    <div style="margin-bottom:24px;">
-      <div style="color:#2d5a2d;font-weight:700;font-size:12px;margin-bottom:12px;text-transform:uppercase;">Order Items</div>
-      <table style="width:100%;border-collapse:collapse;font-size:13px;">
-        <thead>
-          <tr style="background:#2d5a2d;color:#fff;border:none;">
-            <th style="padding:10px 12px;text-align:left;font-weight:600;border:none;">Item</th>
-            <th style="padding:10px 12px;text-align:center;font-weight:600;border:none;width:60px;">Qty</th>
-            <th style="padding:10px 12px;text-align:right;font-weight:600;border:none;width:100px;">Unit Price</th>
-            <th style="padding:10px 12px;text-align:right;font-weight:600;border:none;width:100px;">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${(data.items || []).map(function(item){ return `
-            <tr style="border-bottom:1px solid #eee;">
-              <td style="padding:10px 12px;color:#1a3a2e;">${item.name}</td>
-              <td style="padding:10px 12px;text-align:center;color:#1a3a2e;">${item.qty}</td>
-              <td style="padding:10px 12px;text-align:right;color:#1a3a2e;">₱${Number(item.price).toFixed(2)}</td>
-              <td style="padding:10px 12px;text-align:right;font-weight:600;color:#2d5a2d;">₱${Number(item.subtotal).toFixed(2)}</td>
-            </tr>`; }).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Totals Section -->
-    <div style="background:#f9f9f9;padding:16px 14px;border-radius:6px;margin-bottom:20px;border:1px solid #e0e0e0;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;color:#1a3a2e;">
-        <div>Subtotal</div>
-        <div>₱${Number(data.subtotal || 0).toFixed(2)}</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:13px;color:#1a3a2e;border-bottom:1px solid #e0e0e0;padding-bottom:12px;">
-        <div>Shipping & Handling</div>
-        <div>₱${Number(data.shipping || 0).toFixed(2)}</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:#2d5a2d;">
-        <div>TOTAL PAID</div>
-        <div>₱${Number(data.total || 0).toFixed(2)}</div>
-      </div>
-    </div>
-
-    <!-- Special Notes -->
-    ${ (data.payMethod === 'Cash on Delivery (COD)' && !data.isDelivered) ? `
-      <div style="background:#fff3cd;padding:12px;border-left:4px solid #ffc107;border-radius:4px;margin-bottom:16px;font-size:12px;color:#856404;">
-        <strong>NOTE:</strong> Cash on Delivery — payment will be collected upon delivery.
-      </div>
-    ` : '' }
-
-    <!-- Footer -->
-    <div style="text-align:center;padding-top:16px;border-top:1px solid #eee;color:#666;font-size:12px;line-height:1.6;">
-      <p style="margin:0;">Thank you for your purchase!</p>
-      <p style="margin:6px 0 0;">For inquiries, message us at: <strong>zythera@gmail.com</strong></p>
-      <p style="margin:4px 0;font-size:11px;color:#999;">Order printed on ${new Date().toLocaleString()}</p>
-    </div>
-  </div>
-  `;
-
-  // create a temporary container to render HTML
-  const container = document.createElement('div');
-  container.style.width = '750px';
-  container.style.background = '#fff';
-  container.style.padding = '6px';
-  container.innerHTML = receiptHTML;
-  document.body.appendChild(container);
-
-  // if jspdf + html2canvas loaded, use them
-  if (window.jspdf && window.html2canvas) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const contentWidthPt = 750 * 0.75; // px -> pt approx at scale 1.2
-    const xOffset = Math.max(20, (pageWidth - contentWidthPt) / 2);
-    doc.html(container, {
-      callback: function (doc) {
-        doc.save('ZYTHERA_receipt_' + (data.orderId || 'order') + '.pdf');
-        if (container.parentNode) container.parentNode.removeChild(container);
-      },
-      x: xOffset,
-      y: 20,
-      html2canvas: { scale: 1.2 }
-    });
-  } else {
-    // fallback: open printable window (user can Save as PDF), centered on screen
-    const w = window.open('', '_blank');
-    w.document.write('<html><head><title>Receipt</title><style>body{margin:0;padding:24px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;background:#f0f0f0;box-sizing:border-box;}</style></head><body>' + receiptHTML + '</body></html>');
-    w.document.close();
-    w.focus();
-    w.print();
-    if (container.parentNode) container.parentNode.removeChild(container);
-  }
-}
-
-window.orderReceiptData = {
-  orderId: <?= json_encode($orderId) ?>,
-  date: <?= json_encode($oDate) ?>,
-  status: <?= json_encode($oStatus) ?>,
-  payMethod: <?= json_encode($payMethod) ?>,
-  fullName: <?= json_encode($fullName) ?>,
-  phone: <?= json_encode($phone) ?>,
-  address: <?= json_encode($address) ?>,
-  barangay: <?= json_encode($barangay) ?>,
-  city: <?= json_encode($city) ?>,
-  province: <?= json_encode($province) ?>,
-  zip: <?= json_encode($zip) ?>,
-  subtotal: <?= json_encode($subtotal) ?>,
-  shipping: <?= json_encode($shipping) ?>,
-  total: <?= json_encode($total) ?>,
-  isDelivered: <?= json_encode($isDelivered) ?>,
-  items: <?= json_encode(array_map(function($oi){ return [
-      'name' => $oi->product_name ?? '',
-      'qty' => (int)($oi->qty ?? 1),
-      'price' => (float)($oi->price ?? 0),
-      'subtotal' => (float)($oi->price ?? 0) * (int)($oi->qty ?? 1),
-    ];}, $oItems)) ?>
-};
-
-function toggleReviewEditForm(show) {
-  const form = document.getElementById('review-edit-form');
-  if (!form) return;
-  form.style.display = show ? '' : 'none';
-  if (show) {
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
-setInterval(pollOrderStatus, 30000);
-</script>
+  <script>
+    /* PHP-seeded globals for order.js */
+    const ORDER_DATA = {
+      orderId:    <?= json_encode($orderId) ?>,
+      date:       <?= json_encode($oDate) ?>,
+      status:     <?= json_encode($oStatus) ?>,
+      payMethod:  <?= json_encode($payMethod) ?>,
+      fullName:   <?= json_encode($fullName) ?>,
+      phone:      <?= json_encode($phone) ?>,
+      address:    <?= json_encode($address) ?>,
+      barangay:   <?= json_encode($barangay) ?>,
+      city:       <?= json_encode($city) ?>,
+      province:   <?= json_encode($province) ?>,
+      zip:        <?= json_encode($zip) ?>,
+      subtotal:   <?= json_encode($subtotal) ?>,
+      shipping:   <?= json_encode($shipping) ?>,
+      total:      <?= json_encode($total) ?>,
+      isDelivered:<?= json_encode($isDelivered) ?>,
+      items:      <?= json_encode(array_map(function($oi){ return [
+        'name'     => $oi->product_name ?? $oi->item_name ?? '',
+        'qty'      => (int)($oi->qty ?? $oi->quantity ?? 1),
+        'price'    => (float)($oi->price ?? 0),
+        'subtotal' => (float)($oi->price ?? 0) * (int)($oi->qty ?? $oi->quantity ?? 1),
+        'image'    => $oi->image ?? '',
+      ];}, $oItems)) ?>
+    };
+  </script>
+  <script src="assets/js/order.js"></script>
 </body>
 </html>
