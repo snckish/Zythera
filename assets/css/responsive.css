@@ -252,12 +252,6 @@ a {
     padding: 14px 16px;
   }
 
-  body.dark .navbar-collapse.show,
-  body.dark .navbar-collapse.collapsing {
-    background: #1f2937 !important;
-    border-color: rgba(255,255,255,0.08);
-  }
-
   /* ── Links: stack vertically, full width, tap-friendly ── */
   .navbar-collapse .ms-auto.d-flex {
     flex-direction: column !important;
@@ -279,12 +273,6 @@ a {
   .navbar-collapse .nav-link:hover {
     background: rgba(45,90,45,0.08);
   }
-  body.dark .navbar-collapse .nav-link {
-    color: #a8d4a8 !important;
-  }
-  body.dark .navbar-collapse .nav-link:hover {
-    background: rgba(168,212,168,0.1);
-  }
   .navbar-collapse .nav-link::after {
     display: none !important;
   }
@@ -303,10 +291,6 @@ a {
     width: 100% !important;
     box-sizing: border-box !important;
     position: relative !important;
-  }
-  body.dark .nav-user-capsule {
-    background: rgba(168,212,168,0.07) !important;
-    border-color: rgba(168,212,168,0.15) !important;
   }
 
   /* Show name/time on mobile (was d-none d-md-block) */
@@ -393,10 +377,6 @@ a {
     font-weight: 600;
     color: var(--green);
   }
-  body.dark .navbar-collapse a[title="Cart"]::after,
-  body.dark .navbar-collapse a[aria-label="Profile settings"]::after {
-    color: #a8d4a8;
-  }
 
   /* Cart badge: keep beside the icon */
   .navbar-collapse a[title="Cart"] .badge {
@@ -417,13 +397,6 @@ a {
   }
 
   /* ── Dark-mode toggle: full width ── */
-  .dark-toggle-btn {
-    display: flex !important;
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 10px !important;
-    box-sizing: border-box !important;
-  }
 }
 
 /* ── Very small phones ── */

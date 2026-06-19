@@ -86,14 +86,6 @@
     .nav-user-capsule:hover img {
       border-color: rgba(45,90,45,.3);
     }
-    body.dark .nav-user-capsule {
-      background: #1f2937;
-      border-color: rgba(168,212,168,.15);
-    }
-    body.dark .nav-user-capsule:hover {
-      background: #2d3748;
-      border-color: rgba(168,212,168,.3);
-    }
 
     /* ── LOGOUT CONFIRMATION MODAL ── */
     .logout-modal-overlay {
@@ -286,7 +278,3 @@
     .about-footer-social:hover { background: var(--green); color: #fff; }
 
     /* ── Dark mode footer ── */
-    body.dark .about-footer { background: #0a140a !important; }
-    body.dark .about-footer * { color: rgba(212,228,212,.65) !important; }
-    body.dark .about-footer .about-footer-link:hover,
-    body.dark .about-footer .about-footer-social:hover { color: #fff !important; }

@@ -95,16 +95,6 @@
             border-color: rgba(45,90,45,.3);
         }
 
-        body.dark .nav-user-capsule {
-            background: #1f2937;
-            border-color: rgba(168,212,168,.15);
-        }
-
-        body.dark .nav-user-capsule:hover {
-            background: #2d3748;
-            border-color: rgba(168,212,168,.3);
-        }
-
         .profile-card {
             border: none;
             border-radius: 20px;
@@ -693,12 +683,6 @@
             margin: 0 0 24px 0;
             line-height: 1.5;
         }
-
-        body.dark .logout-modal { background: #1f2937; }
-        body.dark .logout-modal h2 { color: #a8d4a8; }
-        body.dark .logout-modal p { color: #cbd5e1; }
-        body.dark .logout-cancel-btn { background: #2d3748; color: #cbd5e1; }
-        body.dark .logout-cancel-btn:hover { background: #374151; }
 
         .logout-modal-buttons {
             display: flex;

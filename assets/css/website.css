@@ -30,7 +30,6 @@
       font-family: var(--text-font);
     }
 
-
     :root {
       --green: #2d5a2d;
       --sage: #d4e4d4;
@@ -122,49 +121,8 @@
 }
 
 /* Dark Mode Support */
-body.dark .nav-user-capsule {
-  background: #1f2937;
-  border-color: rgba(168,212,168,.15);
-}
-
-body.dark .nav-user-capsule:hover {
-  background: #2d3748;
-  border-color: rgba(168,212,168,.3);
-}
 
     /* ── DARK MODE TOGGLE ── */
-    .dark-toggle-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px 6px 10px;
-      border: 1.5px solid rgba(45,90,45,.25);
-      border-radius: 50px;
-      background: transparent;
-      color: var(--green);
-      font-size: .8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background var(--transition), border-color var(--transition), color var(--transition);
-      line-height: 1;
-      white-space: nowrap;
-    }
-    .dark-toggle-btn:hover {
-      background: var(--green);
-      color: #fff;
-      border-color: var(--green);
-    }
-    .dark-toggle-icon { display: flex; align-items: center; }
-    body.dark .dark-toggle-btn {
-      border-color: rgba(168,212,168,.4) !important;
-      color: #a8d4a8 !important;
-      background: transparent !important;
-    }
-    body.dark .dark-toggle-btn:hover {
-      background: rgba(168,212,168,.15) !important;
-      color: #fff !important;
-      border-color: rgba(168,212,168,.7) !important;
-    }
 
     /* ── HERO ── */
     .hero {
@@ -615,23 +573,7 @@ body.dark .nav-user-capsule:hover {
 }
 
 /* Dark Mode */
-body.dark .review-edit-modal {
-  background: #1f2937;
-}
 
-body.dark .review-edit-modal h5 {
-  color: #ffffff;
-}
-
-body.dark .review-edit-modal textarea {
-  background: #374151;
-  border-color: #4b5563;
-  color: #e5e7eb;
-}
-
-body.dark .review-edit-modal textarea:focus {
-  border-color: var(--green);
-}
     /* ── LOGOUT CONFIRMATION MODAL ── */
     .logout-modal-overlay {
       display: none;
@@ -679,23 +621,6 @@ body.dark .review-edit-modal textarea:focus {
       font-size: .95rem;
       margin: 0 0 24px 0;
       line-height: 1.5;
-    }
-
-    body.dark .logout-modal {
-      background: #1f2937;
-    }
-    body.dark .logout-modal h2 {
-      color: #a8d4a8;
-    }
-    body.dark .logout-modal p {
-      color: #cbd5e1;
-    }
-    body.dark .logout-cancel-btn {
-      background: #2d3748;
-      color: #cbd5e1;
-    }
-    body.dark .logout-cancel-btn:hover {
-      background: #374151;
     }
 
     .logout-modal-buttons {

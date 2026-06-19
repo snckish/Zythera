@@ -1,18 +1,5 @@
 /* ── logsign.php scripts ── */
 
-function toggleDark(){
-  var dark = !document.body.classList.contains('dark');
-  document.documentElement.classList.toggle('zd', dark);
-  document.body.classList.toggle('dark', dark);
-  localStorage.setItem('zythera_dark', dark ? '1' : '0');
-  var age = dark ? 60*60*24*365 : 0;
-  document.cookie = 'zythera_dark=' + (dark ? '1' : '0') + ';path=/;max-age=' + age;
-  document.documentElement.style.background = dark ? '#111e11' : '#ffffff';
-  if (!dark) document.documentElement.style.background = '';
-  var btn = document.getElementById('darkToggle');
-  if(btn) btn.textContent = dark ? 'Light Mode' : 'Dark Mode';
-}
-
 document.addEventListener('DOMContentLoaded',()=>{ if(LOGSIGN_TOAST_MSG) showToast(LOGSIGN_TOAST_MSG, LOGSIGN_TOAST_TYPE); });
 
 function togglePw(inputId, btn) {
@@ -23,7 +10,6 @@ function togglePw(inputId, btn) {
   icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
 }
 
-// Dark mode handled by inline script above
 function switchTab(tab) {
   document.getElementById('loginForm').classList.toggle('active', tab==='login');
   document.getElementById('signupForm').classList.toggle('active',tab==='signup');

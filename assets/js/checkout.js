@@ -1,15 +1,5 @@
 /* ── checkout.php scripts ── */
 
-(function(){
-  if(localStorage.getItem('zythera_dark')==='1'){
-    document.documentElement.style.background='#111e11';
-    document.addEventListener('DOMContentLoaded',function(){
-      document.body.classList.add('dark');
-      document.documentElement.style.background='';
-    });
-  }
-})();
-
 // ── Data from PHP ─────────────────────────────────────────────
 // PROVINCE_CITIES, CITY_ZIP_CODES, CITY_BARANGAYS, ALL_CITIES, SAVED_BARANGAY — seeded inline by checkout.php
 

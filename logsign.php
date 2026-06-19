@@ -251,44 +251,9 @@ if (!empty($_SESSION['logged_in_user'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title> ZYTHERA </title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,700&family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="dark-mode.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="dark-mode.js"></script>
-
-<link rel="stylesheet" href="responsive.css">
-
+<link rel="stylesheet" href="assets/css/responsive.css">
   <link rel="stylesheet" href="assets/css/logsign.css">
-  <script>
-/* ZYTHERA dark mode — apply before paint to prevent flash */
-(function(){
-  var dark = localStorage.getItem('zythera_dark') === '1';
-  if (dark) {
-    document.documentElement.classList.add('zd');
-    document.documentElement.style.background = '#111e11';
-    if (document.body) document.body.classList.add('dark');
-    document.addEventListener('DOMContentLoaded', function(){
-      document.body.classList.add('dark');
-      document.documentElement.style.background = '';
-      var btn = document.getElementById('darkToggle');
-      if (btn) btn.textContent = 'Light Mode';
-    });
-  } else {
-    document.documentElement.style.background = '#ffffff';
-  }
-})();
-function toggleDark(){
-  var dark = !document.body.classList.contains('dark');
-  document.documentElement.classList.toggle('zd', dark);
-  document.body.classList.toggle('dark', dark);
-  localStorage.setItem('zythera_dark', dark ? '1' : '0');
-  var age = dark ? 60*60*24*365 : 0;
-  document.cookie = 'zythera_dark=' + (dark ? '1' : '0') + ';path=/;max-age=' + age;
-  document.documentElement.style.background = dark ? '#111e11' : '#ffffff';
-  if (!dark) document.documentElement.style.background = '';
-  var btn = document.getElementById('darkToggle');
-  if(btn) btn.textContent = dark ? 'Light Mode' : 'Dark Mode';
-}
-</script>
 </head>
 <body>
 
