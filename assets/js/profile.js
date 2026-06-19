@@ -2,9 +2,13 @@
 
 
 document.addEventListener('DOMContentLoaded', function () {
-                if (typeof showToast === 'function') showToast('Profile updated successfully.');
-                // Drop ?updated=1 from the URL so refreshing doesn't re-show the toast
                 const url = new URL(window.location.href);
+                const updated = url.searchParams.get('updated');
+                if (typeof showToast === 'function') {
+                    if (updated === 'account') showToast('Account saved successfully.');
+                    else if (updated === 'password') showToast('Password updated successfully.');
+                }
+                // Drop ?updated from the URL so refreshing doesn't re-show the toast
                 url.searchParams.delete('updated');
                 window.history.replaceState({}, '', url.pathname + (url.search || '') + url.hash);
             });

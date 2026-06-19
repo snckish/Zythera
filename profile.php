@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->prepare("UPDATE users SET fname=?, mname=?, lname=?, phone_num=?, birthday=? WHERE email=?")
                    ->execute([$nameParts['fname'], $nameParts['mname'], $nameParts['lname'], $newPhone ?: null, $newBirthday ?: null, $userEmail]);
             }
-            header('Location: profile.php?updated=1&tab=account');
+            header('Location: profile.php?updated=account&tab=account');
             exit;
         }
         $activeSettingsTab = 'account';
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $db->prepare("UPDATE users SET password=? WHERE email=?")->execute([$hashed, $userEmail]);
             }
-            header('Location: profile.php?updated=1&tab=security');
+            header('Location: profile.php?updated=password&tab=security');
             exit;
         }
         $activeSettingsTab = 'security';
