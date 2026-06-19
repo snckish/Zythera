@@ -231,8 +231,21 @@ if (isset($_GET['delete'])) {
 
     try {
         $db = getDBConnection();
-        $stmt = $db->prepare("DELETE FROM product_inv WHERE prod_id = ?");
-        $stmt->execute([$inv_id]);
+
+        // Check if this product is referenced by any order_items
+        $check = $db->prepare("SELECT COUNT(*) FROM order_items WHERE prod_id = ?");
+        $check->execute([$inv_id]);
+        $refCount = (int)$check->fetchColumn();
+
+        if ($refCount > 0) {
+            // Soft delete: mark as deleted so it's hidden but FK integrity is preserved
+            $stmt = $db->prepare("UPDATE product_inv SET is_deleted = 1 WHERE prod_id = ?");
+            $stmt->execute([$inv_id]);
+        } else {
+            // No orders reference this product — safe to hard delete
+            $stmt = $db->prepare("DELETE FROM product_inv WHERE prod_id = ?");
+            $stmt->execute([$inv_id]);
+        }
     } catch (PDOException $e) {
         die("Delete Error: " . $e->getMessage());
     }

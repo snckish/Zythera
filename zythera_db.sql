@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS product_inv (
     prod_stock  INT            NOT NULL DEFAULT 0,
     unit_price  DECIMAL(10,2)  NOT NULL,
     img_url     VARCHAR(255),
+    is_deleted  TINYINT(1)     NOT NULL DEFAULT 0,
     PRIMARY KEY (prod_id),
     CONSTRAINT fk_pi_category FOREIGN KEY (category_id) REFERENCES category (category_id)
         ON UPDATE CASCADE ON DELETE RESTRICT

@@ -171,6 +171,7 @@ function loadInventory(): array {
                 p.category_id   AS category_id
             FROM product_inv p
             LEFT JOIN category c ON c.category_id = p.category_id
+            WHERE p.is_deleted = 0
             ORDER BY p.prod_id ASC
         ");
         return $stmt->fetchAll();
