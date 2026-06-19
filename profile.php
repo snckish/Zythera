@@ -1017,12 +1017,48 @@ foreach ($_SESSION['inventory'] ?? [] as $inv) {
 
         /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
+            body { font-size: .93rem; }
+            .navbar-brand { font-size: 1.2rem; letter-spacing: 1.3px; }
+
             .two-col-layout {
                 grid-template-columns: 1fr;
             }
             .profile-col {
                 position: static;
             }
+
+            .profile-card { border-radius: 16px; margin-bottom: 16px; }
+            .profile-header { padding: 24px 18px; }
+            .avatar-ring { width: 76px; height: 76px; font-size: 1.8rem; margin-bottom: 10px; }
+
+            .section-card { padding: 16px; border-radius: 14px; margin-bottom: 14px; }
+            .section-title { font-size: .95rem; margin-bottom: 14px; }
+
+            .settings-tab-btn { padding: 10px 12px; font-size: .88rem; }
+
+            .address-card { padding: 13px; margin-bottom: 11px; }
+            .label-pill { font-size: .68rem; padding: 3px 9px; }
+
+            .order-tabs { gap: 5px; margin-bottom: 14px; padding-bottom: 10px; }
+            .order-tab { padding: 6px 11px; font-size: .72rem; }
+            .tab-count { font-size: .62rem; min-width: 16px; height: 16px; }
+
+            .orders-col .section-card { min-height: 0; }
+
+            .order-box { padding: 13px; margin-bottom: 11px; }
+            .order-summary { gap: 10px; }
+            .order-summary-right { min-width: 88px; }
+            .order-summary-title { font-size: .88rem; }
+            .order-summary-meta { font-size: .76rem; margin-top: 4px; }
+            .order-total { font-size: .88rem; }
+            .order-status { font-size: .62rem; padding: 3px 9px; }
+            .totals-box { padding: 12px 14px; }
+        }
+
+        @media (max-width: 480px) {
+            .profile-header { padding: 20px 14px; }
+            .avatar-ring { width: 64px; height: 64px; font-size: 1.5rem; }
+            .section-card { padding: 13px; }
         }
     </style>
 <script>

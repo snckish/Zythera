@@ -899,8 +899,69 @@ body.dark .review-edit-modal textarea:focus {
     .scroll-btn.right { right: -18px; }
 
     @media (max-width: 576px) {
-      .scroll-btn { display: none; }
       .review-item { min-width: 248px; max-width: 248px; }
+    }
+
+    /* ══════════ MOBILE RESPONSIVE OVERHAUL ══════════ */
+    @media (max-width: 991.98px) {
+      .scroll-btn { display: none; }
+    }
+
+    @media (max-width: 767.98px) {
+      body { padding-top: 60px; font-size: .95rem; }
+
+      /* Navbar */
+      .navbar { min-height: 60px; padding-top: 6px; padding-bottom: 6px; }
+      .navbar-brand { font-size: 1.2rem; letter-spacing: 1.5px; }
+
+      /* Hero — was 90vh/min 520px desktop banner; way too tall on phones */
+      .hero { height: auto; min-height: 0; padding: 60px 16px; }
+      .hero-text {
+        font-size: clamp(.95rem, 4vw, 1.15rem);
+        line-height: 1.55;
+        padding: 26px 20px;
+        max-width: 100%;
+      }
+      .hero-cta {
+        margin-top: 18px;
+        padding: 10px 26px;
+        font-size: .8rem;
+      }
+
+      /* Sections */
+      .section { padding: 40px 0; }
+      .section-title { font-size: 1.3rem; margin-bottom: 24px; }
+
+      /* Product cards */
+      .product-card img { height: 170px; }
+      .product-name { font-size: .92rem; }
+      .product-price { font-size: 1rem; }
+      .btn-cart { padding: .55rem .8rem; font-size: .82rem; }
+
+      /* Reviews */
+      .reviews-section { padding: 40px 0; }
+      .review-item { min-width: 240px; max-width: 240px; padding: 18px 16px; }
+
+      /* Contact */
+      .contact-card { padding: 24px 18px; border-radius: 14px; }
+      .input-box input, .input-box textarea { padding: 13px 14px; font-size: .9rem; }
+      .input-box label { top: 14px; left: 14px; font-size: .82rem; }
+      .social-icon { width: 36px; height: 36px; }
+
+      /* Footer */
+      .site-footer { padding: 36px 0 0; }
+      .site-footer .footer-col { margin-bottom: 26px; }
+      .site-footer .footer-brand-name { font-size: 1.2rem; }
+      .site-footer .footer-bottom { justify-content: center; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-text { padding: 20px 16px; border-radius: 10px; font-size: .9rem; }
+      .hero-cta { padding: 9px 22px; font-size: .76rem; }
+      .product-card img { height: 150px; }
+      .section { padding: 32px 0; }
+      .section-title { font-size: 1.15rem; }
+      .contact-card { padding: 20px 14px; }
     }
 
     /* CONTACT */
@@ -1074,11 +1135,7 @@ body.dark .review-edit-modal textarea:focus {
       background: var(--green);
       color: #fff;
     }
-    @media (max-width: 767px) {
-      .site-footer { padding: 44px 0 0; }
-      .site-footer .footer-col { margin-bottom: 32px; }
-      .site-footer .footer-bottom { justify-content: center; text-align: center; }
-    }
+    /* footer mobile rules merged into main responsive block above */
 
     .toast-fixed {
       position: fixed;

@@ -661,3 +661,41 @@ a {
 .navbar:not(:has(.navbar-toggler)) .ms-auto.d-flex {
   margin-left: 0 !important;  /* ms-auto already handles spacing via brand's margin-right */
 }
+
+/* ================================================================
+   ORDERS PAGE — orders.php (.page-header, .section-card, .order-box,
+   .timeline-wrap, .totals-box, .order-status, .empty-state)
+   ================================================================ */
+
+@media (max-width: 767.98px) {
+  .page-header { padding: 22px 0 6px; }
+  .page-header h2 { font-size: 1.3rem; }
+  .page-header .badge { font-size: .68rem !important; padding: 4px 10px !important; }
+
+  .section-card { padding: 16px; border-radius: 14px; margin-bottom: 14px; }
+
+  .order-box { padding: 13px; border-radius: 12px; margin-bottom: 11px; }
+  .order-status { font-size: .62rem; padding: 3px 9px; }
+
+  /* Timeline: shrink dots, wrap labels, reduce connecting line offset math */
+  .timeline-wrap { padding: 14px 0 6px; }
+  .timeline-wrap::before { top: 22px; left: calc(12.5% - 1px); }
+  .tl-dot { width: 26px; height: 26px; font-size: .68rem; border-width: 2px; margin-bottom: 6px; }
+  .tl-line-done { top: 11px; }
+  .tl-label { font-size: .62rem; }
+
+  .cancelled-bar { padding: 11px 14px; font-size: .82rem; gap: 8px; }
+
+  .totals-box { padding: 12px 14px; }
+  .totals-row { font-size: .8rem; }
+  .totals-row.grand { font-size: .92rem; }
+
+  .empty-state { padding: 40px 16px; }
+  .empty-state i { font-size: 2.2rem; margin-bottom: 12px; }
+}
+
+@media (max-width: 480px) {
+  .timeline-wrap { flex-wrap: wrap; gap: 10px 0; }
+  .timeline-wrap::before { display: none; }
+  .tl-step { flex: 0 0 33.33%; }
+}

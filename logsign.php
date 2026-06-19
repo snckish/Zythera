@@ -591,13 +591,23 @@ body{
   .auth-shell{grid-template-columns:1fr;padding:0;}
   .auth-visual{display:none;}
   .auth-panel{
-    height:100dvh;padding:32px 22px;
+    height:100dvh;padding:24px 18px;
     background:linear-gradient(160deg,#ffffff 50%,var(--dark--green) 100%);
   }
-  .card{padding:28px 22px 24px;}
+  .card{padding:30px 22px 26px;border-radius:18px;}
+  .card-brand{font-size:1.4rem;letter-spacing:2px;margin-bottom:4px;}
+  .card-tagline{font-size:.72rem;margin-bottom:20px;}
+  .tabs{margin-bottom:20px;}
+  .tabs button{padding:9px;font-size:.84rem;}
+  .form-title{font-size:1.35rem;margin-bottom:16px;}
+  .field{margin-bottom:12px;}
+  .field input,.field select{padding:11px 14px;font-size:.85rem;}
+  .field label{font-size:.76rem;margin-bottom:5px;}
 }
 @media(max-width:500px){
-  .card{max-width:100%;}
+  .card{max-width:100%;padding:26px 18px 22px;}
+  .card-brand{font-size:1.25rem;}
+  .form-title{font-size:1.2rem;}
   .name-grid{grid-template-columns:1fr;gap:0;}
   .name-grid .field:last-child{grid-column:auto;}
 }

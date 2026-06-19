@@ -275,10 +275,29 @@ if ($userEmail && isset($_SESSION['cart'][$userEmail])) {
     .value-item h6 { color: var(--deep); font-weight: 600; margin-bottom: .25rem; }
 
     @media (max-width: 768px) {
-      .about-hero { padding: 3.5rem 0 3rem; }
-      .cta-panel { padding: 2rem 1.5rem; }
-      .metric-item h3 { font-size: 1.9rem; }
-      .team-photo-card img { height: 240px; }
+      body { font-size: .95rem; }
+      .navbar-brand { font-size: 1.2rem; letter-spacing: 1.3px; }
+      .about-hero { padding: 3rem 0 2.5rem; }
+      .about-hero p { font-size: .95rem; max-width: 100%; }
+      .cta-panel { padding: 1.75rem 1.25rem; border-radius: 16px; }
+      .cta-panel h2 { font-size: 1.4rem; }
+      .metric-strip { padding: 2.25rem 0; }
+      .metric-item { padding: .6rem; }
+      .metric-item h3 { font-size: 1.7rem; }
+      .metric-item p { font-size: .8rem; }
+      .team-photo-card img { height: 200px; }
+      .team-photo-card .team-caption { padding: 1rem 1.1rem; }
+      .value-item { gap: .75rem; margin-bottom: 1.1rem; }
+      .value-num { width: 30px; height: 30px; font-size: .8rem; }
+      .value-item p { font-size: .88rem; }
+      .about-footer { padding: 36px 0 0; }
+    }
+
+    @media (max-width: 480px) {
+      .about-hero { padding: 2.25rem 0 2rem; }
+      .cta-panel { padding: 1.4rem 1rem; }
+      .metric-item h3 { font-size: 1.4rem; }
+      .team-photo-card img { height: 170px; }
     }
 
     /* ── FOOTER ── */

@@ -449,6 +449,41 @@ footer .footer-brand{font-family:'Playfair Display',serif;color:var(--green);fon
 .card-field input:focus{border-color:var(--green);}
 .card-field label{position:absolute;left:14px;top:13px;font-size:.8rem;color:#aaa;pointer-events:none;transition:.2s;}
 .card-field input:focus~label,.card-field input:not(:placeholder-shown)~label{top:3px;font-size:.63rem;color:var(--green);font-weight:600;}
+
+/* ══════════ MOBILE RESPONSIVE ══════════ */
+@media (max-width: 767.98px) {
+  body { padding-top: 60px; font-size: .92rem; }
+  .navbar-brand { font-size: 1.2rem; letter-spacing: 1.3px; }
+
+  .checkout-card { padding: 18px 16px; border-radius: 16px; margin-bottom: 14px; }
+  .checkout-card h5 { font-size: 1.02rem; margin-bottom: 14px; }
+  .step-label { font-size: .65rem; letter-spacing: 1.5px; }
+
+  .saved-address-option { padding: 11px 12px; }
+  .field { margin-bottom: 14px; }
+  .field input, .field select, .field textarea { padding: 13px 12px 6px; font-size: .86rem; }
+  .field label { left: 12px; top: 12px; font-size: .78rem; }
+
+  .pay-option { padding: 12px 13px; gap: 10px; }
+  .pay-icon { width: 30px; height: 30px; font-size: .85rem; }
+
+  .order-item img { width: 44px; height: 44px; }
+  .order-total-row { font-size: .82rem; }
+  .order-total-row.grand { font-size: .95rem; }
+
+  .btn-place { padding: 13px; font-size: .92rem; }
+
+  .qr-block img { width: 130px; height: 130px; }
+
+  footer { padding: 18px; margin-top: 28px; gap: 8px; }
+  footer .footer-brand { font-size: .85rem; letter-spacing: 2px; }
+}
+
+@media (max-width: 480px) {
+  .checkout-card { padding: 14px 12px; }
+  .order-item img { width: 40px; height: 40px; }
+  .pay-icon { width: 28px; height: 28px; }
+}
 </style>
 <script>
 (function(){
